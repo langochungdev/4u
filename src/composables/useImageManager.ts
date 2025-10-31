@@ -5,10 +5,9 @@ export const useImageManager = () => {
   const images = ref<File[]>([]);
   const previews = ref<string[]>([]);
 
-  const addImages = (files: FileList | null) => {
+  const addImages = (files: File[] | null) => {
     if (!files || files.length === 0) return;
-    
-    Array.from(files).forEach(file => {
+    files.forEach(file => {
       images.value.push(file);
       previews.value.push(URL.createObjectURL(file));
     });
