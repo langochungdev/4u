@@ -22,4 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+**/tmp
+# other files
 .env
+.vscode
+**/.cursorrules
+**/copilot-instructions.md
+**/api-docs.json
