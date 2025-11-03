@@ -1,49 +1,33 @@
-import imageCompression from 'browser-image-compression';
+import { ref } from "vue";
+import { uploadToCloudinary } from "@/utils/upload.helper";
 
-// src/composables/useCloudinary.ts
 export const useCloudinary = () => {
-  const env = import.meta.env as Record<string, string | undefined>;
-  
-  const CLOUD_NAME = env.VITE_CLOUDINARY_CLOUD_NAME;
-  const UPLOAD_PRESET = env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  const totalProgress = ref(0);
+  const fileProgress = ref<Record<string, number>>({});
 
-  if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error("Missing Cloudinary environment variables");
-  }
+  const upload = async (files: File | File[]): Promise<string[]> => {
+    const fileArray = Array.isArray(files) ? files : [files];
+    if (fileArray.length === 0) throw new Error("Empty file list");
 
-  const compressImage = async (file: File): Promise<File> => {
-    // Nếu file < 10MB thì trả về nguyên gốc
-    if (file.size < 10 * 1024 * 1024) return file;
-    // Nếu file >= 10MB thì nén về tối đa 9MB, resize max 1920px
-    const options = {
-      maxSizeMB: 9,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
+    fileArray.forEach(f => (fileProgress.value[f.name] = 0));
+
+    const updateTotal = () => {
+      const sum = Object.values(fileProgress.value).reduce((a, b) => a + b, 0);
+      totalProgress.value = Math.round(sum / fileArray.length);
     };
-    return await imageCompression(file, options);
-  };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const processed = await compressImage(file);
-    const formData = new FormData();
-    formData.append("file", processed);
-    formData.append("upload_preset", UPLOAD_PRESET);
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
+    const urls = await Promise.all(
+      fileArray.map(file =>
+        uploadToCloudinary(file, percent => {
+          fileProgress.value[file.name] = percent;
+          updateTotal();
+        })
+      )
     );
-    const data = await res.json();
-    return data.secure_url;
-  };
 
-  const uploadMultiple = async (files: File[]): Promise<string[]> => {
-    const urls: string[] = [];
-    for (const file of files) {
-      const url = await uploadImage(file);
-      urls.push(url);
-    }
+    totalProgress.value = 100;
     return urls;
   };
 
-  return { uploadImage, uploadMultiple };
+  return { upload, totalProgress, fileProgress };
 };

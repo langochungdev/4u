@@ -2,30 +2,29 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/input/:id?',
+    name: 'Input',
+    component: () => import('@/pages/input/index.vue'),
+    meta: {
+      title: 'Input',
+    },
+  },
+  {
     path: '/',
     name: 'Home',
-    component: () => import('@/pages/input/index.vue'),
+    component: () => import('@/pages/Home.vue'),
     meta: {
       title: 'Trang chủ',
     },
   },
   {
-    path: '/tp1/:id',
-    name: 'Template1',
-    component: () => import('@/pages/templates/tp1/index.vue'),
+    path: '/demo/:id?',
+    name: 'Demo',
+    component: () => import('@/pages/templates/demo/index.vue'),
     meta: {
-      title: 'Template 1',
+      title: 'Demo - Xem chi tiết',
     },
   },
-  // Template 2 route (nếu có)
-  // {
-  //   path: '/templates/tp2/:id',
-  //   name: 'Template2',
-  //   component: () => import('./pages/templates/tp2/index.vue'),
-  //   meta: {
-  //     title: 'Template 2',
-  //   },
-  // },
   
   {
     path: '/:pathMatch(.*)*',
@@ -49,23 +48,8 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  const title = to.meta.title as string || 'My App';
-  document.title = title;
-  
-  // Có thể thêm logic authentication ở đây
-  // const isAuthenticated = checkAuth();
-  // if (to.meta.requiresAuth && !isAuthenticated) {
-  //   next('/login');
-  // } else {
-  //   next();
-  // }
-  
+  document.title = (to.meta.title as string) || 'My App';
   next();
-});
-
-router.afterEach((_to, _from) => {
-  // Có thể log analytics ở đây
-  // console.log(`Navigated from ${_from.path} to ${_to.path}`);
 });
 
 export default router;
