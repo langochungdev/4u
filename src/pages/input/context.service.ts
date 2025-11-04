@@ -9,9 +9,12 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-export interface LetterPayload {
-  title: string;
-  content: string;
+// Collection names
+const CONTEXTS_COLLECTION = "test";
+const MEDIA_COLLECTION = "media";
+
+export interface ContextPayload {
+  content: string[];
   images: string[];
   videos?: string[];
   audios?: string[];
@@ -22,31 +25,30 @@ export interface DeletedMedia {
   deletedAt: any;
 }
 
-export const letterService = {
-  async create(data: LetterPayload): Promise<string> {
-    const ref = await addDoc(collection(db, "letters"), {
+export const contextService = {
+  async create(data: ContextPayload): Promise<string> {
+    const ref = await addDoc(collection(db, CONTEXTS_COLLECTION), {
       ...data,
       createdAt: serverTimestamp(),
     });
     return ref.id;
   },
 
-  async getById(id: string): Promise<LetterPayload | null> {
-    const snapshot = await getDoc(doc(db, "letters", id));
+  async getById(id: string): Promise<ContextPayload | null> {
+    const snapshot = await getDoc(doc(db, CONTEXTS_COLLECTION, id));
     if (!snapshot.exists()) return null;
 
-    const data = snapshot.data() as LetterPayload;
+    const data = snapshot.data() as ContextPayload;
     return {
-      title: data.title || "",
-      content: data.content || "",
+      content: data.content || [],
       images: data.images || [],
       videos: data.videos || [],
       audios: data.audios || [],
     };
   },
 
-  async update(id: string, data: Partial<LetterPayload>): Promise<void> {
-    await updateDoc(doc(db, "letters", id), {
+  async update(id: string, data: Partial<ContextPayload>): Promise<void> {
+    await updateDoc(doc(db, CONTEXTS_COLLECTION, id), {
       ...data,
       updatedAt: serverTimestamp(),
     });
@@ -55,7 +57,7 @@ export const letterService = {
   async saveDeletedMedia(urls: string[]): Promise<void> {
     if (urls.length === 0) return;
 
-    const deleteDocRef = doc(db, "media", "delete");
+    const deleteDocRef = doc(db, MEDIA_COLLECTION, "delete");
     const snapshot = await getDoc(deleteDocRef);
     
     const existingUrls = snapshot.exists() ? (snapshot.data() as DeletedMedia).urls || [] : [];

@@ -9,7 +9,6 @@ const createManager = (type: "image" | "audio" | "video", limit: number) => {
 
     const incoming = Array.from(fileList).filter(f => f.type.startsWith(type + "/"));
     if (incoming.length === 0) return;
-    if (type !== "image") clearAll();
 
     const availableSlots = limit - files.value.length;
     const toAdd = incoming.slice(0, availableSlots);
@@ -36,8 +35,8 @@ const createManager = (type: "image" | "audio" | "video", limit: number) => {
 
 export const useMediaGroupManager = () => {
   const imageManager = createManager("image", 10);
-  const videoManager = createManager("video", 1);
-  const audioManager = createManager("audio", 1);
+  const videoManager = createManager("video", 10);
+  const audioManager = createManager("audio", 10);
 
   const clearAll = () => {
     imageManager.clearAll();

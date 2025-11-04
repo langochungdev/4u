@@ -1,16 +1,16 @@
 import { ref } from "vue";
-import { letterService } from "@/pages/input/letter.service";
+import { contextService } from "@/pages/input/context.service";
 import { useMediaGroupManager } from "@/composables/useMediaManager";
 
-export const useLetter = () => {
-  const title = ref("");
-  const content = ref("");
+export const useContext = () => {
+  const content = ref<string[]>([""]);
   const loading = ref(false);
   const { imageManager, videoManager, audioManager } = useMediaGroupManager();
 
   const validate = () => {
-    if (!title.value.trim() || !content.value.trim()) {
-      alert("Vui lòng nhập tiêu đề và nội dung.");
+    const validContents = content.value.filter(c => c.trim() !== "");
+    if (validContents.length === 0) {
+      alert("Vui lòng nhập ít nhất một nội dung.");
       return false;
     }
     return true;
@@ -21,32 +21,30 @@ export const useLetter = () => {
     loading.value = true;
 
     try {
-      return await letterService.create({
-        title: title.value,
-        content: content.value,
+      return await contextService.create({
+        content: content.value.filter(c => c.trim() !== ""),
         images: imageUrls,
         videos: videoUrls,
         audios: audioUrls,
       });
     } catch (err) {
-      console.error("Error submitting letter:", err);
+      console.error("Error submitting context:", err);
       return null;
     } finally {
       loading.value = false;
     }
   };
 
-  const fetchLetter = async (id: string) => {
+  const fetchContext = async (id: string) => {
     loading.value = true;
     try {
-      const data = await letterService.getById(id);
+      const data = await contextService.getById(id);
       if (data) {
-        title.value = data.title;
         content.value = data.content;
         return data;
       }
     } catch (err) {
-      console.error("Error fetching letter:", err);
+      console.error("Error fetching context:", err);
     } finally {
       loading.value = false;
     }
@@ -62,34 +60,45 @@ export const useLetter = () => {
     loading.value = true;
     try {
       if (deletedUrls.length > 0) {
-        await letterService.saveDeletedMedia(deletedUrls);
+        await contextService.saveDeletedMedia(deletedUrls);
       }
 
-      await letterService.update(id, {
-        title: title.value,
-        content: content.value,
+      await contextService.update(id, {
+        content: content.value.filter(c => c.trim() !== ""),
         images: imageUrls,
         videos: videoUrls,
         audios: audioUrls,
       });
     } catch (err) {
-      console.error("Error updating letter:", err);
+      console.error("Error updating context:", err);
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
+  const addContentItem = () => {
+    content.value.push("");
+  };
+
+  const removeContentItem = (index: number) => {
+    if (content.value.length > 1) {
+      content.value.splice(index, 1);
+    }
+  };
+
+  const updateContentItem = (index: number, value: string) => {
+    content.value[index] = value;
+  };
+
   const reset = () => {
-    title.value = "";
-    content.value = "";
+    content.value = [""];
     imageManager.clearAll();
     videoManager.clearAll();
     audioManager.clearAll();
   };
 
   return {
-    title,
     content,
     loading,
     imageManager,
@@ -97,8 +106,11 @@ export const useLetter = () => {
     audioManager,
     validate,
     submit,
-    fetchLetter,
+    fetchContext,
     update,
     reset,
+    addContentItem,
+    removeContentItem,
+    updateContentItem,
   };
 };

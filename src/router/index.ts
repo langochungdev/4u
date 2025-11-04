@@ -1,5 +1,24 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 
+// Tự động import tất cả template configs
+const templateModules = import.meta.glob('@/pages/templates/*/index.vue');
+
+// Tạo routes động cho templates
+const templateRoutes: RouteRecordRaw[] = Object.keys(templateModules).map((path) => {
+  const templateName = path.match(/templates\/(.+?)\/index\.vue$/)?.[1] || '';
+  const capitalizedName = templateName.charAt(0).toUpperCase() + templateName.slice(1);
+  
+  return {
+    path: `/${templateName}/:id?`,
+    name: capitalizedName,
+    component: templateModules[path] as any,
+    meta: {
+      title: `${capitalizedName} - Xem chi tiết`,
+      showBackButton: true,
+    },
+  } as RouteRecordRaw;
+});
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/input/:id?',
@@ -18,14 +37,14 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/demo/:id?',
-    name: 'Demo',
-    component: () => import('@/pages/templates/demo/index.vue'),
+    path: '/result/:id',
+    name: 'Result',
+    component: () => import('@/pages/Result.vue'),
     meta: {
-      title: 'Demo - Xem chi tiết',
+      title: 'Kết quả',
     },
   },
-  
+  ...templateRoutes,
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

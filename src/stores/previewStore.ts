@@ -2,8 +2,7 @@ import { defineStore } from 'pinia';
 
 export const usePreviewStore = defineStore('preview', {
   state: () => ({
-    title: '',
-    content: '',
+    content: [] as string[],
     images: [] as string[], // Preview URLs (blob URLs + existing URLs)
     videos: [] as string[],
     audios: [] as string[],
@@ -17,8 +16,7 @@ export const usePreviewStore = defineStore('preview', {
 
   getters: {
     hasData: (state) => 
-      state.title !== '' || 
-      state.content !== '' || 
+      state.content.length > 0 || 
       state.imageFiles.length > 0 || 
       state.videoFiles.length > 0 || 
       state.audioFiles.length > 0,
@@ -26,7 +24,6 @@ export const usePreviewStore = defineStore('preview', {
     isEditMode: (state) => state.editId !== null,
 
     displayData: (state) => ({
-      title: state.title,
       content: state.content,
       images: state.images,
       videos: state.videos,
@@ -36,8 +33,7 @@ export const usePreviewStore = defineStore('preview', {
 
   actions: {
     setPreviewData(data: {
-      title: string;
-      content: string;
+      content: string[];
       images: string[];
       videos: string[];
       audios: string[];
@@ -48,7 +44,6 @@ export const usePreviewStore = defineStore('preview', {
       editId?: string | null;
       deletedUrls?: string[];
     }) {
-      this.title = data.title;
       this.content = data.content;
       this.images = data.images;
       this.videos = data.videos;
@@ -63,7 +58,6 @@ export const usePreviewStore = defineStore('preview', {
 
     restoreToInput() {
       return {
-        title: this.title,
         content: this.content,
         imageFiles: this.imageFiles,
         videoFiles: this.videoFiles,
@@ -81,6 +75,6 @@ export const usePreviewStore = defineStore('preview', {
   persist: {
     key: 'preview-store',
     storage: localStorage,
-    pick: ['title', 'content', 'template', 'editId', 'deletedUrls'],
+    pick: ['content', 'template', 'editId', 'deletedUrls'],
   },
 });

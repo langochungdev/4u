@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useTemplateData } from "@/composables/useTemplateData";
-import TEMPLATE_CONFIG from "./demo.config";
+import TEMPLATE_CONFIG from "./demo2.config";
 
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 </script>
 
 <template>
+    <h1>demo 2</h1>
   <div class="min-h-screen p-4">
     <div class="max-w-4xl mx-auto">
       <div v-if="contextData" class="py-8 space-y-6">
