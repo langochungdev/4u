@@ -10,8 +10,8 @@ import {
 } from "firebase/firestore";
 
 // Collection names
-const CONTEXTS_COLLECTION = "test";
-const MEDIA_COLLECTION = "media";
+const CONTEXTS_COLLECTION = import.meta.env.VITE_FIRESTORE_CONTEXT;
+const MEDIA_COLLECTION = import.meta.env.VITE_FIRESTORE_MEDIA;
 
 export interface ContextPayload {
   content: string[];
