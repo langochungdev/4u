@@ -7,6 +7,20 @@ export const initGalaxyScene = (
   messages: string[],
   imageUrls: string[]
 ) => {
+  // ========== CẤU HÌNH - CONFIGURATION ==========
+  // Số lượng lần render cho mỗi ảnh
+  const MAX_IMAGE_REPEAT = 3;
+  
+  // Số lượng lần render cho mỗi thông điệp/text
+  const MAX_MESSAGE_REPEAT = 5;
+  
+  // Khoảng cách render (min, max) - radius từ tâm
+  const IMAGE_DISTANCE_MIN = 13.0;
+  const IMAGE_DISTANCE_MAX = 30.0;
+  const MESSAGE_DISTANCE_MIN = 10.0;
+  const MESSAGE_DISTANCE_MAX = 30.0;
+  // ============================================
+  
   // Renderer
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -179,11 +193,9 @@ export const initGalaxyScene = (
 
   // Text sprites
   const namesGroup = new THREE.Group();
-  const MSG_REPEAT = 7;
-  const R_MIN = 8.0, R_MAX = 22.0;
   
   messages.forEach((text) => {
-    for (let r = 0; r < MSG_REPEAT; r++) {
+    for (let r = 0; r < MAX_MESSAGE_REPEAT; r++) {
       const textCanvas = createTextSprite(text, 48);
       const tex = new THREE.CanvasTexture(textCanvas);
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -192,7 +204,7 @@ export const initGalaxyScene = (
       const scale = 0.0045;
       sprite.scale.set(textCanvas.width * scale, textCanvas.height * scale, 1);
       
-      const rad = R_MIN + Math.random() * (R_MAX - R_MIN);
+      const rad = MESSAGE_DISTANCE_MIN + Math.random() * (MESSAGE_DISTANCE_MAX - MESSAGE_DISTANCE_MIN);
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       sprite.position.set(
@@ -209,9 +221,8 @@ export const initGalaxyScene = (
   // Image sprites
   const imagesGroup = new THREE.Group();
   starGroup.add(imagesGroup);
-  const IMAGE_REPEAT = 5;
   
-  const randomPosition = (minR = 9.0, maxR = 22.0) => {
+  const randomPosition = (minR: number, maxR: number) => {
     const r = minR + Math.random() * (maxR - minR);
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
@@ -226,15 +237,19 @@ export const initGalaxyScene = (
   imageUrls.forEach((url) => {
     loader.load(url, (tex: THREE.Texture) => {
       const img = tex.image as HTMLImageElement;
-      for (let i = 0; i < IMAGE_REPEAT; i++) {
+      for (let i = 0; i < MAX_IMAGE_REPEAT; i++) {
         const framedCanvas = createImageFrame(img);
         const framedTex = new THREE.CanvasTexture(framedCanvas);
         framedTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
         const mat = new THREE.SpriteMaterial({ map: framedTex, transparent: true, depthWrite: false });
         const spr = new THREE.Sprite(mat);
+        
+        // Calculate aspect ratio to prevent distortion
+        const aspect = framedCanvas.width / framedCanvas.height;
         const base = 3.0 * (0.85 + Math.random() * 0.5);
-        spr.scale.set(base, base, 1);
-        spr.position.copy(randomPosition(10.0, 24.0));
+        spr.scale.set(base * aspect, base, 1);
+        
+        spr.position.copy(randomPosition(IMAGE_DISTANCE_MIN, IMAGE_DISTANCE_MAX));
         imagesGroup.add(spr);
       }
     });

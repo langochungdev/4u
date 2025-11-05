@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useTemplateData } from '@/composables/useTemplateData';
 import TEMPLATE_CONFIG from './galaxy.config';
 import { initGalaxyScene } from './galaxyScene';
@@ -8,12 +8,29 @@ const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let cleanupFn: (() => void) | null = null;
 
+// Initialize scene immediately when canvas is ready (empty content)
 onMounted(() => {
-  if (canvasRef.value && contextData.value) {
+  if (canvasRef.value) {
+    // Init with empty data first to show galaxy immediately
     cleanupFn = initGalaxyScene(
       canvasRef.value,
-      contextData.value.content || [],
-      contextData.value.images || []
+      [],
+      []
+    );
+  }
+});
+
+// Watch for data and update scene when available
+watch(contextData, (data) => {
+  if (data && canvasRef.value) {
+    // Cleanup and reinit with actual data
+    if (cleanupFn) {
+      cleanupFn();
+    }
+    cleanupFn = initGalaxyScene(
+      canvasRef.value,
+      data.content || [],
+      data.images || []
     );
   }
 });

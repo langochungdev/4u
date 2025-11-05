@@ -26,21 +26,53 @@
 
         <!-- Main Content -->
         <main class="grow bg-pink-50 p-4 md:p-10">
-            <h1 class="text-center text-3xl font-bold mb-8 text-pink-600">Chọn mẫu e-Card của bạn</h1>
+            <h1 class="text-center text-3xl font-bold mb-12 text-pink-600">Chọn mẫu e-Card của bạn</h1>
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <div v-for="(card, index) in cards" :key="index"
-                    class="bg-white shadow-lg rounded-2xl overflow-hidden hover:scale-105 transition cursor-pointer">
-                    <img :src="card.thumbnail" alt="e-card" class="w-full h-48 object-cover" />
-                    <div class="p-4 text-center">
-                        <h2 class="font-semibold text-gray-700">{{ card.title }}</h2>
-                        <div class="mt-4 flex justify-center space-x-2">
-                            <button @click="goToDetail(card.id)" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                                Chi tiết
-                            </button>
-                            <button @click="buyCard(card.id)" class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition">
-                                Mua ngay
-                            </button>
+            <!-- Sections -->
+            <div v-for="section in sections" :key="section.id" class="mb-16">
+                <!-- Section Header -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ section.title }}</h2>
+                    <p v-if="section.description" class="text-gray-600">{{ section.description }}</p>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div v-for="card in section.cards" :key="card.id"
+                        class="bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all group">
+                        <!-- Thumbnail -->
+                        <div class="relative h-48 overflow-hidden">
+                            <video v-if="card.thumbnailType === 'video'" 
+                                :src="card.thumbnail" 
+                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                autoplay loop muted playsinline>
+                            </video>
+                            <img v-else 
+                                :src="card.thumbnail" 
+                                :alt="card.title" 
+                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            
+                            <!-- Overlay on hover -->
+                                <span class="text-white opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+                                    Xem Demo
+                                </span>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800 text-lg mb-1">{{ card.title }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ card.description }}</p>
+                            
+                            <div class="flex gap-2">
+                                <button @click="goToDemo(card.demoLink)" 
+                                    class="flex-1 bg-linear-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium">
+                                    Demo
+                                </button>
+                                <button @click="buyCard(card)" 
+                                    class="flex-1 bg-linear-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-pink-700 transition font-medium">
+                                    Mua ngay
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,29 +111,18 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-
-interface Card {
-    id: string
-    title: string
-    thumbnail: string
-}
+import { HOME_SECTIONS, type TemplateCard } from './home.config'
 
 const router = useRouter()
+const sections = HOME_SECTIONS
 
-const cards: Card[] = [
-    { id: 'love1', title: 'Lãng mạn cổ điển', thumbnail: '/images/card1.jpg' },
-    { id: 'love2', title: 'Tối giản hiện đại', thumbnail: '/images/card2.jpg' },
-    { id: 'love3', title: 'Màu pastel dịu nhẹ', thumbnail: '/images/card3.jpg' },
-    { id: 'love4', title: 'Thư tay vintage', thumbnail: '/images/card4.jpg' },
-    { id: 'love5', title: 'Hiện đại 3 ảnh', thumbnail: '/images/card5.jpg' },
-]
-
-function goToDetail(id: string) {
-    router.push(`/detail/${id}`)
+function goToDemo(demoLink: string) {
+    router.push(demoLink)
 }
 
-function buyCard(id: string) {
-    router.push(`/buy/${id}`)
+function buyCard(card: TemplateCard) {
+    // Navigate to buy page using configured buyLink
+    router.push(card.buyLink)
 }
 </script>
 

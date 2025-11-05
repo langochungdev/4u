@@ -43,42 +43,30 @@ export const createTextSprite = (text: string, fontSize = 48) => {
 
 export const createImageFrame = (img: HTMLImageElement) => {
   const tempCanvas = document.createElement('canvas');
-  const size = 512;
-  tempCanvas.width = size;
-  tempCanvas.height = size;
+  // Keep original aspect ratio
+  const width = img.width;
+  const height = img.height;
+  tempCanvas.width = width;
+  tempCanvas.height = height;
   const tempCtx = tempCanvas.getContext('2d')!;
   
-  const frameStyle = Math.random() > 0.5 ? 0 : 1;
-  
+  // Only rounded corners, no heart shape
   tempCtx.save();
-  if (frameStyle === 0) {
-    const radius = 30 + Math.random() * 50;
-    tempCtx.beginPath();
-    tempCtx.moveTo(radius, 0);
-    tempCtx.lineTo(size - radius, 0);
-    tempCtx.quadraticCurveTo(size, 0, size, radius);
-    tempCtx.lineTo(size, size - radius);
-    tempCtx.quadraticCurveTo(size, size, size - radius, size);
-    tempCtx.lineTo(radius, size);
-    tempCtx.quadraticCurveTo(0, size, 0, size - radius);
-    tempCtx.lineTo(0, radius);
-    tempCtx.quadraticCurveTo(0, 0, radius, 0);
-    tempCtx.closePath();
-    tempCtx.clip();
-  } else {
-    tempCtx.beginPath();
-    tempCtx.moveTo(size / 2, size * 0.35);
-    tempCtx.bezierCurveTo(size / 2, size * 0.25, size * 0.35, size * 0.1, size * 0.2, size * 0.25);
-    tempCtx.bezierCurveTo(size * 0.05, size * 0.4, size * 0.05, size * 0.55, size * 0.2, size * 0.7);
-    tempCtx.bezierCurveTo(size * 0.3, size * 0.8, size / 2, size * 0.95, size / 2, size * 0.95);
-    tempCtx.bezierCurveTo(size / 2, size * 0.95, size * 0.7, size * 0.8, size * 0.8, size * 0.7);
-    tempCtx.bezierCurveTo(size * 0.95, size * 0.55, size * 0.95, size * 0.4, size * 0.8, size * 0.25);
-    tempCtx.bezierCurveTo(size * 0.65, size * 0.1, size / 2, size * 0.25, size / 2, size * 0.35);
-    tempCtx.closePath();
-    tempCtx.clip();
-  }
+  const radius = Math.min(width, height) * (0.1 + Math.random() * 0.1); // 10-20% of smallest dimension
+  tempCtx.beginPath();
+  tempCtx.moveTo(radius, 0);
+  tempCtx.lineTo(width - radius, 0);
+  tempCtx.quadraticCurveTo(width, 0, width, radius);
+  tempCtx.lineTo(width, height - radius);
+  tempCtx.quadraticCurveTo(width, height, width - radius, height);
+  tempCtx.lineTo(radius, height);
+  tempCtx.quadraticCurveTo(0, height, 0, height - radius);
+  tempCtx.lineTo(0, radius);
+  tempCtx.quadraticCurveTo(0, 0, radius, 0);
+  tempCtx.closePath();
+  tempCtx.clip();
   
-  tempCtx.drawImage(img, 0, 0, size, size);
+  tempCtx.drawImage(img, 0, 0, width, height);
   tempCtx.restore();
   
   return tempCanvas;
