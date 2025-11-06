@@ -31,7 +31,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/pages/Home.vue'),
+    component: () => import('@/pages/home/Home.vue'),
     meta: {
       title: 'Trang chủ',
     },
@@ -39,7 +39,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/result/:id',
     name: 'Result',
-    component: () => import('@/pages/Result.vue'),
+    component: () => import('@/pages/input/Result.vue'),
     meta: {
       title: 'Kết quả',
     },

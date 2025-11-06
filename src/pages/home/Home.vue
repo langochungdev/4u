@@ -111,7 +111,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { HOME_SECTIONS, type TemplateCard } from './home.config'
+import { HOME_SECTIONS, type TemplateCard } from './config/home.config'
 
 const router = useRouter()
 const sections = HOME_SECTIONS
@@ -121,8 +121,7 @@ function goToDemo(demoLink: string) {
 }
 
 function buyCard(card: TemplateCard) {
-    // Navigate to buy page using configured buyLink
-    router.push(card.buyLink)
+    router.push(card.createLink)
 }
 </script>
 
