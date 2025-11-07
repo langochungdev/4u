@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 
-// Tự động import tất cả template configs
 const templateModules = import.meta.glob('@/pages/templates/*/index.vue');
-
-// Tạo routes động cho templates
 const templateRoutes: RouteRecordRaw[] = Object.keys(templateModules).map((path) => {
   const templateName = path.match(/templates\/(.+?)\/index\.vue$/)?.[1] || '';
   const capitalizedName = templateName.charAt(0).toUpperCase() + templateName.slice(1);
@@ -15,6 +12,7 @@ const templateRoutes: RouteRecordRaw[] = Object.keys(templateModules).map((path)
     meta: {
       title: `${capitalizedName} - Xem chi tiết`,
       showBackButton: true,
+      layout: 'preview', 
     },
   } as RouteRecordRaw;
 });
@@ -26,6 +24,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/input/index.vue'),
     meta: {
       title: 'Input',
+      layout: 'main', 
     },
   },
   {
@@ -34,6 +33,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/home/Home.vue'),
     meta: {
       title: 'Trang chủ',
+      layout: 'main', 
     },
   },
   {
@@ -42,6 +42,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/input/Result.vue'),
     meta: {
       title: 'Kết quả',
+      layout: 'main', 
     },
   },
   ...templateRoutes,
@@ -51,6 +52,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/NotFound.vue'),
     meta: {
       title: '404 - Không tìm thấy trang',
+      layout: 'empty',
     },
   },
 ];

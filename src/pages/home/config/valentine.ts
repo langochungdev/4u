@@ -13,7 +13,7 @@ export const VALENTINE_SECTION: Section = {
       thumbnail: '/demo-media/galaxy.png',
       thumbnailType: 'image',
       demoLink: '/galaxy/V0HKGYZwoJY7PSOmR95n',
-      createLink: '/input?template=galaxy'
+      createLink: '/galaxy'
     },
   ]
 };

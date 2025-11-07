@@ -8,10 +8,8 @@ const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let cleanupFn: (() => void) | null = null;
 
-// Initialize scene immediately when canvas is ready (empty content)
 onMounted(() => {
   if (canvasRef.value) {
-    // Init with empty data first to show galaxy immediately
     cleanupFn = initGalaxyScene(
       canvasRef.value,
       [],
@@ -20,10 +18,8 @@ onMounted(() => {
   }
 });
 
-// Watch for data and update scene when available
 watch(contextData, (data) => {
   if (data && canvasRef.value) {
-    // Cleanup and reinit with actual data
     if (cleanupFn) {
       cleanupFn();
     }
