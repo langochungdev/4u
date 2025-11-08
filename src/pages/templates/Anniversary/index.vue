@@ -72,16 +72,16 @@ function handleSubmitCode() {
           :src="img"
           class="absolute w-32 h-32 object-cover rounded-full opacity-80 animate-float"
           :style="{
-            top: `${Math.random() * 90}%`,
-            left: `${Math.random() * 90}%`,
-            transform: `rotate(${Math.random() * 360}deg)`
+            top: `${Math.random() * 20}%`,
+            left: `${Math.random() * 70}%`,
+            transform: `rotate(${Math.random() * 160}deg)`
           }"
         />
+        
       </div>
     </div>
   </div>
 </template>
-
 <style scoped>
 /* Animation cho ảnh bay */
 @keyframes float {
