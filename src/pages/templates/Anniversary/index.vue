@@ -9,7 +9,7 @@ const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 // Lấy mã số và nội dung thư từ contextData
 const correctCode = computed(() => contextData.value?.content?.[0] || "");
 const savedLetter = computed(() => contextData.value?.content?.[1] || "");
-
+const title = computed(() => contextData.value?.content?.[2] || "");
 const code = ref("");
 const isSubmitted = ref(false);
 
@@ -28,11 +28,9 @@ function handleSubmitCode() {
     <!-- Form nhập mã bí mật -->
     <div v-if="!isSubmitted" class="bg-white/80 p-8 rounded-2xl shadow-lg text-center backdrop-blur-sm">
       <h1 class="text-3xl font-bold text-pink-600 mb-4">💞 Kỷ niệm tình yêu 💞</h1>
-      <p class="text-gray-600 mb-6">Nhập 4 số đặc biệt của hai ta nhé 💖</p>
       <input
         v-model="code"
         type="text"
-        maxlength="4"
         class="border-2 border-pink-400 rounded-lg p-2 text-center text-2xl focus:outline-none focus:ring-2 focus:ring-pink-300"
         placeholder="••••"
         @keyup.enter="handleSubmitCode"
@@ -52,7 +50,7 @@ function handleSubmitCode() {
     >
       <div class="bg-white/90 p-8 rounded-2xl backdrop-blur-lg shadow-lg w-[95%] max-w-4xl">
         <h2 class="text-4xl font-bold text-pink-700 mb-8 drop-shadow-md">
-          Thư gửi người yêu thương 💖
+          {{title}}
         </h2>
 
         <!-- Nội dung thư - dạng lá thư dài -->
@@ -64,9 +62,6 @@ function handleSubmitCode() {
           </div>
         </div>
 
-        <p class="text-pink-600 font-medium mt-8 text-lg italic">
-          "Tình yêu không chỉ là ngày kỷ niệm" 💗
-        </p>
       </div>
 
       <!-- Ảnh trang trí bay xung quanh -->
