@@ -17,16 +17,11 @@
                     class="bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all group">
                     <!-- Thumbnail -->
                     <div class="relative h-48 overflow-hidden">
-                        <video v-if="card.thumbnailType === 'video'" 
-                            :src="card.thumbnail"
+                        <video v-if="card.thumbnailType === 'video'" :src="card.thumbnail"
                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
-                            autoplay loop muted playsinline
-                            @click="goToDemo(card.demoLink)">
+                            autoplay loop muted playsinline @click="goToDemo(card.demoLink)">
                         </video>
-                        <img @click="goToDemo(card.demoLink)" 
-                            v-else 
-                            :src="card.thumbnail" 
-                            :alt="card.title"
+                        <img @click="goToDemo(card.demoLink)" v-else :src="card.thumbnail" :alt="card.title"
                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer" />
                     </div>
 
@@ -36,11 +31,11 @@
 
                         <div class="flex gap-2">
                             <button @click="goToDemo(card.demoLink)"
-                                class="flex-1 bg-linear-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium">
+                                class="cursor-pointer flex-1 bg-linear-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition font-medium">
                                 Demo
                             </button>
                             <button @click="buyCard(card)"
-                                class="flex-1 bg-linear-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-pink-700 transition font-medium">
+                                class="cursor-pointer flex-1 bg-linear-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-pink-700 transition font-medium">
                                 Tạo
                             </button>
                         </div>

@@ -1,11 +1,12 @@
 <template>
     <div class="min-h-screen flex flex-col">
-        <!-- Header -->
         <header class="bg-white shadow-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center">
-                        <h1 class="text-2xl font-bold text-pink-600">4U e-Card</h1>
+                        <router-link to="/" class="text-2xl font-bold text-pink-600 hover:text-pink-700 transition-colors">
+                            4U e-Card
+                        </router-link>
                     </div>
                     <nav class="hidden md:flex space-x-8">
                         <a href="#" class="text-gray-700 hover:text-pink-600">Trang chủ</a>
@@ -60,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+
 // Main layout with header and footer
 // Used for pages that need standard layout (Home, Input, Result, etc.)
 </script>
