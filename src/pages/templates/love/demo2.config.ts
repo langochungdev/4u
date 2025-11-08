@@ -1,11 +1,11 @@
 import type { TemplateConfig } from '@/config/templates';
 
 const config: TemplateConfig = {
-    maxImages: 2,
-    maxVideos: 2,
-    maxAudios: 2,
-    maxContent: 2,
-    templateName: 'demo2'
+    maxImages: 5,
+    maxVideos: 0,
+    maxAudios: 0,
+    maxContent: 1,
+    templateName: 'love'
 };
 
 export default config;
