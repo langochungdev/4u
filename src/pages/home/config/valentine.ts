@@ -12,7 +12,7 @@ export const VALENTINE_SECTION: Section = {
       description: 'Tình yêu như vũ trụ bao la',
       thumbnail: '/demo-media/galaxy.png',
       thumbnailType: 'image',
-      demoLink: '/galaxy/V0HKGYZwoJY7PSOmR95n',
+      demoLink: '/galaxy/OZbIeo4hCZMAqTj2uY60',
       createLink: '/galaxy'
     },
     {
@@ -22,7 +22,7 @@ export const VALENTINE_SECTION: Section = {
       description: 'Tình yêu mãnh liệt hơn',
       thumbnail: '/demo-media/love-more-v1.png',
       thumbnailType: 'image',
-      demoLink: '/love-more-v1/swnrNR1nSpOQI41n25Ac',
+      demoLink: '/love-more-v1/OZbIeo4hCZMAqTj2uY60',
       createLink: '/love-more-v1'
     },
     {
@@ -32,7 +32,7 @@ export const VALENTINE_SECTION: Section = {
       description: 'Kỷ niệm tình yêu ngọt ngào - pass demo 1234',
       thumbnail: '/demo-media/anniversary-love.png',
       thumbnailType: 'image',
-      demoLink: '/anniversary-love/UFXpAGPqCcK0oS3USOez',
+      demoLink: '/anniversary-love/z8pTA6tT3M67ICfEiolA',
       createLink: '/anniversary-love'
     },
   ]
