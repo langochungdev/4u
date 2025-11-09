@@ -88,7 +88,9 @@
         LesssGo
       </button>
     </div>
-    <div class="tombol" ref="tombol"></div>
+    <div class="tombol" ref="tombol">
+      <button @click="balasWa()">Send</button>
+    </div>
 
     <span id="teksSembunyi1" ref="teksSembunyi1">Eh, I mean right</span>
     <span id="teksSembunyi2" ref="teksSembunyi2"
@@ -118,7 +120,7 @@
 import { ref, watch, nextTick, onUnmounted } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
 import type { ContextPayload } from "@/pages/input/context.service";
-import config from "./love-more-V2.config";
+import config from "./love-more-v2.config";
 import TypeIt from "typeit";
 
 // Lấy dữ liệu
@@ -562,6 +564,11 @@ function autoScroll() {
   if (textOverlay.value) {
     textOverlay.value.scrollTop += 10;
   }
+}
+
+function balasWa() {
+  const text = ""; // Bạn có thể thêm text mặc định nếu muốn
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
 }
 
 // --- Logic chạy khi dữ liệu đã sẵn sàng ---
