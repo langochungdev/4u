@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
-import TEMPLATE_CONFIG from "./anni.config";
+import TEMPLATE_CONFIG from "./anniversary-love.config";
 
 // Lấy dữ liệu từ template service
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
@@ -24,7 +24,7 @@ function handleSubmitCode() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-rose-200 overflow-hidden">
+  <div class="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-pink-100 to-rose-200 overflow-hidden">
     <!-- Form nhập mã bí mật -->
     <div v-if="!isSubmitted" class="bg-white/80 p-8 rounded-2xl shadow-lg text-center backdrop-blur-sm">
       <h1 class="text-3xl font-bold text-pink-600 mb-4">💞 Kỷ niệm tình yêu 💞</h1>
@@ -56,7 +56,7 @@ function handleSubmitCode() {
         <!-- Nội dung thư - dạng lá thư dài -->
         <div class="relative w-full bg-pink-50/50 rounded-xl shadow-md">
           <div class="p-8 border-2 border-pink-200/50 rounded-xl">
-            <div class="text-lg text-pink-600 whitespace-pre-wrap leading-relaxed break-words max-w-full">
+            <div class="text-lg text-pink-600 whitespace-pre-wrap leading-relaxed wrap-break-word max-w-full">
               {{ savedLetter }}
             </div>
           </div>

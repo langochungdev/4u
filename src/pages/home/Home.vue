@@ -1,6 +1,11 @@
 <template>
     <!-- Main Content -->
     <div class="bg-pink-50 p-4 md:p-10">
+        <!-- Banner Section -->
+        <div class="mb-12 bg-white shadow-lg rounded-2xl overflow-hidden">
+            <img src="/banner.jpeg" alt="Banner" class="w-full aspect-video object-cover max-h-64" />
+        </div>
+
         <h1 class="text-center text-3xl font-bold mb-12 text-pink-600">Chọn mẫu e-Card của bạn</h1>
 
         <!-- Sections -->

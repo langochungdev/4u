@@ -1,7 +1,7 @@
 import type { TemplateConfig } from '@/config/templates';
 
 const config: TemplateConfig = {
-  templateName: 'Anniversary',
+  templateName: 'anniversary-love',
   maxImages: 5,
   maxVideos: 0,
   maxAudios: 0,
