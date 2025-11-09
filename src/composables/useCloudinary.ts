@@ -1,31 +1,51 @@
-// src/composables/useCloudinary.ts
+import { ref } from "vue";
+import { uploadToCloudinary } from "@/utils/upload.helper";
+
 export const useCloudinary = () => {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const totalProgress = ref(0);
+  const fileProgress = ref<Record<string, number>>({});
+  const totalFileCount = ref(0);
+  const completedCount = ref(0);
   
-  const CLOUD_NAME = env.VITE_CLOUDINARY_CLOUD_NAME;
-  const UPLOAD_PRESET = env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  const resetProgress = () => {
+    totalProgress.value = 0;
+    fileProgress.value = {};
+    totalFileCount.value = 0;
+    completedCount.value = 0;
+  };
 
-  if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error("Missing Cloudinary environment variables");
-  }
+  // Chuẩn bị upload: đếm tổng số files trước
+  const prepareUpload = (fileCount: number) => {
+    totalFileCount.value = fileCount;
+    totalProgress.value = 0;
+    fileProgress.value = {};
+    completedCount.value = 0;
+  };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
-    
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
+  const upload = async (files: File | File[]): Promise<string[]> => {
+    const fileArray = Array.isArray(files) ? files : [files];
+    if (fileArray.length === 0) return [];
+
+    // Khởi tạo progress cho files mới
+    fileArray.forEach(f => (fileProgress.value[f.name] = 0));
+
+    const updateTotal = () => {
+      const sum = Object.values(fileProgress.value).reduce((a, b) => a + b, 0);
+      totalProgress.value = totalFileCount.value > 0 ? Math.round(sum / totalFileCount.value) : 0;
+    };
+
+    const urls = await Promise.all(
+      fileArray.map(file =>
+        uploadToCloudinary(file, percent => {
+          fileProgress.value[file.name] = percent;
+          updateTotal();
+        })
+      )
     );
-    
-    const data = await res.json();
-    return data.secure_url;
+
+    completedCount.value += fileArray.length;
+    return urls;
   };
 
-  const uploadMultiple = async (files: File[]): Promise<string[]> => {
-    return Promise.all(files.map(uploadImage));
-  };
-
-  return { uploadImage, uploadMultiple };
+  return { upload, totalProgress, fileProgress, resetProgress, prepareUpload };
 };
