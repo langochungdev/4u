@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
-import TEMPLATE_CONFIG from "./demo2.config";
+import TEMPLATE_CONFIG from "./love-more-v1.config";
 
 /* ===== Lấy dữ liệu từ TEMPLATE_CONFIG ===== */
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
