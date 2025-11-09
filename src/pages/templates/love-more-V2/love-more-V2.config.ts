@@ -5,7 +5,7 @@ const config: TemplateConfig = {
   maxVideos: 0,
   maxAudios: 1,
   maxContent: 6,
-  templateName: "love-more-V2",
+  templateName: "love-more-v2",
 };
 
 export default config;

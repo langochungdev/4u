@@ -82,44 +82,23 @@
         <p id="teksAwalan" ref="teksAwalan"></p>
         <p id="teksCinta" ref="teksCinta"></p>
         <p id="pesanAkhir" ref="pesanAkhir"></p>
-        <p id="teksLucu" ref="teksLucu"></p>
       </div>
       <button id="tombolLanjut" ref="tombolLanjut" @click="nextHal3()">
         LesssGo
       </button>
     </div>
-    <div class="tombol" ref="tombol">
-      <button @click="balasWa()">Send</button>
-    </div>
+    <div class="tombol" ref="tombol"></div>
 
     <span id="teksSembunyi1" ref="teksSembunyi1">Eh, I mean right</span>
     <span id="teksSembunyi2" ref="teksSembunyi2"
       ><b>I love u</b> more darling 🫶</span
     >
-
-    <div>
-      <div>
-        <div class="circ" ref="circ">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
-import type { ContextPayload } from "@/pages/input/context.service";
 import config from "./love-more-v2.config";
 import TypeIt from "typeit";
 
@@ -144,12 +123,10 @@ const textOverlay = ref<HTMLElement | null>(null);
 const teksAwalan = ref<HTMLElement | null>(null);
 const teksCinta = ref<HTMLElement | null>(null);
 const pesanAkhir = ref<HTMLElement | null>(null);
-const teksLucu = ref<HTMLElement | null>(null);
 const tombolLanjut = ref<HTMLElement | null>(null);
 const tombol = ref<HTMLElement | null>(null);
 const teksSembunyi1 = ref<HTMLElement | null>(null);
 const teksSembunyi2 = ref<HTMLElement | null>(null);
-const circ = ref<HTMLElement | null>(null);
 
 // Biến toàn cục từ script gốc
 let animationFrameId: number | null = null;
@@ -566,11 +543,6 @@ function autoScroll() {
   }
 }
 
-function balasWa() {
-  const text = ""; // Bạn có thể thêm text mặc định nếu muốn
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-}
-
 // --- Logic chạy khi dữ liệu đã sẵn sàng ---
 watch(
   contextData,
@@ -593,11 +565,9 @@ watch(
 
         // --- Logic khởi tạo ban đầu (từ cuối script gốc) ---
         if (hal1.value) hal1.value.style.transform = "scale(0)";
-        if (circ.value) circ.value.style.display = "none";
 
         setTimeout(() => {
           if (hal1.value) hal1.value.style.transform = "scale(1)";
-          if (circ.value) circ.value.style.display = "";
           if (stiker1.value) stiker1.value.style.transform = "scale(1)";
         }, 1000);
       });
@@ -608,22 +578,65 @@ watch(
 
 onUnmounted(() => {
   // Dọn dẹp interval trái tim rơi
-  if (intervalHati) {
-    clearInterval(intervalHati);
-  }
-  // Dọn dẹp interval tự cuộn
-  if (scrollInterval) {
-    clearInterval(scrollInterval);
-  }
-  // Dừng mọi animation frame (pháo hoa, cánh hoa)
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
+  if (intervalHati) clearInterval(intervalHati);
 
-  const existingHearts = document.querySelectorAll(".hati");
-  existingHearts.forEach((heart) => heart.remove());
+  // Dọn dẹp interval tự cuộn
+  if (scrollInterval) clearInterval(scrollInterval);
+
+  // Dừng mọi animation frame
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+  // Remove tất cả các element rơi / heart / sparkle
+  document
+    .querySelectorAll(".hati, .heart, .sparkle")
+    .forEach((el) => el.remove());
+
+  // Nếu có container tạm cho heart, reset luôn innerHTML
+  const heartsContainer = document.querySelector(".hearts");
+  if (heartsContainer) heartsContainer.innerHTML = "";
 });
 </script>
+
+<style>
+/* QUAN TRỌNG: Khối style này không có chữ "scoped"
+    vì nó cần áp dụng cho các element .hati được thêm vào document.body
+  */
+
+.hati {
+  position: fixed;
+  top: -10vh; /* Bắt đầu bên trên màn hình */
+  font-size: 1.5rem; /* Kích thước trái tim (bạn có thể chỉnh to nhỏ) */
+  z-index: 9999; /* Luôn nằm trên cùng */
+  animation: hati-fall 4s linear forwards;
+  pointer-events: none; /* Không cho phép click vào */
+}
+
+.hati svg.line {
+  width: 1em;
+  height: 1em;
+  color: #ff6699; /* Màu hồng */
+  opacity: 0.8;
+}
+
+/* Định nghĩa màu cho hình SVG (quan trọng) */
+.hati svg.line path {
+  fill: #ff6699;
+  stroke: #ff6699;
+}
+
+/* Định nghĩa hiệu ứng rơi */
+@keyframes hati-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    /* Rơi xuống 110% chiều cao màn hình (để đảm bảo đi ra khỏi màn hình) */
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+</style>
 
 <style scoped>
 /* KHỐI 2: CSS CỤC BỘ (Scoped)
@@ -817,7 +830,7 @@ onUnmounted(() => {
   top: 0;
   width: 12.5px;
   height: 25px;
-  background: var(--color-heart);
+  background: var(--color-heart, #ff6699);
   border-radius: 12.5px 12.5px 0 0;
   transform: rotate(-45deg);
   transform-origin: 0 100%;
@@ -910,7 +923,8 @@ onUnmounted(() => {
 .tombol {
   position: relative;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 57px;
+  z-index: 5;
 }
 .reset button,
 .tombol button {
