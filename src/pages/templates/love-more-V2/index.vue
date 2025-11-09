@@ -102,7 +102,6 @@ import { useTemplateData } from "@/composables/useTemplateData";
 import config from "./love-more-v2.config";
 import TypeIt from "typeit";
 
-// Lấy dữ liệu
 const { contextData } = useTemplateData(config);
 
 // --- Khai báo tất cả các Template Refs ---
