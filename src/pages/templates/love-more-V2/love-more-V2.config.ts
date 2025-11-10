@@ -7,5 +7,5 @@ const config: TemplateConfig = {
   maxContent: 6,
   templateName: "love-more-v2",
 };
-
+// Template "love more v2"
 export default config;

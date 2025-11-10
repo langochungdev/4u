@@ -638,11 +638,6 @@ onUnmounted(() => {
 </style>
 
 <style scoped>
-/* KHỐI 2: CSS CỤC BỘ (Scoped)
-    (Có 'scoped')
-    Tất cả các style còn lại DÀNH RIÊNG
-    cho component này.
-  */
 :root {
   --color-heart: #ff6699;
   --color-flap: #ff88aa;
