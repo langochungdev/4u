@@ -1,39 +1,19 @@
-import type { Section } from './home.config';
+import { createSection, loadSectionData, type TemplateVisibilityConfig } from './section.helper';
 
-export const VALENTINE_SECTION: Section = {
+export const VALENTINE_SECTION = createSection({
   id: 'valentine',
   title: '💕 Valentine',
-  description: 'Thiệp tình yêu lãng mạn cho ngày Valentine',
-  cards: [
-    {
-      id: 'galaxy-love',
-      templateName: 'galaxy',
-      title: 'Galaxy Love',
-      description: 'Tình yêu như vũ trụ bao la',
-      thumbnail: '/demo-media/galaxy.png',
-      thumbnailType: 'image',
-      demoLink: '/galaxy/V0HKGYZwoJY7PSOmR95n',
-      createLink: '/galaxy'
-    },
-    {
-      id: 'love-more-v1',
-      templateName: 'love-more-v1',
-      title: 'Love More v1',
-      description: 'Tình yêu mãnh liệt hơn',
-      thumbnail: '/demo-media/love-more-v1.png',
-      thumbnailType: 'image',
-      demoLink: '/love-more-v1/swnrNR1nSpOQI41n25Ac',
-      createLink: '/love-more-v1'
-    },
-    {
-      id: 'anniversary-love',
-      templateName: 'anniversary-love',
-      title: 'Anniversary Love',
-      description: 'Kỷ niệm tình yêu ngọt ngào - pass demo 1234',
-      thumbnail: '/demo-media/anniversary-love.png',
-      thumbnailType: 'image',
-      demoLink: '/anniversary-love/UFXpAGPqCcK0oS3USOez',
-      createLink: '/anniversary-love'
-    },
-  ]
+  description: 'Thiệp tình yêu lãng mạn cho ngày Valentine'
+});
+
+export const VALENTINE_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
+  'galaxy-love': { visible: true, order: 1 },
+  'love-more-v1': { visible: true, order: 2 },
+  'anniversary-love': { visible: true, order: 3 },
+  'love-more-v2': { visible: true, order: 4 },
+};
+
+
+export const loadValentineSection = async () => {
+  await loadSectionData(VALENTINE_SECTION, VALENTINE_TEMPLATES_CONFIG);
 };

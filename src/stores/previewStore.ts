@@ -10,6 +10,7 @@ export const usePreviewStore = defineStore('preview', {
     videoFiles: [] as File[],
     audioFiles: [] as File[],
     template: 'demo',
+    topic: '',
     editId: null as string | null,
     deletedUrls: [] as string[],
   }),
@@ -41,6 +42,7 @@ export const usePreviewStore = defineStore('preview', {
       videoFiles: File[];
       audioFiles: File[];
       template: string;
+      topic?: string;
       editId?: string | null;
       deletedUrls?: string[];
     }) {
@@ -52,6 +54,7 @@ export const usePreviewStore = defineStore('preview', {
       this.videoFiles = data.videoFiles;
       this.audioFiles = data.audioFiles;
       this.template = data.template;
+      this.topic = data.topic || '';
       this.editId = data.editId || null;
       this.deletedUrls = data.deletedUrls || [];
     },
@@ -75,6 +78,6 @@ export const usePreviewStore = defineStore('preview', {
   persist: {
     key: 'preview-store',
     storage: localStorage,
-    pick: ['content', 'template', 'editId', 'deletedUrls'],
+    pick: ['content', 'template', 'topic', 'editId', 'deletedUrls'],
   },
 });

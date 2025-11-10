@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
-import TEMPLATE_CONFIG from "./anniversary-love.config";
+import TEMPLATE_CONFIG from "./config";
 
 // Lấy dữ liệu từ template service
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
