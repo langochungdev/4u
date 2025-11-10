@@ -1,12 +1,14 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 
-const templateModules = import.meta.glob('@/pages/templates/*/index.vue');
+const templateModules = import.meta.glob('@/pages/templates/*/*/index.vue');
 const templateRoutes: RouteRecordRaw[] = Object.keys(templateModules).map((path) => {
-  const templateName = path.match(/templates\/(.+?)\/index\.vue$/)?.[1] || '';
-  const capitalizedName = templateName.charAt(0).toUpperCase() + templateName.slice(1);
+  const match = path.match(/templates\/(.+?)\/(.+?)\/index\.vue$/);
+  const topic = match?.[1] || '';
+  const templateId = match?.[2] || '';
+  const capitalizedName = templateId.charAt(0).toUpperCase() + templateId.slice(1);
   
   return {
-    path: `/${templateName}/:id?`,
+    path: `/${topic}/${templateId}/:id?`,
     name: capitalizedName,
     component: templateModules[path] as any,
     meta: {

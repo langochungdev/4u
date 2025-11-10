@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useTemplateData } from '@/composables/useTemplateData';
-import TEMPLATE_CONFIG from './galaxy.config';
+import TEMPLATE_CONFIG from './config';
 import { initGalaxyScene } from './galaxyScene';
 
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);

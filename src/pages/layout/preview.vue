@@ -49,17 +49,28 @@ const handleBackButton = async () => {
     // Get edit ID from current route params or preview store
     const editId = route.params.id || previewStore.editId;
     
+    // Get topic from query or preview store
+    const topic = (route.query.topic as string) || previewStore.topic || '';
+    
+    // Build query object
+    const query: Record<string, string> = {
+        maxImages: templateConfig.maxImages.toString(),
+        maxVideos: templateConfig.maxVideos.toString(),
+        maxAudios: templateConfig.maxAudios.toString(),
+        maxContent: templateConfig.maxContent.toString(),
+        template: templateConfig.templateName,
+        fromPreview: 'true'
+    };
+    
+    // Only add topic if it's not empty
+    if (topic) {
+        query.topic = topic;
+    }
+    
     router.push({
         name: 'Input',
         params: editId ? { id: editId } : {},
-        query: {
-            maxImages: templateConfig.maxImages.toString(),
-            maxVideos: templateConfig.maxVideos.toString(),
-            maxAudios: templateConfig.maxAudios.toString(),
-            maxContent: templateConfig.maxContent.toString(),
-            template: templateConfig.templateName,
-            fromPreview: 'true'
-        }
+        query
     });
 };
 </script>

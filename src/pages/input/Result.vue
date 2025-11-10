@@ -14,6 +14,7 @@ const loading = ref(true);
 onMounted(async () => {
   const id = route.params.id as string;
   const template = route.query.template as string || 'demo';
+  const topic = route.query.topic as string || '';
   
   if (!id) {
     loading.value = false;
@@ -24,8 +25,8 @@ onMounted(async () => {
   templateName.value = template;
 
   // Create links
-  viewLink.value = `${window.location.origin}/${template}/${id}`;
-  editLink.value = `${window.location.origin}/input/${template}?id=${id}`;
+  viewLink.value = `${window.location.origin}/${topic}/${template}/${id}`;
+  editLink.value = `${window.location.origin}/input/${template}?id=${id}&topic=${topic}`;
 
   // Generate QR code
   try {

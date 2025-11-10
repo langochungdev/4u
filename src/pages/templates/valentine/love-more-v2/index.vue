@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
-import config from "./love-more-v2.config";
+import config from "./config";
 import TypeIt from "typeit";
 
 const { contextData } = useTemplateData(config);
