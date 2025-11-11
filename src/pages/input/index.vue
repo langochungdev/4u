@@ -22,6 +22,7 @@ const constraints = ref({
     maxVideos: Infinity,
     maxAudios: Infinity,
     maxContent: Infinity,
+    contentPlaceholders: [] as string[],
     template: 'default'
 });
 
@@ -109,6 +110,7 @@ const handlePreview = () => {
     if (!validate()) return;
 
     const templateName = route.query.template as string || 'demo';
+    const topic = route.query.topic as string || '';
     
     previewStore.setPreviewData({
         content: content.value.filter(c => c.trim()),
@@ -119,11 +121,14 @@ const handlePreview = () => {
         videoFiles: videoManager.files.value,
         audioFiles: audioManager.files.value,
         template: templateName,
+        topic: topic,
         editId: isEditMode.value ? currentId.value : undefined,
         deletedUrls: isEditMode.value ? deletedUrls.value : undefined
     });
 
-    router.push({ path: `/${templateName}`, query: { preview: 'true' } });
+    // Build path based on whether topic exists
+    const previewPath = topic ? `/${topic}/${templateName}` : `/${templateName}`;
+    router.push({ path: previewPath, query: { preview: 'true' } });
 };
 
 const handleSubmit = async () => {
@@ -152,20 +157,22 @@ const handleSubmit = async () => {
             
             // Redirect to result page after update
             const templateName = route.query.template as string || 'demo';
+            const topic = route.query.topic as string || '';
             router.push({
                 name: 'Result',
                 params: { id: currentId.value },
-                query: { template: templateName }
+                query: { template: templateName, topic }
             });
         } else {
             const id = await submit(imageUrls, videoUrls, audioUrls);
             if (id) {
                 const templateName = route.query.template as string || 'demo';
+                const topic = route.query.topic as string || '';
                 // Redirect to result page after create
                 router.push({
                     name: 'Result',
                     params: { id },
-                    query: { template: templateName }
+                    query: { template: templateName, topic }
                 });
             }
         }
@@ -185,17 +192,30 @@ onMounted(async () => {
     if (templateName && route.query.id && await isValidTemplate(templateName)) {
         const config = await getTemplateConfig(templateName);
         if (config) {
+            // Build query object and preserve topic if it exists
+            const newQuery: Record<string, string> = {
+                maxImages: config.maxImages.toString(),
+                maxVideos: config.maxVideos.toString(),
+                maxAudios: config.maxAudios.toString(),
+                maxContent: config.maxContent.toString(),
+                template: config.templateName
+            };
+            
+            // Preserve topic from original query
+            if (route.query.topic) {
+                newQuery.topic = route.query.topic as string;
+            }
+            
             await router.replace({
                 name: 'Input',
                 params: { id: route.query.id as string },
-                query: {
-                    maxImages: config.maxImages.toString(),
-                    maxVideos: config.maxVideos.toString(),
-                    maxAudios: config.maxAudios.toString(),
-                    maxContent: config.maxContent.toString(),
-                    template: config.templateName
-                }
+                query: newQuery
             });
+            
+            // Load contentPlaceholders from config
+            if (config.contentPlaceholders) {
+                constraints.value.contentPlaceholders = config.contentPlaceholders;
+            }
         }
     }
     
@@ -203,7 +223,17 @@ onMounted(async () => {
     ['maxImages', 'maxVideos', 'maxAudios', 'maxContent'].forEach(key => {
         if (route.query[key]) (constraints.value as any)[key] = parseInt(route.query[key] as string);
     });
-    if (route.query.template) constraints.value.template = route.query.template as string;
+    if (route.query.template) {
+        constraints.value.template = route.query.template as string;
+        
+        // Load config again if not loaded yet
+        if (constraints.value.contentPlaceholders.length === 0) {
+            const config = await getTemplateConfig(constraints.value.template);
+            if (config?.contentPlaceholders) {
+                constraints.value.contentPlaceholders = config.contentPlaceholders;
+            }
+        }
+    }
 
     // Init content array
     if (constraints.value.maxContent !== Infinity && constraints.value.maxContent > 0) {
@@ -240,6 +270,18 @@ onMounted(async () => {
                 }
             }
         }
+        
+        // Restore topic to query if it exists in store
+        if (previewStore.topic && !route.query.topic) {
+            await router.replace({
+                ...route,
+                query: {
+                    ...route.query,
+                    topic: previewStore.topic
+                }
+            });
+        }
+        
         if (route.query.confirmPreview === 'true') await handleSubmit();
     }
 });
@@ -288,7 +330,7 @@ onMounted(async () => {
                             <textarea 
                                 :value="item" 
                                 @input="updateContentItem(index, ($event.target as HTMLTextAreaElement).value)"
-                                :placeholder="`Nội dung ${index + 1}`" 
+                                :placeholder="constraints.contentPlaceholders[index] || `Nội dung ${index + 1}`" 
                                 rows="3" 
                                 class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                             ></textarea>
