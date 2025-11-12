@@ -7,7 +7,7 @@ const config: TemplateConfig = {
     createdBy: 'DuongDinhTrac',
     maxImages: 5,
     maxVideos: 0,
-    maxAudios: 0,
+    maxAudios: 1,
     maxContent: 2,
     contentPlaceholders: [
         'Nhập title',
