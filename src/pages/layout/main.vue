@@ -1,24 +1,51 @@
 <template>
-    <div class="min-h-screen flex flex-col">
-        <header class="bg-white shadow-md">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-4">
-                    <div class="flex items-center">
-                        <router-link to="/" class="text-2xl font-bold text-pink-600 hover:text-pink-700 transition-colors">
-                            4U e-Card
-                        </router-link>
-                    </div>
-                    <nav class="hidden md:flex space-x-8">
-                        <a href="#" class="text-gray-700 hover:text-pink-600">Trang chủ</a>
-                        <a href="#" class="text-gray-700 hover:text-pink-600">Mẫu thẻ</a>
-                        <a href="#" class="text-gray-700 hover:text-pink-600">Liên hệ</a>
-                        <a href="#" class="text-gray-700 hover:text-pink-600">VN/EN</a>
-                    </nav>
-                    <div class="md:hidden">
-                        <button class="text-gray-700 hover:text-pink-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    <div class="min-h-screen flex flex-col bg-background">
+        <header
+            class="sticky top-0 z-50 border-b border-gray-700 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <router-link to="/" class="flex items-center gap-2">
+                        <div
+                            class="bg-linear-to-r from-[#FFD700] via-[#00FFFF] to-[#FF2E63] bg-clip-text text-2xl font-bold text-transparent">
+                            NEXTGEN
+                        </div>
+                        <span class="text-muted-foreground">Thiệp Tương Tác</span>
+                    </router-link>
+
+                    <div class="flex items-center gap-2">
+                        <button @click="toggleLanguage"
+                            class="flex items-center gap-2 rounded-md border border-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-globe">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                                <path d="M2 12h20" />
                             </svg>
+                            {{ language === 'vi' ? 'EN' : 'VI' }}
+                        </button>
+
+                        <button @click="toggleTheme"
+                            class="flex items-center gap-2 rounded-md border border-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-800">
+                            <svg v-if="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun">
+                                <circle cx="12" cy="12" r="4" />
+                                <path d="M12 2v2" />
+                                <path d="M12 20v2" />
+                                <path d="m4.93 4.93 1.41 1.41" />
+                                <path d="m17.66 17.66 1.41 1.41" />
+                                <path d="M2 12h2" />
+                                <path d="M20 12h2" />
+                                <path d="m6.34 17.66-1.41 1.41" />
+                                <path d="m19.07 4.93-1.41 1.41" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-moon">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                            </svg>
+                            {{ theme === 'dark' ? 'Light' : 'Dark' }}
                         </button>
                     </div>
                 </div>
@@ -31,37 +58,37 @@
         </main>
 
         <!-- Footer -->
-        <footer class="bg-gray-800 text-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4">4U e-Card</h3>
-                        <p class="text-gray-300">Tạo những tấm thiệp điện tử đẹp và ý nghĩa cho mọi dịp.</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4">Liên kết</h3>
-                        <ul class="space-y-2">
-                            <li><a href="#" class="text-gray-300 hover:text-white">Trang chủ</a></li>
-                            <li><a href="#" class="text-gray-300 hover:text-white">Mẫu thẻ</a></li>
-                            <li><a href="#" class="text-gray-300 hover:text-white">Hướng dẫn</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4">Liên hệ</h3>
-                        <p class="text-gray-300">Email: info@4ucard.com</p>
-                        <p class="text-gray-300">Điện thoại: 0123 456 789</p>
-                    </div>
-                </div>
-                <div class="mt-8 pt-8 border-t border-gray-700 text-center">
-                    <p class="text-gray-300">&copy; 2025 4U e-Card. Tất cả quyền được bảo lưu.</p>
-                </div>
-            </div>
+        <footer class="border-t border-gray-700 py-8 text-center text-muted-foreground">
+            <p>&copy; 2025 NEXTGEN. Tất cả quyền được bảo lưu.</p>
         </footer>
     </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
 
-// Main layout with header and footer
-// Used for pages that need standard layout (Home, Input, Result, etc.)
+const theme = ref<'dark' | 'light'>('dark');
+const language = ref<'vi' | 'en'>('vi');
+
+const toggleTheme = () => {
+    theme.value = theme.value === 'dark' ? 'light' : 'dark';
+};
+
+const toggleLanguage = () => {
+    language.value = language.value === 'vi' ? 'en' : 'vi';
+};
+
+watch(theme, (newTheme) => {
+    if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+});
+
+onMounted(() => {
+    if (theme.value === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+});
 </script>

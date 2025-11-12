@@ -31,5 +31,6 @@ const getLayout = (layout?: string) => {
 .app-container {
   position: relative;
   min-height: 100vh;
+  background-color: black;
 }
 </style>
