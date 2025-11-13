@@ -1,5 +1,5 @@
 import type { TemplateConfig } from '@/config/templates';
-import teachears from './teachears.png';
+import teachears from './demo.png';
 
 const config: TemplateConfig = {
     title: ' Teachears - lời chúc thầy cô 20-11',
