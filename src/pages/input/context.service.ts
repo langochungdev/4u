@@ -67,3 +67,5 @@ export const contextService = {
     });
   },
 };
+
+export const demoid = 'fLFM0pF6lgoPwcjZlwEb';
