@@ -2,7 +2,7 @@ import { createSection, loadSectionData, type TemplateVisibilityConfig } from '.
 
 export const NGAYNHAGIAO_SECTION = createSection({
   id: '20-11',
-  title: '💕 20-11',
+  title: '20 tháng 11',
   description: 'Thiệp tri ân thầy cô cho ngày Nhà giáo Việt Nam'
 });
 
