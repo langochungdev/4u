@@ -256,12 +256,12 @@ const handleSubmit = async () => {
 };
 
 onMounted(async () => {
-    const templateName = route.params.id as string;
+    const urlParamId = route.params.id as string;
+    const queryDocId = route.query.id as string;
     
-    if (templateName && route.query.id && await isValidTemplate(templateName)) {
-        const config = await getTemplateConfig(templateName);
+    if (urlParamId && queryDocId && await isValidTemplate(urlParamId)) {
+        const config = await getTemplateConfig(urlParamId);
         if (config) {
-            // Build query object and preserve topic if it exists
             const newQuery: Record<string, string> = {
                 maxImages: config.maxImages.toString(),
                 maxVideos: config.maxVideos.toString(),
@@ -270,32 +270,28 @@ onMounted(async () => {
                 template: config.templateName
             };
             
-            // Preserve topic from original query
             if (route.query.topic) {
                 newQuery.topic = route.query.topic as string;
             }
             
             await router.replace({
                 name: 'Input',
-                params: { id: route.query.id as string },
+                params: { id: queryDocId },
                 query: newQuery
             });
             
-            // Load contentPlaceholders from config
             if (config.contentPlaceholders) {
                 constraints.value.contentPlaceholders = config.contentPlaceholders;
             }
         }
     }
     
-    // Load constraints
     ['maxImages', 'maxVideos', 'maxAudios', 'maxContent'].forEach(key => {
         if (route.query[key]) (constraints.value as any)[key] = parseInt(route.query[key] as string);
     });
     if (route.query.template) {
         constraints.value.template = route.query.template as string;
         
-        // Load config again if not loaded yet
         if (constraints.value.contentPlaceholders.length === 0) {
             const config = await getTemplateConfig(constraints.value.template);
             if (config?.contentPlaceholders) {
@@ -304,17 +300,15 @@ onMounted(async () => {
         }
     }
 
-    // Init content array
     if (constraints.value.maxContent !== Infinity && constraints.value.maxContent > 0) {
         content.value = Array(constraints.value.maxContent).fill("");
     }
 
-    // Load existing
-    const id = route.params.id as string;
-    if (id) {
+    const docId = route.params.id as string;
+    if (docId) {
         isEditMode.value = true;
-        currentId.value = id;
-        existingData.value = await fetchContext(id);
+        currentId.value = docId;
+        existingData.value = await fetchContext(docId);
         
         // Load expiresAt if exists
         if (existingData.value?.expiresAt) {
