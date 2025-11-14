@@ -2,7 +2,7 @@ import { createSection, loadSectionData, type TemplateVisibilityConfig } from '.
 
 export const VALENTINE_SECTION = createSection({
   id: 'valentine',
-  title: '💕 Valentine',
+  title: 'Valentine',
   description: 'Thiệp tình yêu lãng mạn cho ngày Valentine'
 });
 

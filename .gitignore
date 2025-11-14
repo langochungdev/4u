@@ -24,8 +24,9 @@ dist-ssr
 *.sw?
 **/tmp
 # other files
+**/api-docs.json
 .env
 .vscode
 **/.cursorrules
 **/copilot-instructions.md
-**/api-docs.json
+**/AGENTS.md

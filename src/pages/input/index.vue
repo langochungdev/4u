@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
+import "./css/style.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -16,6 +17,10 @@ const isEditMode = ref(false);
 const currentId = ref<string | null>(null);
 const existingData = ref<any>(null);
 const deletedUrls = ref<string[]>([]);
+const selectedDuration = ref<'1day' | '1week' | '1month' | '6months'>('1day');
+const expiresAt = ref<Date | null>(null);
+const countdown = ref<string>('');
+const countdownInterval = ref<number | null>(null);
 
 const constraints = ref({
     maxImages: Infinity,
@@ -50,6 +55,66 @@ const mediaTypes = computed(() => [
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
     { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
 ]);
+
+const calculateExpiryDate = (duration: '1day' | '1week' | '1month' | '6months'): Date => {
+    const now = new Date();
+    const expiry = new Date(now);
+    
+    switch (duration) {
+        case '1day':
+            // Set to 12am (0:00) of the day after tomorrow
+            expiry.setDate(expiry.getDate() + 2);
+            break;
+        case '1week':
+            expiry.setDate(expiry.getDate() + 7);
+            break;
+        case '1month':
+            expiry.setMonth(expiry.getMonth() + 1);
+            break;
+        case '6months':
+            expiry.setMonth(expiry.getMonth() + 6);
+            break;
+    }
+    
+    // Set to 0:00:00 of that day
+    expiry.setHours(0, 0, 0, 0);
+    return expiry;
+};
+
+const updateCountdown = () => {
+    if (!expiresAt.value) {
+        countdown.value = '';
+        return;
+    }
+    
+    const now = new Date().getTime();
+    const expiry = expiresAt.value.getTime();
+    const distance = expiry - now;
+    
+    if (distance < 0) {
+        countdown.value = 'Đã hết hạn';
+        if (countdownInterval.value) {
+            clearInterval(countdownInterval.value);
+            countdownInterval.value = null;
+        }
+        return;
+    }
+    
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    countdown.value = `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+};
+
+const startCountdown = () => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+    updateCountdown();
+    countdownInterval.value = window.setInterval(updateCountdown, 1000);
+};
 
 const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
     if (!existingData.value) return;
@@ -144,13 +209,17 @@ const handleSubmit = async () => {
             audioManager.files.value.length ? upload(audioManager.files.value) : []
         ]);
 
+        // Calculate expiry date based on selected duration
+        const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
+
         if (isEditMode.value && currentId.value) {
             await update(
                 currentId.value,
                 [...(existingData.value?.images || []), ...imageUrls],
                 [...(existingData.value?.videos || []), ...videoUrls],
                 [...(existingData.value?.audios || []), ...audioUrls],
-                deletedUrls.value
+                deletedUrls.value,
+                calculatedExpiresAt
             );
             console.log("Cập nhật thành công!");
             deletedUrls.value = [];
@@ -164,7 +233,7 @@ const handleSubmit = async () => {
                 query: { template: templateName, topic }
             });
         } else {
-            const id = await submit(imageUrls, videoUrls, audioUrls);
+            const id = await submit(imageUrls, videoUrls, audioUrls, calculatedExpiresAt);
             if (id) {
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
@@ -246,6 +315,23 @@ onMounted(async () => {
         isEditMode.value = true;
         currentId.value = id;
         existingData.value = await fetchContext(id);
+        
+        // Load expiresAt if exists
+        if (existingData.value?.expiresAt) {
+            // Convert Firestore Timestamp to Date
+            if (existingData.value.expiresAt.toDate) {
+                expiresAt.value = existingData.value.expiresAt.toDate();
+            } else if (existingData.value.expiresAt instanceof Date) {
+                expiresAt.value = existingData.value.expiresAt;
+            } else if (typeof existingData.value.expiresAt === 'number') {
+                expiresAt.value = new Date(existingData.value.expiresAt);
+            }
+            
+            // Start countdown
+            if (expiresAt.value) {
+                startCountdown();
+            }
+        }
     }
 
     // Restore preview
@@ -285,135 +371,228 @@ onMounted(async () => {
         if (route.query.confirmPreview === 'true') await handleSubmit();
     }
 });
+
+onUnmounted(() => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+});
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 p-4">
-        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ isEditMode ? 'Chỉnh sửa e-Card' : 'Tạo e-Card' }}</h1>
-            
-            <!-- Template info -->
-            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p class="text-sm text-blue-800">
-                    <span class="font-semibold">📋 Template: {{ constraints.template }}</span>
-                </p>
-                <p class="text-xs text-blue-600 mt-1">
-                    Giới hạn: 
-                    {{ constraints.maxContent !== Infinity ? `${constraints.maxContent} nội dung` : 'không giới hạn nội dung' }} · 
-                    {{ constraints.maxImages !== Infinity ? `${constraints.maxImages} ảnh` : 'không giới hạn ảnh' }} · 
-                    {{ constraints.maxVideos !== Infinity ? `${constraints.maxVideos} video` : 'không giới hạn video' }} · 
-                    {{ constraints.maxAudios !== Infinity ? `${constraints.maxAudios} audio` : 'không giới hạn audio' }}
-                </p>
-            </div>
-
-            <div class="space-y-4">
-                <!-- Content -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">
-                            Nội dung <span class="text-red-500">*</span>
-                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
-                                (Bắt buộc: {{ constraints.maxContent }})
-                            </span>
-                        </label>
-                        <button 
-                            v-if="constraints.maxContent === Infinity"
-                            @click="addContentItem" 
-                            :disabled="!canAdd.content"
-                            :class="['text-sm px-3 py-1 rounded-md transition-colors', canAdd.content ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white cursor-not-allowed']"
-                        >
-                            + Thêm
-                        </button>
+    <div class="input-container">
+        <div class="input-window">
+            <div class="window-border">
+                <div class="window input-form">
+                    <div class="title-bar">
+                        <div class="icon"></div>
+                        <span class="font-semibold text-sm">Template: {{ constraints.template }}</span>
+                        <div class="title-bar-buttons"></div>
                     </div>
-                    <div class="space-y-3">
-                        <div v-for="(item, index) in content" :key="index" class="flex gap-2">
-                            <textarea 
-                                :value="item" 
-                                @input="updateContentItem(index, ($event.target as HTMLTextAreaElement).value)"
-                                :placeholder="constraints.contentPlaceholders[index] || `Nội dung ${index + 1}`" 
-                                rows="3" 
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-                            ></textarea>
-                            <button 
-                                v-if="constraints.maxContent === Infinity && content.length > 1"
-                                @click="removeContentItem(index)" 
-                                class="bg-red-500 text-white px-3 rounded-md hover:bg-red-600 self-start mt-1"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                    <div class="text-area">
+                        <div class="input-content">
+                            <!-- Duration Selector -->
+                            <div class="mb-4 p-4 bg-linear-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg shadow-sm">
+                                <label class="block text-sm font-semibold text-purple-800 mb-3">
+                                    ⏰ Thời hạn duy trì form
+                                </label>
+                                
+                                <!-- Countdown display (only in edit mode) -->
+                                <div v-if="isEditMode && expiresAt" class="mb-3 p-3 bg-white border border-purple-300 rounded-md">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Thời gian còn lại:</span>
+                                        <span :class="[
+                                            'text-sm font-bold',
+                                            countdown === 'Đã hết hạn' ? 'text-red-600' : 'text-green-600'
+                                        ]">
+                                            {{ countdown }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Hết hạn lúc: {{ expiresAt.toLocaleString('vi-VN') }}
+                                    </div>
+                                </div>
 
-                <!-- Media sections -->
-                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ media.label }}
-                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
-                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
-                        </span>
-                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
-                    </label>
-                    <input 
-                        :type="'file'" 
-                        :id="`${media.key}Input`" 
-                        multiple 
-                        :accept="`${media.key}/*`" 
-                        @change="handleMedia($event, media.key)" 
-                        class="hidden" 
-                        :disabled="!canAdd[media.key]" 
-                    />
-                    <label 
-                        :for="`${media.key}Input`" 
-                        :class="['inline-block text-white px-4 py-2 rounded-md', canAdd[media.key] ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed']"
-                    >
-                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key }}
-                    </label>
-                    
-                    <!-- New files preview -->
-                    <div v-if="managers[media.key].previews.value.length" class="mt-2">
-                        <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
-                            <div v-for="(p, i) in managers[media.key].previews.value" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
-                                <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
-                                <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
-                                <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                                <!-- Duration options -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label 
+                                        v-for="option in [
+                                            { value: '1day', label: '1 Ngày', icon: '📅' },
+                                            { value: '1week', label: '1 Tuần', icon: '📆' },
+                                            { value: '1month', label: '1 Tháng', icon: '🗓️' },
+                                            { value: '6months', label: '6 Tháng', icon: '📊' }
+                                        ]"
+                                        :key="option.value"
+                                        :class="[
+                                            'cursor-pointer p-3 border-2 rounded-lg text-center transition-all duration-200',
+                                            selectedDuration === option.value 
+                                                ? 'border-purple-500 bg-purple-100 shadow-md transform scale-105' 
+                                                : 'border-gray-300 bg-white hover:border-purple-300 hover:bg-purple-50'
+                                        ]"
+                                    >
+                                        <input 
+                                            type="radio" 
+                                            :value="option.value" 
+                                            v-model="selectedDuration"
+                                            class="hidden"
+                                            @change="() => {
+                                                expiresAt = calculateExpiryDate(selectedDuration);
+                                                if (isEditMode && expiresAt) {
+                                                    startCountdown();
+                                                }
+                                            }"
+                                        />
+                                        <div class="text-2xl mb-1">{{ option.icon }}</div>
+                                        <div :class="[
+                                            'text-sm font-medium',
+                                            selectedDuration === option.value ? 'text-purple-700' : 'text-gray-700'
+                                        ]">
+                                            {{ option.label }}
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <p class="text-xs text-gray-600 mt-3 italic">
+                                    💡 Form sẽ được duy trì đến 0:00 của ngày được tính từ thời điểm hiện tại
+                                </p>
+                            </div>
+
+                            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p class="text-xs text-blue-600 mt-1">
+                                    Giới hạn: 
+                                    {{ constraints.maxContent !== Infinity ? `${constraints.maxContent} nội dung` : 'không giới hạn nội dung' }} · 
+                                    {{ constraints.maxImages !== Infinity ? `${constraints.maxImages} ảnh` : 'không giới hạn ảnh' }} · 
+                                    {{ constraints.maxVideos !== Infinity ? `${constraints.maxVideos} video` : 'không giới hạn video' }} · 
+                                    {{ constraints.maxAudios !== Infinity ? `${constraints.maxAudios} audio` : 'không giới hạn audio' }}
+                                </p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- Content -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="block text-sm font-medium text-gray-700">
+                                            Nội dung <span class="text-red-500">*</span>
+                                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
+                                                (Bắt buộc: {{ constraints.maxContent }})
+                                            </span>
+                                        </label>
+                                        <button 
+                                            v-if="constraints.maxContent === Infinity"
+                                            @click="addContentItem" 
+                                            :disabled="!canAdd.content"
+                                            :class="['file-input-button', !canAdd.content ? 'file-input-button:disabled' : '']"
+                                        >
+                                            + Thêm
+                                        </button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div v-for="(item, index) in content" :key="index" class="flex gap-2">
+                                            <textarea 
+                                                :value="item" 
+                                                @input="updateContentItem(index, ($event.target as HTMLTextAreaElement).value)"
+                                                :placeholder="constraints.contentPlaceholders[index] || `Nội dung ${index + 1}`" 
+                                                rows="3" 
+                                                class="input-field flex-1"
+                                            ></textarea>
+                                            <button 
+                                                v-if="constraints.maxContent === Infinity && content.length > 1"
+                                                @click="removeContentItem(index)" 
+                                                class="file-input-button"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Media sections -->
+                                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        {{ media.label }}
+                                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
+                                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
+                                        </span>
+                                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
+                                    </label>
+                                    <input 
+                                        :type="'file'" 
+                                        :id="`${media.key}Input`" 
+                                        multiple 
+                                        :accept="`${media.key}/*`" 
+                                        @change="handleMedia($event, media.key)" 
+                                        class="hidden" 
+                                        :disabled="!canAdd[media.key]" 
+                                    />
+                                    <label 
+                                        :for="`${media.key}Input`" 
+                                        :class="['file-input-button', !canAdd[media.key] ? 'file-input-button:disabled' : '']"
+                                        :disabled="!canAdd[media.key]"
+                                    >
+                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
+                                    </label>
+                                    
+                                    <!-- New files preview -->
+                                    <div v-if="managers[media.key].previews.value.length" class="mt-2">
+                                        <div class="media-preview">
+                                            <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
+                                                <div v-for="(p, i) in managers[media.key].previews.value" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
+                                                    <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
+                                                    <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
+                                                    <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
+                                                    <button @click="managers[media.key].removeFile(i)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Existing files -->
+                                    <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
+                                        <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
+                                        <div class="media-preview">
+                                            <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
+                                                <div v-for="(url, i) in existingData[`${media.key}s`]" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
+                                                    <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
+                                                    <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
+                                                    <audio v-else :src="url" controls class="flex-1"></audio>
+                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit -->
+                                <div v-if="loading" class="w-full">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
+                                        <span v-if="totalProgress > 0" class="text-sm font-medium text-gray-700">{{ totalProgress }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div 
+                                            class="progress-fill"
+                                            :style="{ width: (totalProgress || 10) + '%' }"
+                                        >
+                                            <span v-if="totalProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ totalProgress }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="submit-buttons">
+                                    <button @click="handlePreview" class="win2k-button">
+                                        Xem trước
+                                    </button>
+                                    <button @click="handleSubmit" class="win2k-button">
+                                        {{ isEditMode ? "Cập nhật" : "Xác nhận" }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Existing files -->
-                    <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
-                        <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
-                        <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
-                            <div v-for="(url, i) in existingData[`${media.key}s`]" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
-                                <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
-                                <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
-                                <audio v-else :src="url" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
-                            </div>
+                    <div class="status-bar">
+                        <div class="text-center text-xs">
+                            Sẵn sàng
                         </div>
                     </div>
-                </div>
-
-                <!-- Submit -->
-                <div v-if="loading" class="w-full">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
-                        <span v-if="totalProgress > 0" class="text-sm font-medium text-gray-700">{{ totalProgress }}%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-10 flex items-center px-2">
-                        <div 
-                            class="bg-pink-500 h-6 rounded-full transition-all duration-300 flex items-center justify-center text-white text-sm font-medium"
-                            :style="{ width: (totalProgress || 10) + '%' }"
-                        >
-                            <span v-if="totalProgress >= 20">{{ totalProgress }}%</span>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="flex gap-3">
-                    <button @click="handlePreview" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">Xem trước</button>
-                    <button @click="handleSubmit" class="flex-1 bg-pink-500 text-white py-2 px-4 rounded-md hover:bg-pink-600">{{ isEditMode ? "Cập nhật" : "Xác nhận" }}</button>
                 </div>
             </div>
         </div>

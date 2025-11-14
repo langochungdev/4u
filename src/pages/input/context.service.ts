@@ -18,6 +18,7 @@ export interface ContextPayload {
   images: string[];
   videos?: string[];
   audios?: string[];
+  expiresAt?: any; // Timestamp for expiration
 }
 
 export interface DeletedMedia {
@@ -27,10 +28,17 @@ export interface DeletedMedia {
 
 export const contextService = {
   async create(data: ContextPayload): Promise<string> {
-    const ref = await addDoc(collection(db, CONTEXTS_COLLECTION), {
+    const docData: any = {
       ...data,
       createdAt: serverTimestamp(),
-    });
+    };
+    
+    // Only add expiresAt if it's provided
+    if (data.expiresAt) {
+      docData.expiresAt = data.expiresAt;
+    }
+    
+    const ref = await addDoc(collection(db, CONTEXTS_COLLECTION), docData);
     return ref.id;
   },
 
@@ -44,14 +52,22 @@ export const contextService = {
       images: data.images || [],
       videos: data.videos || [],
       audios: data.audios || [],
+      expiresAt: data.expiresAt || null,
     };
   },
 
   async update(id: string, data: Partial<ContextPayload>): Promise<void> {
-    await updateDoc(doc(db, CONTEXTS_COLLECTION, id), {
+    const updateData: any = {
       ...data,
       updatedAt: serverTimestamp(),
-    });
+    };
+    
+    // Only update expiresAt if it's provided in data
+    if (data.expiresAt !== undefined) {
+      updateData.expiresAt = data.expiresAt;
+    }
+    
+    await updateDoc(doc(db, CONTEXTS_COLLECTION, id), updateData);
   },
 
   async saveDeletedMedia(urls: string[]): Promise<void> {
@@ -67,3 +83,5 @@ export const contextService = {
     });
   },
 };
+
+export const demoid = 'fLFM0pF6lgoPwcjZlwEb';

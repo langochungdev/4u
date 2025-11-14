@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import QRCode from "qrcode";
+import { contextService } from "./context.service";
+import "./css/result.css";
 
 const route = useRoute();
 const qrDataUrl = ref<string>("");
@@ -10,6 +12,44 @@ const editLink = ref<string>("");
 const templateName = ref<string>("");
 const contextId = ref<string>("");
 const loading = ref(true);
+const expiresAt = ref<Date | null>(null);
+const countdown = ref<string>("");
+const countdownInterval = ref<number | null>(null);
+
+const updateCountdown = () => {
+    if (!expiresAt.value) {
+        countdown.value = '';
+        return;
+    }
+    
+    const now = new Date().getTime();
+    const expiry = expiresAt.value.getTime();
+    const distance = expiry - now;
+    
+    if (distance < 0) {
+        countdown.value = 'Đã hết hạn';
+        if (countdownInterval.value) {
+            clearInterval(countdownInterval.value);
+            countdownInterval.value = null;
+        }
+        return;
+    }
+    
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    countdown.value = `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+};
+
+const startCountdown = () => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+    updateCountdown();
+    countdownInterval.value = window.setInterval(updateCountdown, 1000);
+};
 
 onMounted(async () => {
   const id = route.params.id as string;
@@ -28,6 +68,27 @@ onMounted(async () => {
   viewLink.value = `${window.location.origin}/${topic}/${template}/${id}`;
   editLink.value = `${window.location.origin}/input/${template}?id=${id}&topic=${topic}`;
 
+  // Fetch context data to get expiresAt
+  try {
+    const contextData = await contextService.getById(id);
+    if (contextData?.expiresAt) {
+      // Convert Firestore Timestamp to Date
+      if (contextData.expiresAt.toDate) {
+        expiresAt.value = contextData.expiresAt.toDate();
+      } else if (contextData.expiresAt instanceof Date) {
+        expiresAt.value = contextData.expiresAt;
+      } else if (typeof contextData.expiresAt === 'number') {
+        expiresAt.value = new Date(contextData.expiresAt);
+      }
+      
+      if (expiresAt.value) {
+        startCountdown();
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching context:", error);
+  }
+
   // Generate QR code
   try {
     qrDataUrl.value = await QRCode.toDataURL(viewLink.value, {
@@ -42,6 +103,12 @@ onMounted(async () => {
   }
 });
 
+onUnmounted(() => {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value);
+  }
+});
+
 const copyToClipboard = async (text: string, type: string) => {
   try {
     await navigator.clipboard.writeText(text);
@@ -53,112 +120,104 @@ const copyToClipboard = async (text: string, type: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-linear-to-br from-pink-50 to-purple-50 p-4 flex items-center justify-center">
-    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8">
-      <div v-if="loading" class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-        <p class="mt-4 text-gray-600">Đang tạo QR code...</p>
-      </div>
+    <div class="result-container">
+        <div class="result-window">
+            <div class="window-border">
+                <div class="window result-form">
+                    <div class="title-bar">
+                        <div class="icon"></div>
+                        Template: <span class="font-semibold text-pink-600">{{ templateName}}</span>
+                        <div class="title-bar-buttons"></div>
+                    </div>
+                    <div class="text-area">
+                        <div class="result-content">
+                            <div v-if="loading" class="loading-container">
+                                <div class="loading-spinner"></div>
+                                <p class="loading-text">Đang tạo QR code...</p>
+                            </div>
 
-      <div v-else-if="!contextId" class="text-center">
-        <div class="text-6xl mb-4">❌</div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">Không tìm thấy ID</h2>
-        <p class="text-gray-600">Vui lòng kiểm tra lại đường dẫn.</p>
-      </div>
+                            <div v-else-if="!contextId" class="error-container">
+                                <div class="error-emoji">❌</div>
+                                <h2 class="error-title">Không tìm thấy ID</h2>
+                                <p class="error-text">Vui lòng kiểm tra lại đường dẫn.</p>
+                            </div>
 
-      <div v-else class="space-y-6">
-        <!-- Header -->
-        <div class="text-center border-b pb-6">
-          <div class="text-5xl mb-3">🎉</div>
-          <h1 class="text-3xl font-bold text-gray-800 mb-2">Tạo thành công!</h1>
-          <p class="text-gray-600">Template: <span class="font-semibold text-pink-600">{{ templateName }}</span></p>
-          <p class="text-sm text-gray-500 mt-1">ID: {{ contextId }}</p>
-        </div>
+                            <div v-else class="space-y-6">
+                                <!-- Countdown Section -->
+                                <div v-if="expiresAt" class="mb-4 p-4 bg-linear-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg shadow-md">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-semibold text-orange-800">⏰ Thời gian còn lại:</span>
+                                        <span :class="[
+                                            'text-lg font-bold',
+                                            countdown === 'Đã hết hạn' ? 'text-red-600' : 'text-green-600'
+                                        ]">
+                                            {{ countdown }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">
+                                        Hết hạn lúc: {{ expiresAt.toLocaleString('vi-VN') }}
+                                    </div>
+                                </div>
 
-        <!-- Links Section -->
-        <div class="space-y-4">
-          <h2 class="text-xl font-semibold text-gray-800">📎 Liên kết</h2>
-          
-          <!-- View Link -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-medium text-blue-800">🔗 Xem nội dung</span>
-              <button 
-                @click="copyToClipboard(viewLink, 'Link xem')"
-                class="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
-              >
-                📋 Copy
-              </button>
+                                <div class="result-section">
+                                    <!-- View Link -->
+                                    <div class="link-card">
+                                        <div class="link-header">
+                                            <span class="link-label">🔗 Xem nội dung</span>
+                                            <button @click="copyToClipboard(viewLink, 'Link xem')"
+                                                class="file-input-button">
+                                                📋 Copy
+                                            </button>
+                                        </div>
+                                        <a :href="viewLink" target="_blank" class="link-url">
+                                            {{ viewLink }}
+                                        </a>
+                                    </div>
+
+                                    <!-- Edit Link -->
+                                    <div class="link-card">
+                                        <div class="link-header">
+                                            <span class="link-label">✏️ Chỉnh sửa</span>
+                                            <button @click="copyToClipboard(editLink, 'Link edit')"
+                                                class="file-input-button">
+                                                📋 Copy
+                                            </button>
+                                        </div>
+                                        <a :href="editLink" target="_blank" class="link-url">
+                                            {{ editLink }}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- QR Code Section -->
+                                <div class="qr-section">
+                                    <div class="qr-container">
+                                        <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="qr-code" />
+                                        <p class="qr-caption">Quét mã để xem nội dung</p>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <a :href="viewLink" target="_blank" class="action-button win2k-button">
+                                        👁️ Xem ngay
+                                    </a>
+                                    <a :href="editLink" class="action-button win2k-button">
+                                        ✏️ Chỉnh sửa
+                                    </a>
+                                    <button @click="$router.push('/')" class="action-button win2k-button">
+                                        🏠 Trang chủ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-bar">
+                    </div>
+                </div>
             </div>
-            <a 
-              :href="viewLink" 
-              target="_blank"
-              class="text-blue-600 hover:text-blue-800 break-all text-sm underline"
-            >
-              {{ viewLink }}
-            </a>
-          </div>
-
-          <!-- Edit Link -->
-          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-medium text-green-800">✏️ Chỉnh sửa</span>
-              <button 
-                @click="copyToClipboard(editLink, 'Link edit')"
-                class="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
-              >
-                📋 Copy
-              </button>
-            </div>
-            <a 
-              :href="editLink" 
-              target="_blank"
-              class="text-green-600 hover:text-green-800 break-all text-sm underline"
-            >
-              {{ editLink }}
-            </a>
-          </div>
         </div>
-
-        <!-- QR Code Section -->
-        <div class="text-center">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">📱 Mã QR</h2>
-          <div class="inline-block bg-white p-6 rounded-xl shadow-lg border-2 border-gray-200">
-            <img 
-              v-if="qrDataUrl" 
-              :src="qrDataUrl" 
-              alt="QR Code" 
-              class="w-64 h-64 mx-auto"
-            />
-            <p class="text-xs text-gray-500 mt-3">Quét mã để xem nội dung</p>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-3 pt-4 border-t">
-          <a 
-            :href="viewLink"
-            target="_blank"
-            class="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-center font-medium"
-          >
-            👁️ Xem ngay
-          </a>
-          <a 
-            :href="editLink"
-            class="flex-1 bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors text-center font-medium"
-          >
-            ✏️ Chỉnh sửa
-          </a>
-          <button 
-            @click="$router.push('/')"
-            class="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-          >
-            🏠 Trang chủ
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <style scoped>

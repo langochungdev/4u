@@ -16,7 +16,7 @@ export const useContext = () => {
     return true;
   };
 
-  const submit = async (imageUrls: string[], videoUrls: string[], audioUrls: string[]): Promise<string | null> => {
+  const submit = async (imageUrls: string[], videoUrls: string[], audioUrls: string[], expiresAt?: Date): Promise<string | null> => {
     if (!validate()) return null;
     loading.value = true;
 
@@ -26,6 +26,7 @@ export const useContext = () => {
         images: imageUrls,
         videos: videoUrls,
         audios: audioUrls,
+        expiresAt: expiresAt || null,
       });
     } catch (err) {
       console.error("Error submitting context:", err);
@@ -55,7 +56,8 @@ export const useContext = () => {
     imageUrls: string[], 
     videoUrls: string[], 
     audioUrls: string[],
-    deletedUrls: string[] = []
+    deletedUrls: string[] = [],
+    expiresAt?: Date
   ): Promise<void> => {
     loading.value = true;
     try {
@@ -68,6 +70,7 @@ export const useContext = () => {
         images: imageUrls,
         videos: videoUrls,
         audios: audioUrls,
+        expiresAt: expiresAt || undefined,
       });
     } catch (err) {
       console.error("Error updating context:", err);
