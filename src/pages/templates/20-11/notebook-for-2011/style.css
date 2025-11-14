@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+
+/* Nền chung (Giữ nguyên) */
+.album-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* 1. Bìa Sổ (Viền mỏng) */
+.album-cover {
+  width: 300px;
+  height: 400px;
+  background: #fffaf0; /* Nền kem */
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 12px; /* Lớp viền nhẹ */
+  box-sizing: border-box;
+  z-index: 2;
+}
+.album-cover:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Nội dung bìa (Viền mỏng) */
+.cover-content {
+  /* SỬA: Viền đen mỏng lại (từ 8px -> 4px) */
+  border: 4px solid #333;
+  border-radius: 6px;
+  background: #fafafa;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+}
+.cover-content h1 {
+  font-size: 1.8rem;
+  font-family: 'Dancing+Script', cursive;
+  color: #333;
+  margin: 15px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.3;
+  max-height: 2.6em; 
+}
+.cover-content p {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #888;
+}
+.cover-icon {
+  font-size: 1.5rem;
+}
+
+/* 2. Cuốn Sổ Khi Mở (Giữ nguyên) */
+.album-open {
+  display: flex;
+  width: 100%;
+  max-width: 700px;
+  height: 400px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  z-index: 2;
+}
+
+/* 3. Các Trang Sổ (Viền mỏng) */
+.page {
+  flex: 1;
+  background: #fffaf0; 
+  padding: 12px; /* Lớp viền nhẹ */
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative; 
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+.page:hover {
+  filter: brightness(0.98);
+}
+.page.left {
+  border-right: 1px solid #f0f0f0;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+.page.right {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* 4. Nội Dung Trang (Viền mỏng) */
+.page-content {
+  width: 100%;
+  height: 100%;
+  /* SỬA: Viền đen mỏng lại (từ 8px -> 4px) */
+  border: 4px solid #333; 
+  border-radius: 6px;
+  background: #fafafa;
+  overflow: hidden;
+  position: relative;
+}
+.page-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 5. Định dạng trang thư (Giữ nguyên) */
+.letter-content {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.message-body {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  line-height: 1.7;
+  color: #222;
+  white-space: pre-wrap; 
+  word-break: break-word;
+}
+
+/* 6. Gợi ý lật trang (Giữ nguyên) */
+.click-hint {
+  position: absolute;
+  bottom: 25px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #aaa;
+  animation: pulse-hint 2s infinite ease-in-out;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+}
+.page:hover .click-hint {
+  opacity: 1;
+}
+.left-hint {
+  left: 25px;
+}
+.right-hint {
+  right: 25px;
+}
+@keyframes pulse-hint {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.9; }
+}
+
+/* 7. Ẩn trình phát nhạc (Giữ nguyên) */
+#audio-player {
+  display: none;
+}
+
+/* 8. CSS CHO ICON BAY (Giữ nguyên) */
+.particle-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+.particle-icon {
+  position: absolute;
+  bottom: -50px;
+  color: rgba(255, 255, 255, 0.5); 
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: float-up 50s infinite linear; 
+  user-select: none;
+  will-change: transform, opacity; 
+}
+@keyframes float-up {
+  0% {
+    transform: translateY(0);
+    opacity: 1.0; 
+  }
+  100% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+}
+
+/* 9. RESPONSIVE (Giữ nguyên) */
+@media (max-width: 768px) {
+  .album-open {
+    flex-direction: column;
+    width: 95%;
+    max-width: 400px;
+    height: auto;
+  }
+  .page {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    padding: 8px; /* Viền mỏng trên mobile */
+  }
+  .page.left {
+     border-right: none;
+     border-bottom: 1px solid #f0f0f0;
+     border-top-right-radius: 12px;
+     border-bottom-left-radius: 0;
+  }
+  .page.right {
+     border-top-left-radius: 12px;
+     border-bottom-left-radius: 12px;
+     border-bottom-right-radius: 12px;
+  }
+  .album-cover {
+    width: 80%;
+    max-width: 300px;
+    height: 400px;
+    padding: 8px; /* Viền mỏng trên mobile */
+  }
+  .message-body {
+     font-size: 1.2rem;
+  }
+  .click-hint {
+     display: none;
+  }
+
+  
+}
