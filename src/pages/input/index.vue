@@ -274,15 +274,21 @@ onMounted(async () => {
                 newQuery.topic = route.query.topic as string;
             }
             
+            constraints.value.maxImages = config.maxImages;
+            constraints.value.maxVideos = config.maxVideos;
+            constraints.value.maxAudios = config.maxAudios;
+            constraints.value.maxContent = config.maxContent;
+            constraints.value.template = config.templateName;
+            
+            if (config.contentPlaceholders) {
+                constraints.value.contentPlaceholders = config.contentPlaceholders;
+            }
+            
             await router.replace({
                 name: 'Input',
                 params: { id: queryDocId },
                 query: newQuery
             });
-            
-            if (config.contentPlaceholders) {
-                constraints.value.contentPlaceholders = config.contentPlaceholders;
-            }
         }
     }
     
