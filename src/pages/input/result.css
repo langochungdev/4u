@@ -1,0 +1,404 @@
+/* Windows 2K Theme Styles for Result Page */
+
+.text-foreground {
+    color: #f8f8f8;
+    /* light text */
+}
+
+.text-muted-foreground {
+    color: #a0a0a0;
+    /* muted text */
+}
+
+.border {
+    border-color: #2a2a2a;
+}
+
+.bg-card {
+    background-color: #1a1a1a;
+}
+
+/* Window styles */
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.result-container {
+    min-height: 100vh;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    position: relative;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-window {
+    max-width: 800px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.result-form {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: white;
+    border-top-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.result-content {
+    background-color: rgba(255, 255, 255, 0.98);
+    padding: 20px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 2px;
+}
+
+.window-border {
+    margin: 0;
+    width: 100%;
+    border: 1px solid #d0d0c8;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    overflow: hidden;
+}
+
+.window {
+    background-color: #d0d0c8;
+    padding: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: white;
+    border-top-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+}
+
+.title-bar {
+    background-color: #082468;
+    background: -moz-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: -webkit-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: linear-gradient(to right, #082468, #a0c8f0);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 1px;
+    overflow-y: hidden;
+    cursor: default;
+    min-height: 16px;
+}
+
+.title-bar-buttons {
+    float: right;
+    width: 50px;
+    height: 15px;
+    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-repeat: no-repeat;
+    background-position: -2px -33px;
+}
+
+.title-bar .icon {
+    width: 16px;
+    height: 16px;
+    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-repeat: no-repeat;
+    background-position: -96px 0;
+    float: left;
+    margin-right: 2px;
+}
+
+.text-area {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    background-color: white;
+    overflow: hidden;
+}
+
+.status-bar {
+    padding: 4px 2px;
+    margin-top: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: #808080;
+    border-top-color: #808080;
+    border-right-color: white;
+    border-bottom-color: white;
+    font-size: 11px;
+}
+
+.win2k-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 14px;
+    padding: 12px 24px;
+    cursor: pointer;
+    min-width: 120px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+
+.win2k-button:hover {
+    border: 1px solid #808080;
+    background-color: #f0f0f0;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+}
+
+.win2k-button:active {
+    border: 1px inset #d0d0c8;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.win2k-button:disabled {
+    border: 1px solid #d0d0c8;
+    background-color: #c0c0c0;
+    color: #808080;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.file-input-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.file-input-button:hover {
+    border: 1px solid #808080;
+    background-color: #f0f0f0;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+}
+
+.file-input-button:active {
+    border: 1px inset #d0d0c8;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.file-input-button:disabled {
+    border: 1px solid #d0d0c8;
+    background-color: #c0c0c0;
+    color: #808080;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.section-title {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.section-description {
+    font-family: 'Courier New', monospace;
+    color: #ffffff;
+}
+
+.card-description {
+    font-family: 'Courier New', monospace;
+}
+
+/* Result specific styles */
+.result-header {
+    text-align: center;
+    border-bottom: 1px solid #d0d0c8;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.result-emoji {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.result-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.result-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.result-id {
+    font-size: 12px;
+    color: #999;
+}
+
+.result-section {
+    margin-bottom: 24px;
+}
+
+.result-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.link-card {
+    background-color: #f0f0f0;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.link-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.link-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #000;
+}
+
+.link-url {
+    color: #0066cc;
+    text-decoration: underline;
+    font-size: 12px;
+    word-break: break-all;
+    cursor: pointer;
+}
+
+.link-url:hover {
+    color: #004499;
+}
+
+.qr-section {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.qr-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.qr-container {
+    display: inline-block;
+    background-color: white;
+    padding: 20px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 4px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.qr-code {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 12px;
+}
+
+.qr-caption {
+    font-size: 11px;
+    color: #666;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #d0d0c8;
+}
+
+.action-button {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 40px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid #d0d0c8;
+    border-radius: 50%;
+    border-top-color: #082468;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.loading-text {
+    color: #666;
+    font-size: 14px;
+}
+
+.error-container {
+    text-align: center;
+    padding: 40px;
+}
+
+.error-emoji {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.error-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.error-text {
+    color: #666;
+    font-size: 14px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

@@ -5,6 +5,7 @@ import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
+import "./style.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -288,132 +289,156 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 p-4">
-        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ isEditMode ? 'Chỉnh sửa e-Card' : 'Tạo e-Card' }}</h1>
-            
-            <!-- Template info -->
-            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p class="text-sm text-blue-800">
-                    <span class="font-semibold">📋 Template: {{ constraints.template }}</span>
-                </p>
-                <p class="text-xs text-blue-600 mt-1">
-                    Giới hạn: 
-                    {{ constraints.maxContent !== Infinity ? `${constraints.maxContent} nội dung` : 'không giới hạn nội dung' }} · 
-                    {{ constraints.maxImages !== Infinity ? `${constraints.maxImages} ảnh` : 'không giới hạn ảnh' }} · 
-                    {{ constraints.maxVideos !== Infinity ? `${constraints.maxVideos} video` : 'không giới hạn video' }} · 
-                    {{ constraints.maxAudios !== Infinity ? `${constraints.maxAudios} audio` : 'không giới hạn audio' }}
-                </p>
-            </div>
-
-            <div class="space-y-4">
-                <!-- Content -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">
-                            Nội dung <span class="text-red-500">*</span>
-                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
-                                (Bắt buộc: {{ constraints.maxContent }})
-                            </span>
-                        </label>
-                        <button 
-                            v-if="constraints.maxContent === Infinity"
-                            @click="addContentItem" 
-                            :disabled="!canAdd.content"
-                            :class="['text-sm px-3 py-1 rounded-md transition-colors', canAdd.content ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-400 text-white cursor-not-allowed']"
-                        >
-                            + Thêm
-                        </button>
+    <div class="input-container">
+        <div class="input-window">
+            <div class="window-border">
+                <div class="window input-form">
+                    <div class="title-bar">
+                        <div class="icon"></div>
+                        <span>Tạo thiệp</span>
+                        <div class="title-bar-buttons"></div>
                     </div>
-                    <div class="space-y-3">
-                        <div v-for="(item, index) in content" :key="index" class="flex gap-2">
-                            <textarea 
-                                :value="item" 
-                                @input="updateContentItem(index, ($event.target as HTMLTextAreaElement).value)"
-                                :placeholder="constraints.contentPlaceholders[index] || `Nội dung ${index + 1}`" 
-                                rows="3" 
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-                            ></textarea>
-                            <button 
-                                v-if="constraints.maxContent === Infinity && content.length > 1"
-                                @click="removeContentItem(index)" 
-                                class="bg-red-500 text-white px-3 rounded-md hover:bg-red-600 self-start mt-1"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                    <div class="text-area">
+                        <div class="input-content">
+                            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p class="text-sm text-blue-800">
+                                    <span class="font-semibold">📋 Template: {{ constraints.template }}</span>
+                                </p>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    Giới hạn: 
+                                    {{ constraints.maxContent !== Infinity ? `${constraints.maxContent} nội dung` : 'không giới hạn nội dung' }} · 
+                                    {{ constraints.maxImages !== Infinity ? `${constraints.maxImages} ảnh` : 'không giới hạn ảnh' }} · 
+                                    {{ constraints.maxVideos !== Infinity ? `${constraints.maxVideos} video` : 'không giới hạn video' }} · 
+                                    {{ constraints.maxAudios !== Infinity ? `${constraints.maxAudios} audio` : 'không giới hạn audio' }}
+                                </p>
+                            </div>
 
-                <!-- Media sections -->
-                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ media.label }}
-                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
-                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
-                        </span>
-                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
-                    </label>
-                    <input 
-                        :type="'file'" 
-                        :id="`${media.key}Input`" 
-                        multiple 
-                        :accept="`${media.key}/*`" 
-                        @change="handleMedia($event, media.key)" 
-                        class="hidden" 
-                        :disabled="!canAdd[media.key]" 
-                    />
-                    <label 
-                        :for="`${media.key}Input`" 
-                        :class="['inline-block text-white px-4 py-2 rounded-md', canAdd[media.key] ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer' : 'bg-gray-400 cursor-not-allowed']"
-                    >
-                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key }}
-                    </label>
-                    
-                    <!-- New files preview -->
-                    <div v-if="managers[media.key].previews.value.length" class="mt-2">
-                        <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
-                            <div v-for="(p, i) in managers[media.key].previews.value" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
-                                <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
-                                <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
-                                <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                            <div class="space-y-4">
+                                <!-- Content -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="block text-sm font-medium text-gray-700">
+                                            Nội dung <span class="text-red-500">*</span>
+                                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
+                                                (Bắt buộc: {{ constraints.maxContent }})
+                                            </span>
+                                        </label>
+                                        <button 
+                                            v-if="constraints.maxContent === Infinity"
+                                            @click="addContentItem" 
+                                            :disabled="!canAdd.content"
+                                            :class="['file-input-button', !canAdd.content ? 'file-input-button:disabled' : '']"
+                                        >
+                                            + Thêm
+                                        </button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div v-for="(item, index) in content" :key="index" class="flex gap-2">
+                                            <textarea 
+                                                :value="item" 
+                                                @input="updateContentItem(index, ($event.target as HTMLTextAreaElement).value)"
+                                                :placeholder="constraints.contentPlaceholders[index] || `Nội dung ${index + 1}`" 
+                                                rows="3" 
+                                                class="input-field flex-1"
+                                            ></textarea>
+                                            <button 
+                                                v-if="constraints.maxContent === Infinity && content.length > 1"
+                                                @click="removeContentItem(index)" 
+                                                class="file-input-button"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Media sections -->
+                                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                        {{ media.label }}
+                                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
+                                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
+                                        </span>
+                                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
+                                    </label>
+                                    <input 
+                                        :type="'file'" 
+                                        :id="`${media.key}Input`" 
+                                        multiple 
+                                        :accept="`${media.key}/*`" 
+                                        @change="handleMedia($event, media.key)" 
+                                        class="hidden" 
+                                        :disabled="!canAdd[media.key]" 
+                                    />
+                                    <label 
+                                        :for="`${media.key}Input`" 
+                                        :class="['file-input-button', !canAdd[media.key] ? 'file-input-button:disabled' : '']"
+                                        :disabled="!canAdd[media.key]"
+                                    >
+                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
+                                    </label>
+                                    
+                                    <!-- New files preview -->
+                                    <div v-if="managers[media.key].previews.value.length" class="mt-2">
+                                        <div class="media-preview">
+                                            <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
+                                                <div v-for="(p, i) in managers[media.key].previews.value" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
+                                                    <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
+                                                    <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
+                                                    <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
+                                                    <button @click="managers[media.key].removeFile(i)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Existing files -->
+                                    <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
+                                        <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
+                                        <div class="media-preview">
+                                            <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
+                                                <div v-for="(url, i) in existingData[`${media.key}s`]" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
+                                                    <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
+                                                    <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
+                                                    <audio v-else :src="url" controls class="flex-1"></audio>
+                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit -->
+                                <div v-if="loading" class="w-full">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
+                                        <span v-if="totalProgress > 0" class="text-sm font-medium text-gray-700">{{ totalProgress }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div 
+                                            class="progress-fill"
+                                            :style="{ width: (totalProgress || 10) + '%' }"
+                                        >
+                                            <span v-if="totalProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ totalProgress }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="flex gap-3">
+                                    <button @click="handlePreview" class="win2k-button">
+                                        Xem trước
+                                    </button>
+                                    <button @click="handleSubmit" class="win2k-button">
+                                        {{ isEditMode ? "Cập nhật" : "Xác nhận" }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Existing files -->
-                    <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
-                        <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
-                        <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
-                            <div v-for="(url, i) in existingData[`${media.key}s`]" :key="i" :class="media.key === 'audio' ? 'flex items-center space-x-2 bg-gray-100 p-2 rounded-md' : 'relative'">
-                                <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
-                                <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
-                                <audio v-else :src="url" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
-                            </div>
+                    <div class="status-bar">
+                        <div class="text-center text-xs">
+                            Sẵn sàng
                         </div>
                     </div>
-                </div>
-
-                <!-- Submit -->
-                <div v-if="loading" class="w-full">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
-                        <span v-if="totalProgress > 0" class="text-sm font-medium text-gray-700">{{ totalProgress }}%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-10 flex items-center px-2">
-                        <div 
-                            class="bg-pink-500 h-6 rounded-full transition-all duration-300 flex items-center justify-center text-white text-sm font-medium"
-                            :style="{ width: (totalProgress || 10) + '%' }"
-                        >
-                            <span v-if="totalProgress >= 20">{{ totalProgress }}%</span>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="flex gap-3">
-                    <button @click="handlePreview" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">Xem trước</button>
-                    <button @click="handleSubmit" class="flex-1 bg-pink-500 text-white py-2 px-4 rounded-md hover:bg-pink-600">{{ isEditMode ? "Cập nhật" : "Xác nhận" }}</button>
                 </div>
             </div>
         </div>

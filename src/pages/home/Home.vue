@@ -5,28 +5,17 @@
         <main class="container mx-auto px-4 py-12">
             <!-- Tag Filter -->
             <div class="mb-12">
-                <h2 class="mb-4 text-2xl font-bold text-[#00FFFF]">Chọn chủ đề</h2>
                 <div class="flex flex-wrap gap-3">
                     <button
                         @click="selectedTag = 'all'"
-                        :class="[
-                            'rounded-full px-6 py-2.5 font-medium transition-all',
-                            selectedTag === 'all'
-                                ? 'bg-[#00FFFF] text-black shadow-lg shadow-[#00FFFF]/50'
-                                : 'bg-gray-700 text-white hover:bg-gray-600'
-                        ]">
+                        :class="['win2k-tag-button', selectedTag === 'all' ? 'selected' : '']">
                         Tất cả
                     </button>
                     <button
                         v-for="section in sections"
                         :key="section.id"
                         @click="selectedTag = section.id"
-                        :class="[
-                            'rounded-full px-6 py-2.5 font-medium transition-all',
-                            selectedTag === section.id
-                                ? 'bg-[#00FFFF] text-black shadow-lg shadow-[#00FFFF]/50'
-                                : 'bg-gray-700 text-white hover:bg-gray-600'
-                        ]">
+                        :class="['win2k-tag-button', selectedTag === section.id ? 'selected' : '']">
                         {{ section.title }}
                     </button>
                 </div>
@@ -35,49 +24,54 @@
             <div v-for="section in filteredSections" :key="section.id" class="mb-16">
                 <!-- Section Header -->
                 <div class="mb-8">
-                    <h2
-                        class="mb-2 text-3xl font-bold text-[#00FFFF]">
+                    <h2 class="section-title">
                         {{ section.title }}
                     </h2>
-                    <p v-if="section.description" class="text-muted-foreground">
+                    <p v-if="section.description" class="section-description">
                         {{ section.description }}
                     </p>
                 </div>
 
                 <!-- Cards Grid -->
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <div v-for="card in section.cards" :key="card.id"
-                        class="group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-all hover:scale-105 hover:border-[#00FFFF] hover:shadow-lg hover:shadow-[#00FFFF]/20">
-                        <!-- Thumbnail -->
-                        <div class="aspect-16/10 cursor-pointer overflow-hidden" @click="goToDemo(section, card)">
-                            <video v-if="card.thumbnailType === 'video'" :src="card.thumbnail"
-                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                autoplay loop muted playsinline>
-                            </video>
-                            <img v-else :src="card.thumbnail" :alt="card.title"
-                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                        </div>
+                    <div v-for="card in section.cards" :key="card.id" class="window-border">
+                        <div class="window text">
+                            <div class="title-bar">
+                                <div class="icon"></div>
+                                <span>{{ card.title }}</span>
+                                <div class="title-bar-buttons"></div>
+                            </div>
+                            <div class="text-area">
+                                <!-- Thumbnail -->
+                                <div class="aspect-16/10 cursor-pointer overflow-hidden" @click="goToDemo(section, card)">
+                                    <video v-if="card.thumbnailType === 'video'" :src="card.thumbnail"
+                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                        autoplay loop muted playsinline>
+                                    </video>
+                                    <img v-else :src="card.thumbnail" :alt="card.title"
+                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                                </div>
 
-                        <div class="p-4 grow">
-                            <h3 class="mb-2 line-clamp-1 font-semibold">{{ card.title }}</h3>
-                            <p class="mb-2 line-clamp-2 text-sm text-muted-foreground">
-                                {{ card.description }}
-                            </p>
-                            <p v-if="card.createdBy" class="text-sm text-muted-foreground">
-                                Tạo bởi: {{ card.createdBy }}
-                            </p>
-                        </div>
-
-                        <div class="p-4 pt-0">
-                            <div class="flex gap-2">
-                                <button @click="goToDemo(section, card)"
-                                    class="w-full cursor-pointer rounded-md bg-gray-700 px-4 py-2 text-white hover:bg-gray-600">
-                                    Demo
-                                </button>
-                                <button @click="buyCard(section, card)"
-                                    class="w-full cursor-pointer rounded-md bg-gray-700 px-4 py-2 text-white hover:bg-gray-600">
-                                    Tạo thiệp
-                                </button>
+                                <div class="p-4 grow flex flex-col">
+                                    <p class="mb-2 line-clamp-1 text-sm text-muted-foreground card-description">
+                                        {{ card.description }}
+                                    </p>
+                                    <p v-if="card.createdBy" class="text-sm text-muted-foreground mt-auto card-description">
+                                        Tạo bởi: {{ card.createdBy }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="status-bar">
+                                <div class="p-4 pt-0">
+                                    <div class="flex gap-2 justify-center">
+                                        <button @click="goToDemo(section, card)" class="win2k-button">
+                                            Demo
+                                        </button>
+                                        <button @click="buyCard(section, card)" class="win2k-button">
+                                            Tạo thiệp
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -161,5 +155,143 @@ async function buyCard(section: Section, card: TemplateCard) {
 
 .bg-card {
     background-color: #1a1a1a;
+}
+
+/* Window styles */
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.window-border {
+    margin: 0;
+    width: 100%;
+    border: 1px solid #d0d0c8;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    height: 380px;
+    overflow: hidden;
+}
+
+.window {
+    background-color: #d0d0c8;
+    padding: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: white;
+    border-top-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+}
+
+.title-bar {
+    background-color: #082468;
+    background: -moz-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: -webkit-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: linear-gradient(to right, #082468, #a0c8f0);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 1px;
+    overflow-y: hidden;
+    cursor: default;
+    min-height: 16px;
+}
+
+.title-bar-buttons {
+    float: right;
+    width: 50px;
+    height: 15px;
+    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-repeat: no-repeat;
+    background-position: -2px -33px;
+}
+
+.title-bar .icon {
+    width: 16px;
+    height: 16px;
+    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-repeat: no-repeat;
+    background-position: -96px 0;
+    float: left;
+    margin-right: 2px;
+}
+
+.text-area {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    background-color: white;
+    height: 300px;
+    overflow: hidden;
+}
+
+.status-bar {
+    padding: 4px 2px;
+    margin-top: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: #808080;
+    border-top-color: #808080;
+    border-right-color: white;
+    border-bottom-color: white;
+    font-size: 11px;
+}
+.win2k-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 14px;
+    padding: 12px 24px;
+    cursor: pointer;
+    min-width: 120px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+.win2k-button:hover {
+    border: 1px solid #808080;
+    background-color: #f0f0f0;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+}
+.win2k-button:active {
+    border: 1px inset #d0d0c8;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+.win2k-tag-button {
+    border: 1px outset #d0d0c8;
+    background-color: #c0c0c0;
+    color: black;
+    font-size: 14px;
+    padding: 8px 18px;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+.win2k-tag-button.selected {
+    border: 1px inset #d0d0c8;
+    background-color: #082468;
+    color: #ffffff;
+}
+.win2k-tag-button:hover {
+    background-color: #d0d0d0;
+    border-color: #a0a0a0;
+}
+.section-title {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+.section-description {
+    font-family: 'Courier New', monospace;
+    color: #ffffff;
+}
+.card-description {
+    font-family: 'Courier New', monospace;
 }
 </style>

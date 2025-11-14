@@ -1,13 +1,11 @@
 <template>
-    <div class="min-h-screen flex flex-col"
-        style="background-image: url('/bg.png'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <div class="main-layout min-h-screen flex flex-col">
         <header
-            class="sticky top-0 z-50 border-b border-gray-700 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+            class=" top-0 z-50 border-b border-gray-700 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div class="container mx-auto px-4 py-4">
                 <div class="flex items-center justify-between">
                     <router-link to="/" class="flex items-center gap-2">
                         <img src="/logo.png" alt="NEXTGEN" class="h-8 w-auto" />
-                        <span class="text-muted-foreground">Thiệp Tương Tác</span>
                     </router-link>
                 </div>
             </div>
@@ -22,17 +20,17 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                     <div class="flex flex-col items-center md:items-start">
                         <div class="mb-3 flex items-center gap-2">
-                            <img src="/logo.png" alt="NEXTGEN" class="h-8 w-auto" />
-                            <span class="text-xl font-bold text-[#00FFFF]">NEXTGEN</span>
+                            <img src="/logo.png" alt="FOR YOU" class="h-8 w-auto" />
+                            <span class="text-xl font-bold text-[#00FFFF]">FOR YOU</span>
                         </div>
-                        <p class="text-gray-400 text-sm leading-relaxed">
+                        <p class="text-gray-400 text-sm leading-relaxed truncate max-w-xs">
                             Tạo thiệp tương tác độc đáo và ý nghĩa cho mọi dịp đặc biệt.
                         </p>
                     </div>
 
                     <div class="flex flex-col items-center">
                         <h3 class="mb-3 text-lg font-semibold text-[#00FFFF]">Liên kết</h3>
-                        <div class="flex flex-col gap-2 text-sm">
+                        <div class="flex flex-row gap-4 text-sm">
                             <router-link to="/" class="text-gray-400 hover:text-[#00FFFF] transition-colors">
                                 Trang chủ
                             </router-link>
@@ -82,3 +80,15 @@
 
 <script setup lang="ts">
 </script>
+
+<style scoped>
+.main-layout {
+    background-image: url('/b3.jpg');
+    background-size: 300px auto;
+    background-position: top left;
+    background-repeat: repeat;
+    background-attachment: fixed;
+    font-family: 'Courier New', monospace;
+    cursor: url('/cursor.cur'), auto;
+}
+</style>
