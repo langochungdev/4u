@@ -174,12 +174,19 @@ import { onBeforeUnmount } from 'vue';
 onBeforeUnmount(cleanup);
 
 const handleBackButton = async () => {
-    // Get template name from route path (e.g., /demo2 -> demo2)
     const pathSegments = route.path.split('/').filter((s: string) => s);
-    const templateName = (route.query.template as string) || 
-                         (previewStore.template) || 
-                         (pathSegments[0]) || 
-                         'demo';
+    
+    let templateName = (route.query.template as string) || previewStore.template;
+    
+    if (!templateName) {
+        if (pathSegments.length === 1) {
+            templateName = pathSegments[0] || 'demo';
+        } else if (pathSegments.length >= 2) {
+            templateName = pathSegments[1] || 'demo';
+        } else {
+            templateName = 'demo';
+        }
+    }
     
     const templateConfig = await getTemplateConfig(templateName);
     
@@ -188,13 +195,14 @@ const handleBackButton = async () => {
         return;
     }
     
-    // Get edit ID from current route params or preview store
     const editId = route.params.id || previewStore.editId;
     
-    // Get topic from query or preview store
-    const topic = (route.query.topic as string) || previewStore.topic || '';
+    let topic = (route.query.topic as string) || previewStore.topic || '';
     
-    // Build query object
+    if (!topic && pathSegments.length >= 2) {
+        topic = pathSegments[0] || '';
+    }
+    
     const query: Record<string, string> = {
         maxImages: templateConfig.maxImages.toString(),
         maxVideos: templateConfig.maxVideos.toString(),
@@ -204,7 +212,6 @@ const handleBackButton = async () => {
         fromPreview: 'true'
     };
     
-    // Only add topic if it's not empty
     if (topic) {
         query.topic = topic;
     }

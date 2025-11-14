@@ -357,14 +357,18 @@ onMounted(async () => {
             }
         }
         
-        // Restore topic to query if it exists in store
-        if (previewStore.topic && !route.query.topic) {
+        const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.query.template);
+        if (needRestore) {
+            const newQuery = { ...route.query };
+            if (previewStore.topic && !route.query.topic) {
+                newQuery.topic = previewStore.topic;
+            }
+            if (previewStore.template && !route.query.template) {
+                newQuery.template = previewStore.template;
+            }
             await router.replace({
                 ...route,
-                query: {
-                    ...route.query,
-                    topic: previewStore.topic
-                }
+                query: newQuery
             });
         }
         
