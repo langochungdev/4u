@@ -259,7 +259,7 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
       </div>
 
       <!-- MODAL (giữ nguyên logic cũ) -->
-      <div v-if="open" class="fixed inset-0 z-[100]">
+      <div v-if="open" class="fixed inset-0 z-100">
         <div class="absolute inset-0 modal-backdrop"></div>
         <div class="relative h-full w-full flex items-center justify-center p-4">
           <div class="modal-shell animate-pop">
@@ -268,7 +268,7 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
               <div class="paper">
                 <div class="paper-head">
                   <h2 class="paper-title">
-                    Gửi {{ contextData?.content?.[0] || "Thầy/Cô" }} kính mến,
+                    {{ (contextData?.content?.[0] || "Thầy/Cô").slice(0, 40) }}
                   </h2>
                   <span class="badge-date">20/11</span>
                 </div>
@@ -281,16 +281,14 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
                 </div>
 
                 <div class="paper-body">
-                  {{
-                    contextData?.content?.[1] ||
-                    "Chúc Thầy/Cô luôn mạnh khỏe, hạnh phúc và tràn đầy nhiệt huyết với sự nghiệp trồng người!"
-                  }}
+                  {{ (contextData?.content?.[1] || "").slice(0, 500) }}
                 </div>
+
 
                 <div class="paper-sign">
                   <div class="sign-label">Kính gửi</div>
                   <div class="sign-name signature-font">
-                    {{ contextData?.content?.[2] || "Trân trọng" }}
+                    {{ (contextData?.content?.[2] || "Trân trọng").slice(0, 30) }}
                   </div>
                 </div>
 
