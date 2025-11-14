@@ -262,12 +262,14 @@ onMounted(async () => {
     if (urlParamId && queryDocId && await isValidTemplate(urlParamId)) {
         const config = await getTemplateConfig(urlParamId);
         if (config) {
+            const templateNameToUse = config.templateName || urlParamId;
+            
             const newQuery: Record<string, string> = {
                 maxImages: config.maxImages.toString(),
                 maxVideos: config.maxVideos.toString(),
                 maxAudios: config.maxAudios.toString(),
                 maxContent: config.maxContent.toString(),
-                template: config.templateName
+                template: templateNameToUse
             };
             
             if (route.query.topic) {
@@ -278,7 +280,7 @@ onMounted(async () => {
             constraints.value.maxVideos = config.maxVideos;
             constraints.value.maxAudios = config.maxAudios;
             constraints.value.maxContent = config.maxContent;
-            constraints.value.template = config.templateName;
+            constraints.value.template = templateNameToUse;
             
             if (config.contentPlaceholders) {
                 constraints.value.contentPlaceholders = config.contentPlaceholders;
