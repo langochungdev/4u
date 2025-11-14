@@ -295,6 +295,7 @@ onMounted(async () => {
     ['maxImages', 'maxVideos', 'maxAudios', 'maxContent'].forEach(key => {
         if (route.query[key]) (constraints.value as any)[key] = parseInt(route.query[key] as string);
     });
+    
     if (route.query.template) {
         constraints.value.template = route.query.template as string;
         
@@ -303,6 +304,13 @@ onMounted(async () => {
             if (config?.contentPlaceholders) {
                 constraints.value.contentPlaceholders = config.contentPlaceholders;
             }
+        }
+    } else if (urlParamId && !queryDocId) {
+        const defaultTemplate = 'demo';
+        constraints.value.template = defaultTemplate;
+        const config = await getTemplateConfig(defaultTemplate);
+        if (config?.contentPlaceholders) {
+            constraints.value.contentPlaceholders = config.contentPlaceholders;
         }
     }
 
