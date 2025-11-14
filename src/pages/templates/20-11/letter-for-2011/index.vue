@@ -61,7 +61,7 @@ const getParticleStyle = () => {
 <template>
   <div class="relative min-h-screen bg-amber-50 overflow-hidden flex items-center justify-center py-10">
 
-    <div class="absolute inset-2 z-[25] pointer-events-none">
+    <div class="absolute inset-2 z-25 pointer-events-none">
       <span 
         v-for="i in 20" 
         :key="i"
@@ -88,12 +88,12 @@ const getParticleStyle = () => {
           class="absolute top-40 w-full transition-all duration-1000 ease-in-out transform-gpu"
           :class="{
             'opacity-0 translate-y-4 z-10': !isOpened,
-            'opacity-100 z-30 [transform:translateY(-6rem)]': isOpened
+            'opacity-100 z-30 transform-[translateY(-6rem)]': isOpened
           }"
         >
           <div class="relative z-10 w-full h-80 paper-texture p-6 rounded-lg flex flex-col">
             <div class="flex-1 overflow-y-auto pr-2 min-h-0">
-              <p class="font-serif text-stone-800 whitespace-pre-line text-sm break-words">
+              <p class="font-serif text-stone-800 whitespace-pre-line text-sm wrap-break-word">
                 {{ letterBody }}
               </p>
             </div>
@@ -136,7 +136,7 @@ const getParticleStyle = () => {
             />
           </div>
           <div
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[100%] text-yellow-500 text-6xl z-30 transition-all duration-300"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full text-yellow-500 text-6xl z-30 transition-all duration-300"
             :class="{ 'opacity-0 scale-0': isOpened }"
             style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);"
           >
