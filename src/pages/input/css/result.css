@@ -399,6 +399,12 @@
     font-size: 14px;
 }
 
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }

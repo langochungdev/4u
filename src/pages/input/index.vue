@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
-import "./style.css";
+import "./css/style.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -17,6 +17,10 @@ const isEditMode = ref(false);
 const currentId = ref<string | null>(null);
 const existingData = ref<any>(null);
 const deletedUrls = ref<string[]>([]);
+const selectedDuration = ref<'1day' | '1week' | '1month' | '6months'>('1day');
+const expiresAt = ref<Date | null>(null);
+const countdown = ref<string>('');
+const countdownInterval = ref<number | null>(null);
 
 const constraints = ref({
     maxImages: Infinity,
@@ -51,6 +55,66 @@ const mediaTypes = computed(() => [
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
     { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
 ]);
+
+const calculateExpiryDate = (duration: '1day' | '1week' | '1month' | '6months'): Date => {
+    const now = new Date();
+    const expiry = new Date(now);
+    
+    switch (duration) {
+        case '1day':
+            // Set to 12am (0:00) of the day after tomorrow
+            expiry.setDate(expiry.getDate() + 2);
+            break;
+        case '1week':
+            expiry.setDate(expiry.getDate() + 7);
+            break;
+        case '1month':
+            expiry.setMonth(expiry.getMonth() + 1);
+            break;
+        case '6months':
+            expiry.setMonth(expiry.getMonth() + 6);
+            break;
+    }
+    
+    // Set to 0:00:00 of that day
+    expiry.setHours(0, 0, 0, 0);
+    return expiry;
+};
+
+const updateCountdown = () => {
+    if (!expiresAt.value) {
+        countdown.value = '';
+        return;
+    }
+    
+    const now = new Date().getTime();
+    const expiry = expiresAt.value.getTime();
+    const distance = expiry - now;
+    
+    if (distance < 0) {
+        countdown.value = 'Đã hết hạn';
+        if (countdownInterval.value) {
+            clearInterval(countdownInterval.value);
+            countdownInterval.value = null;
+        }
+        return;
+    }
+    
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    countdown.value = `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+};
+
+const startCountdown = () => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+    updateCountdown();
+    countdownInterval.value = window.setInterval(updateCountdown, 1000);
+};
 
 const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
     if (!existingData.value) return;
@@ -145,13 +209,17 @@ const handleSubmit = async () => {
             audioManager.files.value.length ? upload(audioManager.files.value) : []
         ]);
 
+        // Calculate expiry date based on selected duration
+        const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
+
         if (isEditMode.value && currentId.value) {
             await update(
                 currentId.value,
                 [...(existingData.value?.images || []), ...imageUrls],
                 [...(existingData.value?.videos || []), ...videoUrls],
                 [...(existingData.value?.audios || []), ...audioUrls],
-                deletedUrls.value
+                deletedUrls.value,
+                calculatedExpiresAt
             );
             console.log("Cập nhật thành công!");
             deletedUrls.value = [];
@@ -165,7 +233,7 @@ const handleSubmit = async () => {
                 query: { template: templateName, topic }
             });
         } else {
-            const id = await submit(imageUrls, videoUrls, audioUrls);
+            const id = await submit(imageUrls, videoUrls, audioUrls, calculatedExpiresAt);
             if (id) {
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
@@ -247,6 +315,23 @@ onMounted(async () => {
         isEditMode.value = true;
         currentId.value = id;
         existingData.value = await fetchContext(id);
+        
+        // Load expiresAt if exists
+        if (existingData.value?.expiresAt) {
+            // Convert Firestore Timestamp to Date
+            if (existingData.value.expiresAt.toDate) {
+                expiresAt.value = existingData.value.expiresAt.toDate();
+            } else if (existingData.value.expiresAt instanceof Date) {
+                expiresAt.value = existingData.value.expiresAt;
+            } else if (typeof existingData.value.expiresAt === 'number') {
+                expiresAt.value = new Date(existingData.value.expiresAt);
+            }
+            
+            // Start countdown
+            if (expiresAt.value) {
+                startCountdown();
+            }
+        }
     }
 
     // Restore preview
@@ -286,6 +371,12 @@ onMounted(async () => {
         if (route.query.confirmPreview === 'true') await handleSubmit();
     }
 });
+
+onUnmounted(() => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+});
 </script>
 
 <template>
@@ -295,15 +386,78 @@ onMounted(async () => {
                 <div class="window input-form">
                     <div class="title-bar">
                         <div class="icon"></div>
-                        <span>Tạo thiệp</span>
+                        <span class="font-semibold text-sm">Template: {{ constraints.template }}</span>
                         <div class="title-bar-buttons"></div>
                     </div>
                     <div class="text-area">
                         <div class="input-content">
-                            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                <p class="text-sm text-blue-800">
-                                    <span class="font-semibold">📋 Template: {{ constraints.template }}</span>
+                            <!-- Duration Selector -->
+                            <div class="mb-4 p-4 bg-linear-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg shadow-sm">
+                                <label class="block text-sm font-semibold text-purple-800 mb-3">
+                                    ⏰ Thời hạn duy trì form
+                                </label>
+                                
+                                <!-- Countdown display (only in edit mode) -->
+                                <div v-if="isEditMode && expiresAt" class="mb-3 p-3 bg-white border border-purple-300 rounded-md">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Thời gian còn lại:</span>
+                                        <span :class="[
+                                            'text-sm font-bold',
+                                            countdown === 'Đã hết hạn' ? 'text-red-600' : 'text-green-600'
+                                        ]">
+                                            {{ countdown }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Hết hạn lúc: {{ expiresAt.toLocaleString('vi-VN') }}
+                                    </div>
+                                </div>
+
+                                <!-- Duration options -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label 
+                                        v-for="option in [
+                                            { value: '1day', label: '1 Ngày', icon: '📅' },
+                                            { value: '1week', label: '1 Tuần', icon: '📆' },
+                                            { value: '1month', label: '1 Tháng', icon: '🗓️' },
+                                            { value: '6months', label: '6 Tháng', icon: '📊' }
+                                        ]"
+                                        :key="option.value"
+                                        :class="[
+                                            'cursor-pointer p-3 border-2 rounded-lg text-center transition-all duration-200',
+                                            selectedDuration === option.value 
+                                                ? 'border-purple-500 bg-purple-100 shadow-md transform scale-105' 
+                                                : 'border-gray-300 bg-white hover:border-purple-300 hover:bg-purple-50'
+                                        ]"
+                                    >
+                                        <input 
+                                            type="radio" 
+                                            :value="option.value" 
+                                            v-model="selectedDuration"
+                                            class="hidden"
+                                            @change="() => {
+                                                expiresAt = calculateExpiryDate(selectedDuration);
+                                                if (isEditMode && expiresAt) {
+                                                    startCountdown();
+                                                }
+                                            }"
+                                        />
+                                        <div class="text-2xl mb-1">{{ option.icon }}</div>
+                                        <div :class="[
+                                            'text-sm font-medium',
+                                            selectedDuration === option.value ? 'text-purple-700' : 'text-gray-700'
+                                        ]">
+                                            {{ option.label }}
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <p class="text-xs text-gray-600 mt-3 italic">
+                                    💡 Form sẽ được duy trì đến 0:00 của ngày được tính từ thời điểm hiện tại
                                 </p>
+                            </div>
+
+                            <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 <p class="text-xs text-blue-600 mt-1">
                                     Giới hạn: 
                                     {{ constraints.maxContent !== Infinity ? `${constraints.maxContent} nội dung` : 'không giới hạn nội dung' }} · 
@@ -423,7 +577,7 @@ onMounted(async () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else class="flex gap-3">
+                                <div v-else class="submit-buttons">
                                     <button @click="handlePreview" class="win2k-button">
                                         Xem trước
                                     </button>

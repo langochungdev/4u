@@ -2,11 +2,14 @@
     <div class="main-layout min-h-screen flex flex-col">
         <header
             class=" top-0 z-50 border-b border-gray-700 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-            <div class="container mx-auto px-4 py-4">
+            <div class="container mx-auto px-2 py-1">
                 <div class="flex items-center justify-between">
                     <router-link to="/" class="flex items-center gap-2">
-                        <img src="/logo.png" alt="NEXTGEN" class="h-8 w-auto" />
+                        <img src="/logo.png" alt="NEXTGEN" class="h-16 w-auto" />
                     </router-link>
+                    <div class="flex-1 text-center text-white text-xs">
+                        <p>mail góp ý: langochungdev@gmail.com<br>mỗi tuần sẽ xuất bản 8 template chủ đề theo sự kiện gần nhất<br>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p>
+                    </div>
                 </div>
             </div>
         </header>

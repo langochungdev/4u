@@ -291,3 +291,20 @@
     cursor: not-allowed;
     box-shadow: none;
 }
+
+.submit-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+@media (min-width: 769px) {
+    .submit-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .submit-buttons {
+        flex-direction: column;
+    }
+}

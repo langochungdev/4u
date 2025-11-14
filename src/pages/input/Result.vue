@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import QRCode from "qrcode";
-import "./result.css";
+import { contextService } from "./context.service";
+import "./css/result.css";
 
 const route = useRoute();
 const qrDataUrl = ref<string>("");
@@ -11,6 +12,44 @@ const editLink = ref<string>("");
 const templateName = ref<string>("");
 const contextId = ref<string>("");
 const loading = ref(true);
+const expiresAt = ref<Date | null>(null);
+const countdown = ref<string>("");
+const countdownInterval = ref<number | null>(null);
+
+const updateCountdown = () => {
+    if (!expiresAt.value) {
+        countdown.value = '';
+        return;
+    }
+    
+    const now = new Date().getTime();
+    const expiry = expiresAt.value.getTime();
+    const distance = expiry - now;
+    
+    if (distance < 0) {
+        countdown.value = 'Đã hết hạn';
+        if (countdownInterval.value) {
+            clearInterval(countdownInterval.value);
+            countdownInterval.value = null;
+        }
+        return;
+    }
+    
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    countdown.value = `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+};
+
+const startCountdown = () => {
+    if (countdownInterval.value) {
+        clearInterval(countdownInterval.value);
+    }
+    updateCountdown();
+    countdownInterval.value = window.setInterval(updateCountdown, 1000);
+};
 
 onMounted(async () => {
   const id = route.params.id as string;
@@ -29,6 +68,27 @@ onMounted(async () => {
   viewLink.value = `${window.location.origin}/${topic}/${template}/${id}`;
   editLink.value = `${window.location.origin}/input/${template}?id=${id}&topic=${topic}`;
 
+  // Fetch context data to get expiresAt
+  try {
+    const contextData = await contextService.getById(id);
+    if (contextData?.expiresAt) {
+      // Convert Firestore Timestamp to Date
+      if (contextData.expiresAt.toDate) {
+        expiresAt.value = contextData.expiresAt.toDate();
+      } else if (contextData.expiresAt instanceof Date) {
+        expiresAt.value = contextData.expiresAt;
+      } else if (typeof contextData.expiresAt === 'number') {
+        expiresAt.value = new Date(contextData.expiresAt);
+      }
+      
+      if (expiresAt.value) {
+        startCountdown();
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching context:", error);
+  }
+
   // Generate QR code
   try {
     qrDataUrl.value = await QRCode.toDataURL(viewLink.value, {
@@ -40,6 +100,12 @@ onMounted(async () => {
     console.error("Error generating QR code:", error);
   } finally {
     loading.value = false;
+  }
+});
+
+onUnmounted(() => {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value);
   }
 });
 
@@ -77,6 +143,22 @@ const copyToClipboard = async (text: string, type: string) => {
                             </div>
 
                             <div v-else class="space-y-6">
+                                <!-- Countdown Section -->
+                                <div v-if="expiresAt" class="mb-4 p-4 bg-linear-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg shadow-md">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-semibold text-orange-800">⏰ Thời gian còn lại:</span>
+                                        <span :class="[
+                                            'text-lg font-bold',
+                                            countdown === 'Đã hết hạn' ? 'text-red-600' : 'text-green-600'
+                                        ]">
+                                            {{ countdown }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-600">
+                                        Hết hạn lúc: {{ expiresAt.toLocaleString('vi-VN') }}
+                                    </div>
+                                </div>
+
                                 <div class="result-section">
                                     <!-- View Link -->
                                     <div class="link-card">
