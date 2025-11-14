@@ -372,6 +372,10 @@ onMounted(async () => {
             });
         }
         
+        if (previewStore.template) {
+            constraints.value.template = previewStore.template;
+        }
+        
         if (route.query.confirmPreview === 'true') await handleSubmit();
     }
 });
@@ -544,7 +548,7 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                                    <button @click="managers[media.key].removeFile(i)" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                                                    <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
                                                 </div>
                                             </div>
                                         </div>
