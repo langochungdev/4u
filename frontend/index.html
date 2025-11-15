@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
+    
+    <title>4U - FOR YOU</title>
+    <meta name="description"
+        content="Create and send custom e-cards in seconds">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://4u.langochung.me/" />
+    <meta property="og:title" content="4U - FOR YOU" />
+    <meta property="og:description"
+        content="Create and send custom e-cards in seconds" />
+    <meta property="og:image" content="https://4u.langochung.me/banner.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1920" />
+    <meta property="og:image:height" content="1080" />
+
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+<script>
+    window.__4U_disableDevTools = false;
+    ; (function () {
+        const enabled = !!window.__4U_disableDevTools;
+        function onContext(e) { if (enabled) e.preventDefault() }
+        function onKeyDown(e) { if (!enabled) return; if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); } }
+        if (enabled) { document.addEventListener('contextmenu', onContext, { capture: true }); document.addEventListener('keydown', onKeyDown, { capture: true }) }
+        window.__4U_toggleDevtoolsBlock = function (toggle) {
+            const t = (typeof toggle === 'boolean') ? toggle : !window.__4U_disableDevTools;
+            if (t) { document.addEventListener('contextmenu', onContext, { capture: true }); document.addEventListener('keydown', onKeyDown, { capture: true }) }
+            else { document.removeEventListener('contextmenu', onContext, { capture: true }); document.removeEventListener('keydown', onKeyDown, { capture: true }) }
+            window.__4U_disableDevTools = t; return t
+        }
+    })();
+</script>

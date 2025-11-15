@@ -1,0 +1,14 @@
+spring:
+  main:
+    banner-mode: "off"
+
+#  cloud:
+#    gcp:
+#      firestore:
+#        project-id: ${VITE_FIREBASE_PROJECT_ID}
+#        credentials:
+#          location: classpath:example.serviceAccountKey.json
+# spring:
+  config:
+    import: 
+      - optional:file:.env
