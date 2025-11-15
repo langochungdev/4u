@@ -26,8 +26,6 @@ const audioSrc = computed(
 );
 
 const clickStep = ref(0);
-const showLotusBackground = ref(false);
-const showCardFlowers = ref(false);
 let clickHandler: ((e: Event) => void) | null = null;
 
 function setupPresent() {
@@ -68,8 +66,11 @@ function setupPresent() {
       const infoTextEl = document.querySelector(".info-text") as HTMLElement;
       const aboveFoldEl = document.querySelector(".above-fold") as HTMLElement;
       const cardEl = document.getElementById("card");
-      const cardFlowersContainer = document.getElementById(
-        "card-flowers-container"
+
+      const confettiEl = document.getElementById("confetti-overlay");
+      const teacherGifEl = document.querySelector(".teacher-gif-corner");
+      const flyGifCardBackground = document.getElementById(
+        "fly-gif-card-background"
       );
 
       clickStep.value++;
@@ -78,70 +79,24 @@ function setupPresent() {
         presentEl.classList.add("open");
         if (aboveFoldEl) aboveFoldEl.style.zIndex = "200";
         if (presentImageEl) presentImageEl.classList.add("show-main-image");
+        if (confettiEl) confettiEl.classList.add("show");
+        if (teacherGifEl) teacherGifEl.classList.add("show");
+        if (flyGifCardBackground) flyGifCardBackground.classList.remove("show");
         playMusic();
-        createFallingFlowers();
         if (infoTextEl) infoTextEl.textContent = "Click để xem thiệp";
-        showLotusBackground.value = false;
       } else if (clickStep.value === 2) {
         if (presentImageEl) presentImageEl.classList.remove("show-main-image");
+        if (confettiEl) confettiEl.classList.remove("show");
+        if (teacherGifEl) teacherGifEl.classList.remove("show");
         if (aboveFoldEl) aboveFoldEl.style.zIndex = "10";
         if (cardEl) cardEl.classList.add("card-show");
         if (infoTextEl) infoTextEl.style.display = "none";
-
-        showLotusBackground.value = true;
-        showCardFlowers.value = true;
-
-        if (cardFlowersContainer) {
-          cardFlowersContainer.innerHTML = "";
-          for (let i = 0; i < 4; i++) {
-            const flower = document.createElement("div");
-            flower.classList.add("lotus-flower-item");
-            flower.style.left = `${30 + Math.random() * 40}%`;
-            flower.style.bottom = `${-50 + Math.random() * 30}px`;
-            flower.style.transform = `rotate(${
-              Math.random() * 30 - 15
-            }deg) scale(${0.5 + Math.random() * 0.3})`;
-            flower.style.opacity = `${0.5 + Math.random() * 0.3}`;
-            cardFlowersContainer.appendChild(flower);
-          }
-        }
+        if (flyGifCardBackground) flyGifCardBackground.classList.add("show");
       } else if (clickStep.value === 3) {
         clickStep.value = 2;
       }
     };
     templateRoot.addEventListener("click", clickHandler, false);
-  }
-}
-
-function createFallingFlowers() {
-  const container = document.getElementById("effects-root") || document.body;
-  if (!container) return;
-
-  if (container.querySelectorAll(".petal").length > 0) return;
-
-  const flowerCount = 30;
-  for (let i = 0; i < flowerCount; i++) {
-    const petal = document.createElement("div");
-    petal.classList.add("petal");
-
-    petal.style.left = `${Math.random() * 100}vw`;
-    petal.style.top = `${-10 - Math.random() * 20}vh`;
-
-    const randomDuration = 8 + Math.random() * 7;
-    const randomDelay = Math.random() * 10;
-
-    petal.style.animationDuration = `${randomDuration}s`;
-    petal.style.animationDelay = `${randomDelay}s`;
-
-    const randomSize = 15 + Math.random() * 10;
-    petal.style.width = `${randomSize}px`;
-    petal.style.height = `${randomSize}px`;
-
-    container.appendChild(petal);
-
-    setTimeout(() => {
-      petal.remove();
-    }, (randomDuration + randomDelay) * 1000);
   }
 }
 
@@ -177,12 +132,9 @@ onBeforeUnmount(() => {
     id="template-root"
     class="relative w-screen h-screen overflow-hidden"
   >
-    <div
-      class="lotus-background"
-      :class="{ visible: showLotusBackground }"
-    ></div>
     <div id="effects-root"></div>
 
+    <div class="gif-overlay" id="confetti-overlay"></div>
     <section class="above-fold">
       <div class="wrap-present">
         <div class="present-box" id="present">
@@ -210,17 +162,9 @@ onBeforeUnmount(() => {
         <p class="polaroid-caption">{{ polaroidCaption }}</p>
       </div>
       <h4 class="content-card">{{ contentCard }}</h4>
-
-      <template v-if="showCardFlowers">
-        <div class="card-flower top-left"></div>
-        <div class="card-flower top-right"></div>
-        <div class="card-flower bottom-left"></div>
-        <div class="card-flower bottom-right"></div>
-      </template>
-
-      <div id="card-flowers-container"></div>
     </div>
-
+    <div class="fly-gif-card-background" id="fly-gif-card-background"></div>
+    <div class="teacher-gif-corner"></div>
     <audio autoplay loop id="playAudio" :src="audioSrc"></audio>
   </div>
 </template>

@@ -12,7 +12,7 @@
 
 #card {
   position: fixed;
-  top: 37%;
+  top: 40%;
   left: 50%;
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.5) rotate(5deg);
@@ -71,8 +71,12 @@
 
 .polaroid-wrapper {
   position: relative;
-  width: 200px;
+  width: 220px;
   margin-bottom: 15px;
+  background: #fff;
+  padding: 10px 10px 50px 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
 }
 
 .honey {
@@ -81,11 +85,10 @@
   object-fit: cover;
   display: block;
   background: white;
-  border: 10px solid white;
-  border-bottom-width: 45px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   margin: 0;
   border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .polaroid-caption {
@@ -111,57 +114,6 @@
   text-shadow: 1px 1px 1px #ffffff;
 }
 
-.card-flower {
-  position: absolute;
-  width: 25px;
-  height: 25px;
-  background-image: url("./imgs/small-flower.jpg");
-  background-size: contain;
-  background-repeat: no-repeat;
-  z-index: 1;
-  opacity: 0.8;
-}
-.card-flower.top-left {
-  top: 10px;
-  left: 10px;
-  transform: rotate(-15deg);
-}
-.card-flower.top-right {
-  top: 10px;
-  right: 10px;
-  transform: rotate(15deg);
-}
-.card-flower.bottom-left {
-  bottom: 10px;
-  left: 10px;
-  transform: rotate(165deg);
-}
-.card-flower.bottom-right {
-  bottom: 10px;
-  right: 10px;
-  transform: rotate(-165deg);
-}
-
-.lotus-background {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 40vh;
-  background-image: url("./imgs/lotus-image.png");
-  background-size: contain;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.5s ease-in-out;
-}
-.lotus-background.visible {
-  opacity: 0.8;
-}
-
 #effects-root {
   position: fixed;
   top: 0;
@@ -183,44 +135,6 @@
       translateX(calc(var(--random-drift, 0) * 100px));
     opacity: 0;
   }
-}
-
-.petal {
-  position: fixed;
-  top: -10vh;
-  z-index: 150;
-  pointer-events: none;
-  background-image: url("./imgs/petal-image.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  animation: fall var(--duration) linear infinite;
-}
-
-#card-flowers-container {
-  position: absolute;
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 150px;
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.lotus-flower-item {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background-image: url("./imgs/lotus-image.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.7;
-  transform-origin: center bottom;
-  animation: floatUpAndDown 8s ease-in-out infinite alternate;
 }
 
 @keyframes floatUpAndDown {
@@ -344,11 +258,12 @@
   left: 50%;
   z-index: 200;
   pointer-events: auto;
-  border: 5px solid #ffd700;
-  border-radius: 12px;
-  box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.8),
-    0 4px 15px rgba(178, 34, 34, 0.5);
-  border-image: linear-gradient(45deg, #ffd700, #b22222) 1;
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  background-color: #fff;
+  transform: translateZ(-80px) scale(0.3) translateX(-50%) translateY(-50%);
 }
 
 .present-box.open .present > .img-wrap.show-main-image {
@@ -358,8 +273,10 @@
 
 .present-box .present > .img-wrap img {
   max-width: 100%;
-  height: auto;
-  border-radius: 12px;
+  height: 300px;
+  width: 450px;
+  object-fit: cover;
+  border-radius: 0;
 }
 
 .present-box > .side {
@@ -462,10 +379,10 @@
   }
   .polaroid-wrapper {
     width: 180px;
+    padding: 8px 8px 40px 8px;
   }
   .honey {
     height: 180px;
-    border-bottom-width: 40px;
   }
   .polaroid-caption {
     font-size: 12px;
@@ -486,4 +403,63 @@
     width: 40px;
     height: 40px;
   }
+}
+
+.gif-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("imgs/phao.gif");
+  background-size: cover;
+  background-position: center;
+  z-index: 190;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.gif-overlay.show {
+  opacity: 0.8;
+}
+
+.teacher-gif-corner {
+  position: fixed;
+  top: 45px;
+  left: 25px;
+  width: 150px;
+  height: 130px;
+  background-image: url("imgs/teacher-cute.gif");
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.teacher-gif-corner.show {
+  opacity: 1;
+}
+
+.fly-gif-card-background {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 38vh;
+  background-image: url("imgs/fly.gif");
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  z-index: 155;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fly-gif-card-background.show {
+  opacity: 1;
 }
