@@ -2,16 +2,15 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'demo',
-    description: 'mô tả template',
-    createdBy: 'Langochungdev',
-    maxImages: 0,
+    title: 'letter-box - tiêu đề template',
+    description: 'Mô tả template letter-box',
+    createdBy: 'tranminhkhadev',
+    maxImages: 1,
     maxVideos: 0,
     maxAudios: 0,
-    maxContent: 2,
+    maxContent: 1,
     contentPlaceholders: [
-        'gợi ý 1',
-        'gợi ý 2',
+        'Nội dung thiệp',
     ],
 
 
