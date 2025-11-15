@@ -1,5 +1,5 @@
 import type { TemplateConfig } from '@/config/templates';
-import demo from './image.png';
+import demo from './demo.png';
 
 const config: TemplateConfig = {
     title: 'Sách kỷ niệm ngày 20/11',
