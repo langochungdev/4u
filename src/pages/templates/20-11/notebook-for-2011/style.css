@@ -1,0 +1,322 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+
+/* Nền chung */
+.album-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* 1. BÌA SÁCH CẦU KỲ */
+.album-cover {
+  width: 320px;
+  height: 420px;
+  background: #004a99;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 25px;
+  box-sizing: border-box;
+  z-index: 2;
+  position: relative;
+}
+.album-cover:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* 4 GÓC VÀNG */
+.corner {
+  display: block;
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(45deg, goldenrod 50%, transparent 50.5%);
+  z-index: 3;
+}
+.corner.top-left { top: 0; left: 0; transform: rotate(0deg); }
+.corner.top-right { top: 0; right: 0; transform: rotate(90deg); }
+.corner.bottom-left { bottom: 0; left: 0; transform: rotate(-90deg); }
+.corner.bottom-right { bottom: 0; right: 0; transform: rotate(180deg); }
+
+/* Nhãn tên (phần trắng) */
+.cover-content {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fafafa;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-align: center;
+}
+.cover-content h1 {
+  font-family: 'Dancing+Script', cursive;
+  font-size: 1.8rem;
+  color: #333;
+  margin: 15px 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.3;
+  max-height: 2.6em; 
+}
+.cover-content p {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #888;
+  margin-top: 0;
+}
+.cover-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #004a99;
+}
+
+/* Wrapper cho sách */
+.book-wrapper {
+  z-index: 2;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* 2. SỔ MỞ (DESKTOP) */
+.album-open-desktop {
+  display: flex;
+  width: 100%;
+  max-width: 740px;
+  height: 440px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  position: relative;
+}
+
+/* 3. Sổ mở (MOBILE) */
+.album-open-mobile {
+  display: flex;
+  flex-direction: column;
+  width: 95%;
+  max-width: 400px;
+  height: auto;
+  position: relative;
+}
+.page-mobile {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  padding: 8px;
+  background: #fffaf0;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.mobile-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 15px;
+}
+.mobile-nav button {
+  background: #004a99;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.mobile-nav button:disabled {
+  background: #999;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mobile-page-number {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: bold;
+}
+
+/* 4. Các Trang Sổ (DESKTOP) */
+.page {
+  flex: 1;
+  background: #fffaf0; 
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative; 
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+.page:hover {
+  filter: brightness(0.98);
+}
+.page.left {
+  border-right: 1px solid #f0f0f0;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+.page.right {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* 5. Nội Dung Trang - Viền Đen */
+.page-content {
+  width: 100%;
+  height: 100%;
+  border: 4px solid #333; /* Viền đen mỏng */
+  border-radius: 6px;
+  background: #fafafa;
+  overflow: hidden;
+  position: relative;
+}
+.page-content img, .letter-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 6. TEXTURE GIẤY (Trang cuối) */
+.letter-content {
+  padding: 20px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  background-color: #fdfff5;
+  background-image: url("https://www.transparenttextures.com/patterns/food.png");
+/* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
+}
+.message-body {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  line-height: 1.7;
+  color: #222;
+  white-space: pre-wrap; 
+  word-break: break-word;
+}
+/* SỬA: XÓA CSS CON TRỎ TYPEIT */
+
+
+/* 7. HƯỚNG DẪN (Desktop) */
+.click-hint {
+  position: absolute;
+  bottom: 15px;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #aaa;
+  animation: pulse-hint 3s infinite ease-in-out;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+}
+.page:hover .click-hint {
+  opacity: 1;
+}
+.left-hint { left: 15px; }
+.right-hint { right: 15px; }
+@keyframes pulse-hint {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* 8. Ẩn trình phát nhạc */
+#audio-player {
+  display: none;
+}
+
+/* 9. CSS CHO ICON BAY (Giữ nguyên) */
+.particle-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+.particle-icon {
+  position: absolute;
+  bottom: -50px;
+  color: rgba(255, 255, 255, 0.5); 
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: float-up 50s infinite linear; 
+  user-select: none;
+  will-change: transform, opacity; 
+}
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 1.0; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+
+/* 10. ANIMATION LẬT TRANG (MỜ DẦN) */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
+
+/* 11. RESPONSIVE (Ẩn/Hiện Desktop vs Mobile) */
+
+/* Mặc định (Desktop) */
+.album-open-mobile {
+  display: none; /* Ẩn giao diện mobile */
+}
+.album-open-desktop {
+  display: flex; /* Hiện giao diện desktop */
+}
+
+/* Khi màn hình nhỏ (Mobile) */
+@media (max-width: 768px) {
+  .album-open-desktop {
+    display: none; /* Ẩn giao diện desktop */
+  }
+  .album-open-mobile {
+    display: flex; /* Hiện giao diện mobile */
+  }
+  
+  /* Style bìa cho mobile */
+  .album-cover {
+    width: 80%;
+    max-width: 300px;
+    height: 400px;
+    padding: 15px;
+  }
+  
+  /* Style chữ mobile */
+  .message-body {
+     font-size: 1.2rem;
+  }
+  
+  /* Ẩn hint desktop */
+  .click-hint {
+     display: none;
+  }
+}
