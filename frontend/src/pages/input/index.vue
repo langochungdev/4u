@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, onUnmounted } from "vue";
+import { MEDIA_LIMITS } from '@/config/app'
 import EmailOtpModal from '@/components/EmailOtpModal.vue'
 import AudioTrimmer from '@/components/AudioTrimmer.vue'
 // Firestore reads are handled inside fetchActiveEcards composable
@@ -46,9 +47,9 @@ const countdown = ref<string>('');
 const countdownInterval = ref<number | null>(null);
 
 const constraints = ref({
-    maxImages: Infinity,
-    maxVideos: Infinity,
-    maxAudios: Infinity,
+    maxImages: MEDIA_LIMITS.maxImages,
+    maxVideos: MEDIA_LIMITS.maxVideos,
+    maxAudios: MEDIA_LIMITS.maxAudios,
     maxContent: Infinity,
     contentPlaceholders: [] as string[],
     template: 'default'
@@ -138,7 +139,9 @@ const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
     existingData.value[key].splice(index, 1);
 };
 
-const handleMedia = (e: Event, type: 'image' | 'video' | 'audio') => {
+// no client-side audio conversion; keep audio selection simple
+
+const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
     const input = e.target as HTMLInputElement;
     if (!input.files) return;
     
@@ -159,9 +162,22 @@ const handleMedia = (e: Event, type: 'image' | 'video' | 'audio') => {
     }
     
     if (type === 'audio' && files.length > 0) {
-        currentAudioFile.value = files[0] || null
-        currentAudioIndex.value = -1
-        showAudioTrimmer.value = true
+        // If selecting a single audio file, open trimmer to let user choose start/end.
+        if (files.length === 1) {
+            const file = files[0]!;
+            // ensure it's an audio file by MIME or extension
+            if (file.type && file.type.startsWith('audio/')) {
+                currentAudioFile.value = file;
+                currentAudioIndex.value = -1;
+                showAudioTrimmer.value = true;
+            } else {
+                // Not an audio file — ignore and inform user
+                alert('Vui lòng chọn tệp audio hợp lệ.');
+            }
+        } else {
+            // Multiple files — add to audio manager directly
+            managers.audio.addFiles(files);
+        }
     } else {
         managers[type].addFiles(files);
     }
@@ -189,13 +205,6 @@ const handleAudioTrimCancel = () => {
     showAudioTrimmer.value = false
     currentAudioFile.value = null
     currentAudioIndex.value = -1
-}
-
-const editExistingAudio = (file: File | undefined, index: number) => {
-    if (!file) return
-    currentAudioFile.value = file
-    currentAudioIndex.value = index
-    showAudioTrimmer.value = true
 }
 
 const validate = () => {
@@ -228,11 +237,15 @@ const handlePreview = () => {
     const templateName = route.query.template as string || 'demo';
     const topic = route.query.topic as string || '';
     
+    // Filter out deleted URLs from existing data before preview
+    const filterDeletedUrls = (urls: string[] = []) => 
+        urls.filter(url => !deletedUrls.value.includes(url));
+    
     previewStore.setPreviewData({
         content: content.value.filter(c => c.trim()),
-        images: [...(existingData.value?.images || []), ...imageManager.previews.value],
-        videos: [...(existingData.value?.videos || []), ...videoManager.previews.value],
-        audios: [...(existingData.value?.audios || []), ...audioManager.previews.value],
+        images: [...filterDeletedUrls(existingData.value?.images), ...imageManager.previews.value],
+        videos: [...filterDeletedUrls(existingData.value?.videos), ...videoManager.previews.value],
+        audios: [...filterDeletedUrls(existingData.value?.audios), ...audioManager.previews.value],
         imageFiles: imageManager.files.value,
         videoFiles: videoManager.files.value,
         audioFiles: audioManager.files.value,
@@ -250,6 +263,14 @@ const handlePreview = () => {
 const handleSubmit = async () => {
     if (!validate()) return;
 
+    // Validation for edit mode
+    if (isEditMode.value && (!currentId.value || currentId.value.trim() === '')) {
+        alert('Có lỗi xảy ra: không tìm thấy ID. Vui lòng thử lại.');
+        loading.value = false;
+        return;
+    }
+
+    // submit initiated
     loading.value = true;
     prepareUpload(imageManager.files.value.length + videoManager.files.value.length + audioManager.files.value.length);
 
@@ -264,15 +285,39 @@ const handleSubmit = async () => {
         const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
 
         if (isEditMode.value && currentId.value) {
+            // Filter out deleted URLs before updating
+            const filterDeletedUrls = (urls: string[] = []) => 
+                urls.filter(url => !deletedUrls.value.includes(url));
+            
+            const finalImages = [...filterDeletedUrls(existingData.value?.images), ...imageUrls];
+            const finalVideos = [...filterDeletedUrls(existingData.value?.videos), ...videoUrls];
+            const finalAudios = [...filterDeletedUrls(existingData.value?.audios), ...audioUrls];
+            
+            // Update data prepared
+            
             await update(
                 currentId.value,
-                [...(existingData.value?.images || []), ...imageUrls],
-                [...(existingData.value?.videos || []), ...videoUrls],
-                [...(existingData.value?.audios || []), ...audioUrls],
+                finalImages,
+                finalVideos,
+                finalAudios,
                 deletedUrls.value,
                 calculatedExpiresAt
             );
-            console.log("Cập nhật thành công!");
+            // Update successful
+            
+            // Delete media from Cloudinary after successful update
+            if (deletedUrls.value.length > 0) {
+                try {
+                    await fetch(`${import.meta.env.VITE_BACKEND_URL}media/delete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ urls: deletedUrls.value }),
+                    });
+                } catch (_err) {
+                    // ignore delete failures
+                }
+            }
+            
             deletedUrls.value = [];
             
             // Redirect to result page after update
@@ -439,10 +484,17 @@ onMounted(async () => {
         if (previewStore.imageFiles.length) imageManager.addFiles(previewStore.imageFiles);
         if (previewStore.videoFiles.length) videoManager.addFiles(previewStore.videoFiles);
         if (previewStore.audioFiles.length) audioManager.addFiles(previewStore.audioFiles);
+        
+        // Restore edit mode data
         if (previewStore.editId) {
             isEditMode.value = true;
             currentId.value = previewStore.editId;
             deletedUrls.value = previewStore.deletedUrls || [];
+            
+            // Fetch existing data if not already loaded
+            if (!existingData.value && currentId.value) {
+                existingData.value = await fetchContext(currentId.value);
+            }
             
             // Filter out deleted URLs from existingData
             if (existingData.value && deletedUrls.value.length > 0) {
@@ -532,24 +584,27 @@ onUnmounted(() => {
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <label 
                                         v-for="option in [
-                                            { value: '1day', label: '1 Ngày', icon: '📅' },
-                                            { value: '1week', label: '1 Tuần', icon: '📆' },
-                                            { value: '1month', label: '1 Tháng', icon: '🗓️' },
-                                            { value: '6months', label: '6 Tháng', icon: '📊' }
+                                            { value: '1day', label: '1 Ngày', icon: '📅', disabled: isEditMode && !!expiresAt },
+                                            { value: '1week', label: '1 Tuần', icon: '📆', disabled: false },
+                                            { value: '1month', label: '1 Tháng', icon: '🗓️', disabled: true },
+                                            { value: '6months', label: '6 Tháng', icon: '📊', disabled: true }
                                         ]"
                                         :key="option.value"
                                         :class="[
-                                            'cursor-pointer p-3 border-2 rounded-lg text-center transition-all duration-200',
-                                            selectedDuration === option.value 
-                                                ? 'border-purple-500 bg-purple-100 shadow-md transform scale-105' 
+                                            'p-3 border-2 rounded-lg text-center',
+                                            option.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                                            selectedDuration === option.value && !option.disabled
+                                                ? 'border-purple-500 bg-purple-100 shadow-md' 
                                                 : 'border-gray-300 bg-white hover:border-purple-300 hover:bg-purple-50'
                                         ]"
+                                        :style="{ transition: 'none' }"
                                     >
                                         <input 
                                             type="radio" 
                                             :value="option.value" 
                                             v-model="selectedDuration"
                                             class="hidden"
+                                            :disabled="option.disabled"
                                             @change="() => {
                                                 expiresAt = calculateExpiryDate(selectedDuration);
                                                 if (isEditMode && expiresAt) {
@@ -560,7 +615,8 @@ onUnmounted(() => {
                                         <div class="text-2xl mb-1">{{ option.icon }}</div>
                                         <div :class="[
                                             'text-sm font-medium',
-                                            selectedDuration === option.value ? 'text-purple-700' : 'text-gray-700'
+                                            selectedDuration === option.value && !option.disabled ? 'text-purple-700' : 'text-gray-700',
+                                            option.disabled ? 'text-gray-400' : ''
                                         ]">
                                             {{ option.label }}
                                         </div>
@@ -634,7 +690,7 @@ onUnmounted(() => {
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
                                         multiple 
-                                        :accept="`${media.key}/*`" 
+                                        :accept="media.key === 'audio' ? 'audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac' : `${media.key}/*`" 
                                         @change="handleMedia($event, media.key)" 
                                         class="hidden" 
                                         :disabled="!canAdd[media.key]" 
@@ -655,14 +711,6 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                                    <button 
-                                                        v-if="media.key === 'audio' && !trimmedAudioIndexes.has(i)" 
-                                                        @click="editExistingAudio(managers[media.key].files.value[i], i)"
-                                                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 shrink-0"
-                                                        title="Chỉnh sửa audio"
-                                                    >
-                                                        ✂
-                                                    </button>
                                                     <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
                                                 </div>
                                             </div>

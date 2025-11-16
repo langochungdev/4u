@@ -4,22 +4,31 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.cloud.firestore.SetOptions;
 import com.google.cloud.firestore.FieldValue;
+import com.google.cloud.firestore.DocumentSnapshot;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.foryou.backend.util.MailRepository;
+import com.foryou.backend.util.CloudinaryService;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.net.URI;
 
 @Service
 public class ECardServiceImpl implements ECardService {
     private final String firestoreRootCollection;
     private final String firestoreRootDocument;
+    private final CloudinaryService cloudinaryService;
 
-    public ECardServiceImpl(@Value("${FIRESTORE_ROOT_PATH:4U/develop}") String firestoreRootPath, MailRepository mailRepository) {
+    public ECardServiceImpl(
+        @Value("${FIRESTORE_ROOT_PATH:4U/develop}") String firestoreRootPath, 
+        MailRepository mailRepository,
+        CloudinaryService cloudinaryService
+    ) {
         String[] parts = firestoreRootPath == null ? new String[0] : firestoreRootPath.split("/");
         if (parts.length >= 2) {
             this.firestoreRootCollection = parts[0];
@@ -31,6 +40,7 @@ public class ECardServiceImpl implements ECardService {
             this.firestoreRootCollection = "4U";
             this.firestoreRootDocument = "develop";
         }
+        this.cloudinaryService = cloudinaryService;
     }
 
     private String extractIdFromResultUrl(String resultUrl) {
@@ -105,7 +115,53 @@ public class ECardServiceImpl implements ECardService {
         String normalized = email.trim().toLowerCase();
         Firestore db = FirestoreClient.getFirestore();
 
-        // Delete the context doc: {root}/context/{ecardId}
+        List<String> allAssets = new ArrayList<>();
+        
+        try {
+            DocumentSnapshot contextDoc;
+            if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
+                contextDoc = db.collection(firestoreRootCollection)
+                        .document(firestoreRootDocument)
+                        .collection("context")
+                        .document(ecardId)
+                        .get()
+                        .get();
+            } else {
+                contextDoc = db.collection(firestoreRootCollection)
+                        .document(ecardId)
+                        .get()
+                        .get();
+            }
+
+            if (contextDoc.exists()) {
+                List<?> images = (List<?>) contextDoc.get("images");
+                List<?> audios = (List<?>) contextDoc.get("audios");
+                List<?> videos = (List<?>) contextDoc.get("videos");
+
+                if (images != null) {
+                    images.forEach(img -> {
+                        if (img instanceof String) allAssets.add((String) img);
+                    });
+                }
+                if (audios != null) {
+                    audios.forEach(audio -> {
+                        if (audio instanceof String) allAssets.add((String) audio);
+                    });
+                }
+                if (videos != null) {
+                    videos.forEach(video -> {
+                        if (video instanceof String) allAssets.add((String) video);
+                    });
+                }
+            }
+        } catch (Exception e) {
+            // Log nếu cần
+        }
+
+        if (!allAssets.isEmpty()) {
+            cloudinaryService.deleteAssets(allAssets);
+        }
+
         if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
             db.collection(firestoreRootCollection)
                     .document(firestoreRootDocument)
@@ -120,7 +176,6 @@ public class ECardServiceImpl implements ECardService {
                     .get();
         }
 
-        // Remove id from user's ecards map
         if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
             var userDocRef = db.collection(firestoreRootCollection)
                     .document(firestoreRootDocument)

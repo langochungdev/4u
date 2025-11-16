@@ -1,11 +1,8 @@
 import { db } from '@/config/firebase'
 import { doc, getDoc } from 'firebase/firestore'
+import { ECARD_LIMIT as APP_ECARD_LIMIT } from '@/config/app'
 
-// Central client-side limit for active eCards. Use env var if present otherwise default to 2.
-export const ECARD_LIMIT = (() => {
-	const v = Number(import.meta.env.VITE_ECARD_LIMIT)
-	return Number.isFinite(v) && v > 0 ? Math.floor(v) : 15
-})()
+export const ECARD_LIMIT = APP_ECARD_LIMIT
 
 export type ActiveEcardsResult = {
 	ids: string[]

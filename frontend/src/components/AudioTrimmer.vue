@@ -26,6 +26,7 @@ const startTime = ref(0)
 const duration = ref(15)
 const audioDuration = ref(0)
 const isPlaying = ref(false)
+const playTimeout = ref<number | null>(null)
 const error = ref('')
 const isLoading = ref(true)
 
@@ -83,6 +84,10 @@ const initWaveSurfer = async () => {
 
     wavesurfer.value.on('finish', () => {
       isPlaying.value = false
+      if (playTimeout.value) {
+        clearTimeout(playTimeout.value)
+        playTimeout.value = null
+      }
     })
 
     wavesurfer.value.on('error', () => {
@@ -141,6 +146,8 @@ const updateRegion = (newStartTime: number) => {
     drag: false,
     resize: false
   })
+  
+  playPreview()
 }
 
 const playPreview = () => {
@@ -152,9 +159,14 @@ const playPreview = () => {
   wavesurfer.value.play()
   isPlaying.value = true
 
-  setTimeout(() => {
+  if (playTimeout.value) {
+    clearTimeout(playTimeout.value)
+    playTimeout.value = null
+  }
+  playTimeout.value = window.setTimeout(() => {
     wavesurfer.value?.pause()
     isPlaying.value = false
+    playTimeout.value = null
   }, (endTime - startTime.value) * 1000)
 }
 
@@ -163,6 +175,10 @@ const stopPreview = () => {
   wavesurfer.value.pause()
   wavesurfer.value.setTime(startTime.value)
   isPlaying.value = false
+  if (playTimeout.value) {
+    clearTimeout(playTimeout.value)
+    playTimeout.value = null
+  }
 }
 
 const handleTrim = async () => {
@@ -180,6 +196,10 @@ const handleClose = () => {
   if (wavesurfer.value) {
     wavesurfer.value.destroy()
     wavesurfer.value = null
+  }
+  if (playTimeout.value) {
+    clearTimeout(playTimeout.value)
+    playTimeout.value = null
   }
   emit('update:modelValue', false)
 }
@@ -381,6 +401,7 @@ onUnmounted(() => {
   .win2k-button {
     min-height: 32px;
     padding: 4px 8px;
+    transition: none; /* disable smooth transitions for immediate response */
   }
 }
 </style>

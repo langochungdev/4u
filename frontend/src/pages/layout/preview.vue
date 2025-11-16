@@ -1,5 +1,13 @@
 <template>
-    <!-- Preview layout - for template pages with preview functionality -->
+    <!-- Fullscreen Trigger Overlay - Click anywhere to enter fullscreen (first time only) -->
+    <!-- Only show when NOT in preview mode -->
+    <div 
+        v-if="showFullscreenOverlay && !isPreviewMode" 
+        @click="handleFirstClick"
+        class="fixed inset-0 z-50 cursor-pointer bg-transparent"
+        title="Click để xem toàn màn hình"
+    ></div>
+    
     
     <!-- Expired Message Overlay -->
     <div v-if="isExpired" class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
@@ -81,6 +89,8 @@ const isExpired = ref<boolean>(false);
 const expiresAt = ref<Date | null>(null);
 const countdown24h = ref<string>('');
 const countdownInterval = ref<number | null>(null);
+const showFullscreenOverlay = ref<boolean>(true);
+const hasRequestedFullscreen = ref<boolean>(false);
 
 const isPreviewMode = computed(() => route.query.preview === 'true');
 const showBackButton = computed(() => route.meta.showBackButton === true);
@@ -142,6 +152,35 @@ const startCountdown24h = () => {
     countdownInterval.value = window.setInterval(updateCountdown24h, 1000);
 };
 
+const requestFullscreen = async () => {
+    try {
+        const elem = document.documentElement;
+        
+        if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+        } else if ((elem as any).webkitRequestFullscreen) {
+            await (elem as any).webkitRequestFullscreen();
+        } else if ((elem as any).mozRequestFullScreen) {
+            await (elem as any).mozRequestFullScreen();
+        } else if ((elem as any).msRequestFullscreen) {
+            await (elem as any).msRequestFullscreen();
+        }
+    } catch (error) {
+        console.log('Fullscreen request failed or denied:', error);
+    }
+};
+
+const handleFirstClick = async () => {
+    if (hasRequestedFullscreen.value) {
+        return;
+    }
+    
+    hasRequestedFullscreen.value = true;
+    showFullscreenOverlay.value = false;
+    
+    await requestFullscreen();
+};
+
 onMounted(async () => {
     // Only check expiration if we have an ID in params and NOT in preview mode
     const id = route.params.id as string;
@@ -194,7 +233,8 @@ const handleBackButton = async () => {
         return;
     }
     
-    const editId = route.params.id || previewStore.editId;
+    // Use editId from previewStore, NOT from route.params.id (which is template name)
+    const editId = previewStore.editId;
     
     let topic = (route.query.topic as string) || previewStore.topic || '';
     
@@ -214,6 +254,8 @@ const handleBackButton = async () => {
     if (topic) {
         query.topic = topic;
     }
+    
+    // Navigating back to input
     
     router.push({
         name: 'Input',

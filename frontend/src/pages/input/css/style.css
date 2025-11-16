@@ -42,6 +42,29 @@
     border-top-color: white;
     border-right-color: #808080;
     border-bottom-color: #808080;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.status-bar .win2k-button,
+.status-bar .file-input-button {
+    min-height: 40px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text-area {
+    /* make text area responsive within window flexbox to avoid clipping status-bar */
+    flex: 1 1 auto;
+    min-height: 0; /* key to make overflow:auto work in flexbox */
+    overflow: auto; /* scroll if content too tall */
+}
+
+.status-bar {
+    flex-shrink: 0; /* ensure the status bar is always visible at bottom */
 }
 
 .title-bar {
@@ -109,7 +132,7 @@
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
+    transition: none; /* immediate response */
 }
 
 .win2k-button:hover {
@@ -132,7 +155,7 @@
     cursor: pointer;
     margin-right: 8px;
     margin-bottom: 8px;
-    transition: all 0.2s ease;
+    transition: none; /* immediate response */
 }
 
 .win2k-tag-button.selected {
@@ -220,8 +243,8 @@
     border: 1px inset #d0d0c8;
     border-left-color: #404040;
     border-top-color: #404040;
-    border-right-color: white;
-    border-bottom-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
     background-color: white;
     padding: 8px;
     font-family: Arial, Helvetica, sans-serif;
@@ -237,8 +260,8 @@
     border: 1px inset #d0d0c8;
     border-left-color: #404040;
     border-top-color: #404040;
-    border-right-color: white;
-    border-bottom-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
     background-color: white;
     padding: 8px;
 }
@@ -247,8 +270,8 @@
     border: 1px inset #d0d0c8;
     border-left-color: #404040;
     border-top-color: #404040;
-    border-right-color: white;
-    border-bottom-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
     background-color: white;
     height: 20px;
     position: relative;
@@ -269,7 +292,7 @@
     padding: 8px 16px;
     cursor: pointer;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
+    transition: none; /* immediate response */
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -306,5 +329,22 @@
 @media (max-width: 768px) {
     .submit-buttons {
         flex-direction: column;
+    }
+}
+
+/* Prevent mobile browsers from auto-zooming when focusing inputs/textarea.
+   When the font-size is smaller than 16px, some mobile browsers auto-zoom on focus.
+   Increase font-size on small screens only to avoid layout changes on desktop. */
+@media (max-width: 768px) {
+    .input-field,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select,
+    button,
+    .file-input-button,
+    .win2k-button {
+        font-size: 16px !important;
     }
 }

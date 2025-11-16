@@ -54,15 +54,12 @@ export const useContext = () => {
     imageUrls: string[], 
     videoUrls: string[], 
     audioUrls: string[],
-    deletedUrls: string[] = [],
+    _deletedUrls: string[] = [], // Không dùng ở đây, xử lý ở component
     expiresAt?: Date
   ): Promise<void> => {
     loading.value = true;
     try {
-      if (deletedUrls.length > 0) {
-        await contextService.saveDeletedMedia(deletedUrls);
-      }
-
+      // Chỉ cập nhật Firestore context với media mới (đã loại bỏ media cũ)
       await contextService.update(id, {
         content: content.value.filter(c => c.trim() !== ""),
         images: imageUrls,
@@ -70,6 +67,8 @@ export const useContext = () => {
         audios: audioUrls,
         expiresAt: expiresAt || undefined,
       });
+      
+      // deletedUrls sẽ được xử lý ở component để gọi backend xóa Cloudinary
     } catch (_err) {
       throw _err;
     } finally {

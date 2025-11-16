@@ -66,7 +66,6 @@
                                 </div>
                             </div>
                             <div class="status-bar">
-                                <div class="p-4 pt-0">
                                     <div class="flex gap-2 justify-center">
                                         <button @click="goToDemo(section, card)" class="win2k-button">
                                             Demo
@@ -75,7 +74,6 @@
                                             Tạo thiệp
                                         </button>
                                     </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -216,7 +214,7 @@ function onVerified(email: string) {
     border: 1px solid #d0d0c8;
     border-right-color: #404040;
     border-bottom-color: #404040;
-    height: 380px;
+    min-height: 380px; /* allow flexible content while keeping a default card height */
     overflow: hidden;
 }
 
@@ -228,6 +226,9 @@ function onVerified(email: string) {
     border-top-color: white;
     border-right-color: #808080;
     border-bottom-color: #808080;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .title-bar {
@@ -272,8 +273,9 @@ function onVerified(email: string) {
     border-right-color: white;
     border-bottom-color: white;
     background-color: white;
-    height: 300px;
-    overflow: hidden;
+    flex: 1 1 auto; /* allow content to grow/shrink accordingly */
+    min-height: 0; /* prevents overflow issues with flex children */
+    overflow: auto; /* enable internal scrolling when content exceeds available space */
 }
 
 .status-bar {
@@ -285,6 +287,22 @@ function onVerified(email: string) {
     border-right-color: white;
     border-bottom-color: white;
     font-size: 11px;
+    flex-shrink: 0; /* keep status-bar visible even if text-area grows */
+    display: flex;
+    align-items: center; /* vertically center content */
+    justify-content: center; /* horizontally center content */
+    gap: 8px; /* consistent gap between items */
+}
+/* Ensure buttons inside status bar have consistent height */
+.status-bar .win2k-button,
+.status-bar .file-input-button {
+    min-height: 40px; /* target a comfortable touch target */
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 .win2k-button {
     border: 1px outset #d0d0c8;
@@ -295,7 +313,7 @@ function onVerified(email: string) {
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
+    transition: none; /* immediate interaction without smooth transitions */
 }
 .win2k-button:hover {
     border: 1px solid #808080;
@@ -315,7 +333,7 @@ function onVerified(email: string) {
     cursor: pointer;
     margin-right: 8px;
     margin-bottom: 8px;
-    transition: all 0.2s ease;
+    transition: none; /* immediate interaction */
 }
 .win2k-tag-button.selected {
     border: 1px inset #d0d0c8;
@@ -325,6 +343,13 @@ function onVerified(email: string) {
 .win2k-tag-button:hover {
     background-color: #d0d0d0;
     border-color: #a0a0a0;
+}
+/* Remove hover effect for already selected tag buttons so they keep selected style */
+.win2k-tag-button.selected:hover {
+    /* keep the same selected background and text color on hover */
+    background-color: #082468;
+    color: #ffffff;
+    border: 1px inset #d0d0c8;
 }
 .section-title {
     font-family: 'Courier New', monospace;

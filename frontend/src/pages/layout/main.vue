@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import EmailOtpModal from '@/components/EmailOtpModal.vue'
 import CreatedEcardsModal from '@/components/CreatedEcardsModal.vue'
 import { getCookie, setCookie, deleteCookie } from '@/utils/cookies'
@@ -101,6 +101,82 @@ import { getCookie, setCookie, deleteCookie } from '@/utils/cookies'
 const showEmailModal = ref(false)
 const showCreatedModal = ref(false)
 const userEmail = ref<string | null>(getCookie('email'))
+
+// Set mobile status bar meta tags only when this layout is active.
+// On mount: set theme-color to the provided rgba value (for Android/Chrome) and
+// apply apple-mobile-web-app-status-bar-style to allow translucent background on iOS.
+// On unmount: restore previous meta values / remove created tags.
+const _metaState: {
+    themeColor?: string | null
+    themeColorCreated?: boolean
+    appleStatus?: string | null
+    appleStatusCreated?: boolean
+    appleCapable?: string | null
+    appleCapableCreated?: boolean
+} = {}
+
+const DESIRED_THEME_COLOR = 'rgba(22,16,12,0)'
+const DESIRED_APPLE_STATUS = 'black-translucent'
+
+function setOrCreateMeta(name: string, content: string) {
+    const selector = `meta[name="${name}"]`
+    let el = document.head.querySelector(selector) as HTMLMetaElement | null
+    const created = !el
+    if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute('name', name)
+        el.setAttribute('data-created-by', 'main-layout')
+        document.head.appendChild(el)
+    }
+    const previous = el.content ?? null
+    el.content = content
+    return { previous, created }
+}
+
+onMounted(() => {
+    // theme-color
+    const t = setOrCreateMeta('theme-color', DESIRED_THEME_COLOR)
+    _metaState.themeColor = t.previous
+    _metaState.themeColorCreated = t.created
+    // apple-mobile-web-app-status-bar-style
+    const a = setOrCreateMeta('apple-mobile-web-app-status-bar-style', DESIRED_APPLE_STATUS)
+    _metaState.appleStatus = a.previous
+    _metaState.appleStatusCreated = a.created
+    // apple-mobile-web-app-capable (for PWA translucent status bar to work)
+    const cap = setOrCreateMeta('apple-mobile-web-app-capable', 'yes')
+    _metaState.appleCapable = cap.previous
+    _metaState.appleCapableCreated = cap.created
+})
+
+onUnmounted(() => {
+    // revert theme-color
+    const themeEl = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
+    if (themeEl) {
+        if (_metaState.themeColorCreated) {
+            themeEl.remove()
+        } else if (_metaState.themeColor !== undefined) {
+            themeEl.content = _metaState.themeColor ?? ''
+        }
+    }
+    // revert apple-mobile-web-app-status-bar-style
+    const appleEl = document.head.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]') as HTMLMetaElement | null
+    if (appleEl) {
+        if (_metaState.appleStatusCreated) {
+            appleEl.remove()
+        } else if (_metaState.appleStatus !== undefined) {
+            appleEl.content = _metaState.appleStatus ?? ''
+        }
+    }
+    // revert apple-mobile-web-app-capable
+    const appleCapEl = document.head.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement | null
+    if (appleCapEl) {
+        if (_metaState.appleCapableCreated) {
+            appleCapEl.remove()
+        } else if (_metaState.appleCapable !== undefined) {
+            appleCapEl.content = _metaState.appleCapable ?? ''
+        }
+    }
+})
 
 function logout() {
     deleteCookie('email')
@@ -134,6 +210,6 @@ function handleVerified(email: string) {
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    transition: none; /* disable smooth transitions to make clicks immediate */
 }
 </style>

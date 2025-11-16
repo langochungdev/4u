@@ -21,11 +21,23 @@
                 </p>
 
                 <label class="block text-sm text-muted-foreground mb-2">Nhập mã OTP</label>
-                <div class="flex justify-center gap-2 mb-4">
-                    <input v-for="index in otpDigits.length" :key="index" v-model="otpDigits[index - 1]"
-                        @keydown="handleKeyDown(index - 1, $event)" @input="handleOtpInput(index - 1, $event)"
-                        @paste="handlePaste($event)" type="text" maxlength="1" class="otp-box" />
-                </div>
+        <div class="flex justify-center gap-2 mb-4">
+          <input
+            v-for="index in otpDigits.length"
+            :key="index"
+            v-model="otpDigits[index - 1]"
+            @keydown="handleKeyDown(index - 1, $event)"
+            @input="handleOtpInput(index - 1, $event)"
+            @paste="handlePaste($event)"
+            type="tel"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="1"
+            autocomplete="one-time-code"
+            aria-label="OTP digit"
+            class="otp-box"
+          />
+        </div>
                 <div class="flex items-center justify-between text-sm text-muted-foreground mb-2">
                     <div>Chưa nhận mã? <button class="underline" @click="sendOtp">Gửi lại</button></div>
                     <div v-if="attempts">Lần gửi: {{ attempts }}</div>
@@ -46,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { OTP_BYPASS } from '@/config/app'
 import otpSuggest from './otp-suggest.png'
 
 const props = defineProps({
@@ -119,46 +132,58 @@ async function sendOtp() {
   message.value = ''
   if (!validEmail.value) return
   loading.value = true
-  try {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/send-otp`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: emailInput.value })
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Failed to send OTP')
+    try {
+      if (OTP_BYPASS) {
+        attempts.value += 1
+        step.value = 'otp'
+        message.value = 'Đã bật chế độ bypass OTP (dev): nhập bất kỳ mã 4 chữ số.'
+        return
+      }
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/send-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.value })
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Failed to send OTP')
+      }
+      attempts.value += 1
+      step.value = 'otp'
+      message.value = 'Đã gửi mã OTP vào email của bạn.'
+    } catch (e: any) {
+      error.value = e.message || String(e)
+    } finally {
+      loading.value = false
     }
-    attempts.value += 1
-    step.value = 'otp'
-    message.value = 'Đã gửi mã OTP vào email của bạn.'
-  } catch (e: any) {
-    error.value = e.message || String(e)
-  } finally {
-    loading.value = false
-  }
 }
 
 async function verifyOtp() {
   error.value = ''
   verifying.value = true
-  try {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/verify-otp`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: emailInput.value, otp: otpDigits.value.join('') })
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Invalid OTP')
+    try {
+      if (OTP_BYPASS) {
+        message.value = 'Xác thực thành công (dev bypass).'
+        emit('verified', emailInput.value)
+        visible.value = false
+        return
+      }
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/verify-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.value, otp: otpDigits.value.join('') })
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Invalid OTP')
+      }
+      message.value = 'Xác thực thành công.'
+      // emit verified email
+      emit('verified', emailInput.value)
+      visible.value = false
+    } catch (e: any) {
+      error.value = e.message || String(e)
+    } finally {
+      verifying.value = false
     }
-    message.value = 'Xác thực thành công.'
-    // emit verified email
-    emit('verified', emailInput.value)
-    visible.value = false
-  } catch (e: any) {
-    error.value = e.message || String(e)
-  } finally {
-    verifying.value = false
-  }
 }
 </script>
 
@@ -172,7 +197,7 @@ async function verifyOtp() {
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+  transition: none; /* disable smooth transitions for faster response */
 }
 
 .otp-box {

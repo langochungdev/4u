@@ -159,8 +159,7 @@ const copyToClipboard = async (text: string, type: string) => {
                                     </div>
                                 </div>
 
-                                <div class="result-section">
-                                    <!-- View Link -->
+                                <!-- <div class="result-section">
                                     <div class="link-card">
                                         <div class="link-header">
                                             <span class="link-label">🔗 Xem nội dung</span>
@@ -174,7 +173,6 @@ const copyToClipboard = async (text: string, type: string) => {
                                         </a>
                                     </div>
 
-                                    <!-- Edit Link -->
                                     <div class="link-card">
                                         <div class="link-header">
                                             <span class="link-label">✏️ Chỉnh sửa</span>
@@ -187,7 +185,7 @@ const copyToClipboard = async (text: string, type: string) => {
                                             {{ editLink }}
                                         </a>
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <!-- QR Code Section -->
                                 <div class="qr-section">
@@ -205,9 +203,9 @@ const copyToClipboard = async (text: string, type: string) => {
                                     <a :href="editLink" class="action-button win2k-button">
                                         ✏️ Chỉnh sửa
                                     </a>
-                                    <button @click="$router.push('/')" class="action-button win2k-button">
+                                    <!-- <button @click="$router.push('/')" class="action-button win2k-button">
                                         🏠 Trang chủ
-                                    </button>
+                                    </button> -->
                                 </div>
                             </div>
                         </div>

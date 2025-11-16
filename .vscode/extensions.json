@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "vscjava.vscode-gradle",
+    "vscjava.vscode-java-dependency",
+    "redhat.java",
+    "vscjava.vscode-spring-initializr",
+    "pivotal.vscode-boot-dev-pack"
+  ]
+}

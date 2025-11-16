@@ -7,7 +7,7 @@ export const NGAYNHAGIAO_SECTION = createSection({
 });
 
 export const NGAYNHAGIAO_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-  'demo': { visible: false, order: 1 },
+//   'demo': { visible: false, order: 1 },
 };
 
 

@@ -2,7 +2,6 @@ import { db } from "@/config/firebase";
 import {
   doc,
   getDoc,
-  setDoc,
   collection,
   addDoc,
   serverTimestamp,
@@ -11,7 +10,11 @@ import {
 
 // Collection names
 const CONTEXTS_COLLECTION = import.meta.env.VITE_FIRESTORE_CONTEXT;
-const MEDIA_COLLECTION = import.meta.env.VITE_FIRESTORE_MEDIA;
+
+// Validate collection name
+if (!CONTEXTS_COLLECTION || CONTEXTS_COLLECTION.trim() === '') {
+  throw new Error('VITE_FIRESTORE_CONTEXT is not defined in .env');
+}
 
 export interface ContextPayload {
   content: string[];
@@ -19,11 +22,6 @@ export interface ContextPayload {
   videos?: string[];
   audios?: string[];
   expiresAt?: any; // Timestamp for expiration
-}
-
-export interface DeletedMedia {
-  urls: string[];
-  deletedAt: any;
 }
 
 export const contextService = {
@@ -57,6 +55,10 @@ export const contextService = {
   },
 
   async update(id: string, data: Partial<ContextPayload>): Promise<void> {
+    if (!id || id.trim() === '') {
+      throw new Error('Document ID is required for update');
+    }
+    
     const updateData: any = {
       ...data,
       updatedAt: serverTimestamp(),
@@ -68,19 +70,6 @@ export const contextService = {
     }
     
     await updateDoc(doc(db, CONTEXTS_COLLECTION, id), updateData);
-  },
-
-  async saveDeletedMedia(urls: string[]): Promise<void> {
-    if (urls.length === 0) return;
-
-    const deleteDocRef = doc(db, MEDIA_COLLECTION, "delete");
-    const snapshot = await getDoc(deleteDocRef);
-    
-    const existingUrls = snapshot.exists() ? (snapshot.data() as DeletedMedia).urls || [] : [];
-    await setDoc(deleteDocRef, {
-      urls: [...existingUrls, ...urls],
-      deletedAt: serverTimestamp(),
-    });
   },
 };
 
