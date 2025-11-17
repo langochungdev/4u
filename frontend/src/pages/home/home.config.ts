@@ -28,5 +28,6 @@ export interface Section {
   id: string;
   title: string;
   description?: string;
+  demoId?: string;
   cards: TemplateCard[];
 }

@@ -19,7 +19,6 @@ const config: TemplateConfig = {
     "Caption dưới ảnh (ví dụ: 'GFF ❤️ 20-11-2023')",
   ],
 
-  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",
