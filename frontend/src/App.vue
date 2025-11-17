@@ -5,7 +5,6 @@
                 <component :is="Component" />
             </component>
         </router-view>
-    <!-- <GlobalSubmitOverlay /> -->
     </div>
 </template>
 

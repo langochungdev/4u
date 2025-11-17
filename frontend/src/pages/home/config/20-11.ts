@@ -9,7 +9,7 @@ export const NGAYNHAGIAO_SECTION = createSection({
 
 export const NGAYNHAGIAO_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
 //   'demo': { visible: true, order: 1 , demoId: 'custom_demo_id_20_11' }
-//   'demo': { visible: false}
+  'demo': { visible: false}
 };
 
 
