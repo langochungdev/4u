@@ -2,7 +2,10 @@
   <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
     <div class="bg-white rounded-lg p-4 w-full max-w-md border border-gray-300 shadow-lg">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold">Các mẫu đã tạo</h3>
+        <div>
+          <h3 class="font-bold">Các mẫu đã tạo</h3>
+          <div v-if="props.email" class="text-sm text-gray-500">{{ props.email }}</div>
+        </div>
         <button @click="onClose" class="text-gray-600 hover:text-gray-900">✕</button>
       </div>
   <div v-if="loading" class="text-sm text-gray-600">Đang tải...</div>
