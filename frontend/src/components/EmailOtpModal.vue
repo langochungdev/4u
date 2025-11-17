@@ -7,7 +7,10 @@
                     placeholder="nhập email của bạn" />
                 <div class="flex justify-center gap-2">
                     <button @click="onClose" class="win2k-button">Đóng</button>
-                    <button :disabled="loading || !validEmail" @click="sendOtp" class="win2k-button">Gửi mã</button>
+                    <button :disabled="loading || !validEmail" @click="sendOtp" class="win2k-button">
+                        <span v-if="loading" class="loading-spinner"></span>
+                        <span v-else>Gửi mã</span>
+                    </button>
                 </div>
             </div>
 
@@ -45,8 +48,10 @@
                 <div class="flex justify-center gap-2">
                     <button @click="onClose" class="win2k-button">Đóng</button>
                     <button :disabled="verifying || otpDigits.filter(d => d).length < 4" @click="verifyOtp"
-                        class="win2k-button">Xác
-                        thực</button>
+                        class="win2k-button">
+                        <span v-if="verifying" class="loading-spinner"></span>
+                        <span v-else>Xác thực</span>
+                    </button>
                 </div>
             </div>
 
@@ -197,7 +202,29 @@ async function verifyOtp() {
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  transition: none; /* disable smooth transitions for faster response */
+    transition: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.win2k-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #808080;
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .otp-box {

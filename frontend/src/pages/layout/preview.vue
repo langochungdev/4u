@@ -1,8 +1,8 @@
 <template>
     <!-- Fullscreen Trigger Overlay - Click anywhere to enter fullscreen (first time only) -->
-    <!-- Only show when NOT in preview mode -->
+    <!-- Only show when NOT in preview mode AND NOT on iOS -->
     <div 
-        v-if="showFullscreenOverlay && !isPreviewMode" 
+        v-if="showFullscreenOverlay && !isPreviewMode && !isIOS" 
         @click="handleFirstClick"
         class="fixed inset-0 z-50 cursor-pointer bg-transparent"
         title="Click để xem toàn màn hình"
@@ -91,6 +91,10 @@ const countdown24h = ref<string>('');
 const countdownInterval = ref<number | null>(null);
 const showFullscreenOverlay = ref<boolean>(true);
 const hasRequestedFullscreen = ref<boolean>(false);
+
+// Detect iOS devices
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 const isPreviewMode = computed(() => route.query.preview === 'true');
 const showBackButton = computed(() => route.meta.showBackButton === true);
@@ -181,7 +185,46 @@ const handleFirstClick = async () => {
     await requestFullscreen();
 };
 
+// Helper to set status bar color
+const setStatusBarColor = (color: string, appleStyle: string = 'black-translucent') => {
+    // Set theme-color for Android/Chrome
+    let themeColorMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+    if (!themeColorMeta) {
+        themeColorMeta = document.createElement('meta');
+        themeColorMeta.name = 'theme-color';
+        document.head.appendChild(themeColorMeta);
+    }
+    themeColorMeta.content = color;
+    
+    // Set apple-mobile-web-app-status-bar-style for iOS
+    let appleStatusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]') as HTMLMetaElement;
+    if (!appleStatusMeta) {
+        appleStatusMeta = document.createElement('meta');
+        appleStatusMeta.name = 'apple-mobile-web-app-status-bar-style';
+        document.head.appendChild(appleStatusMeta);
+    }
+    appleStatusMeta.content = appleStyle;
+    
+    // Ensure apple-mobile-web-app-capable is set
+    let appleCapableMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement;
+    if (!appleCapableMeta) {
+        appleCapableMeta = document.createElement('meta');
+        appleCapableMeta.name = 'apple-mobile-web-app-capable';
+        document.head.appendChild(appleCapableMeta);
+    }
+    appleCapableMeta.content = 'yes';
+};
+
 onMounted(async () => {
+    // Set status bar to black for preview layout
+    setStatusBarColor('#000000', 'black-translucent');
+    
+    // Hide fullscreen overlay immediately on iOS (Safari doesn't support fullscreen)
+    if (isIOS) {
+        showFullscreenOverlay.value = false;
+        hasRequestedFullscreen.value = true;
+    }
+    
     // Only check expiration if we have an ID in params and NOT in preview mode
     const id = route.params.id as string;
     
@@ -205,6 +248,17 @@ const cleanup = () => {
     if (countdownInterval.value) {
         clearInterval(countdownInterval.value);
         countdownInterval.value = null;
+    }
+    
+    // Restore status bar color when leaving preview
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+    if (themeColorMeta) {
+        themeColorMeta.content = 'rgba(22,16,12,0)';
+    }
+    
+    const appleStatusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]') as HTMLMetaElement;
+    if (appleStatusMeta) {
+        appleStatusMeta.content = 'black-translucent';
     }
 };
 

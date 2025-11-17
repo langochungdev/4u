@@ -8,11 +8,14 @@ export const initGalaxyScene = (
   imageUrls: string[]
 ) => {
   // ========== CẤU HÌNH - CONFIGURATION ==========
+  // Detect mobile for performance optimization
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+  
   // Số lượng lần render cho mỗi ảnh
-  const MAX_IMAGE_REPEAT = 3;
+  const MAX_IMAGE_REPEAT = isMobile ? 2 : 3;
   
   // Số lượng lần render cho mỗi thông điệp/text
-  const MAX_MESSAGE_REPEAT = 5;
+  const MAX_MESSAGE_REPEAT = isMobile ? 3 : 5;
   
   // Khoảng cách render (min, max) - radius từ tâm
   const IMAGE_DISTANCE_MIN = 13.0;
@@ -21,9 +24,13 @@ export const initGalaxyScene = (
   const MESSAGE_DISTANCE_MAX = 30.0;
   // ============================================
   
-  // Renderer
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // Renderer with mobile optimization
+  const renderer = new THREE.WebGLRenderer({ 
+    canvas, 
+    antialias: !isMobile, 
+    powerPreference: isMobile ? 'default' : 'high-performance'
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   // Scene & camera
@@ -48,27 +55,87 @@ export const initGalaxyScene = (
 
   // Pointer controls
   let dragging = false, lastX = 0, lastY = 0;
+  let touches: Map<number, { x: number, y: number, prevX: number, prevY: number }> = new Map();
+  let initialPinchDistance = 0;
+  let initialDistValue = targetDist;
   const ROT_SPEED = 0.010;
   
   const onPointerDown = (e: PointerEvent) => {
-    dragging = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
-    canvas.setPointerCapture(e.pointerId);
+    if (e.pointerType === 'touch') {
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY, prevX: e.clientX, prevY: e.clientY });
+      if (touches.size === 2) {
+        const touchArray = Array.from(touches.values());
+        const t1 = touchArray[0];
+        const t2 = touchArray[1];
+        if (t1 && t2) {
+          const dx = t2.x - t1.x;
+          const dy = t2.y - t1.y;
+          initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
+          initialDistValue = targetDist;
+        }
+      }
+    } else {
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    }
   };
   
   const onPointerMove = (e: PointerEvent) => {
-    if (!dragging) return;
-    const dx = e.clientX - lastX;
-    const dy = e.clientY - lastY;
-    lastX = e.clientX;
-    lastY = e.clientY;
-    targetAz += dx * ROT_SPEED;
-    targetPol -= dy * ROT_SPEED;
-    targetPol = clamp(targetPol, 0.1, Math.PI - 0.1);
+    if (e.pointerType === 'touch') {
+      const current = touches.get(e.pointerId);
+      if (current) {
+        current.prevX = current.x;
+        current.prevY = current.y;
+        current.x = e.clientX;
+        current.y = e.clientY;
+        
+        if (touches.size === 2) {
+          const touchArray = Array.from(touches.values());
+          const t1 = touchArray[0];
+          const t2 = touchArray[1];
+          if (t1 && t2) {
+            const dx = t2.x - t1.x;
+            const dy = t2.y - t1.y;
+            const currentDist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (initialPinchDistance > 0) {
+              const scale = currentDist / initialPinchDistance;
+              targetDist = clamp(initialDistValue / scale, 2.5, 40);
+            }
+          }
+        } else if (touches.size === 1) {
+          const dx = current.x - current.prevX;
+          const dy = current.y - current.prevY;
+          targetAz += dx * ROT_SPEED;
+          targetPol -= dy * ROT_SPEED;
+          targetPol = clamp(targetPol, 0.1, Math.PI - 0.1);
+        }
+      }
+    } else {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      targetAz += dx * ROT_SPEED;
+      targetPol -= dy * ROT_SPEED;
+      targetPol = clamp(targetPol, 0.1, Math.PI - 0.1);
+    }
   };
   
-  const onPointerUp = () => { dragging = false; };
+  const onPointerUp = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      touches.delete(e.pointerId);
+      if (touches.size < 2) {
+        initialPinchDistance = 0;
+      }
+    } else {
+      dragging = false;
+    }
+  };
+  
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
     const k = Math.exp(e.deltaY * 0.0015);
@@ -84,31 +151,37 @@ export const initGalaxyScene = (
     }
   };
 
-  canvas.addEventListener('pointerdown', onPointerDown);
-  canvas.addEventListener('pointermove', onPointerMove);
-  canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
+  // Register events IMMEDIATELY (before heavy scene creation)
+  canvas.addEventListener('pointerdown', onPointerDown, { passive: true });
+  canvas.addEventListener('pointermove', onPointerMove, { passive: true });
+  canvas.addEventListener('pointerup', onPointerUp, { passive: true });
+  canvas.addEventListener('pointercancel', onPointerUp, { passive: true });
   canvas.addEventListener('wheel', onWheel, { passive: false });
   window.addEventListener('keydown', onKeyDown);
 
-  // Create galaxy elements
+  // Set initial camera position immediately
+  updateCamera(true);
+
+  // Create galaxy elements with mobile optimization
   const starGroup = new THREE.Group();
   scene.add(starGroup);
 
-  starGroup.add(createStars(14000, 900, 1.0, 0.9));
-  starGroup.add(createStars(11000, 1600, 1.7, 0.78));
-  starGroup.add(createStars(8000, 2400, 2.1, 0.6));
+  // Reduce star counts on mobile
+  const starMultiplier = isMobile ? 0.5 : 1.0;
+  starGroup.add(createStars(Math.floor(14000 * starMultiplier), 900, 1.0, 0.9));
+  starGroup.add(createStars(Math.floor(11000 * starMultiplier), 1600, 1.7, 0.78));
+  starGroup.add(createStars(Math.floor(8000 * starMultiplier), 2400, 2.1, 0.6));
 
   starGroup.add(createSpiralArm(0, 4, 2600, 2200, 28, 0xff99ff, 2.0, 0.26));
   starGroup.add(createSpiralArm(1, 4, 2600, 2200, 28, 0x88bbff, 1.9, 0.26));
   starGroup.add(createSpiralArm(2, 4, 2600, 2200, 28, 0xffddb3, 1.8, 0.24));
   starGroup.add(createSpiralArm(3, 4, 2600, 2200, 28, 0xb388ff, 1.9, 0.24));
 
-  starGroup.add(createStarRing(1500, 400, 4500, -0.18, 0.05, 0xffe8ff, 1.6, 0.28));
-  starGroup.add(createStarRing(2100, 520, 5500, 0.12, -0.08, 0xd0e0ff, 1.8, 0.22));
+  starGroup.add(createStarRing(Math.floor(1500 * starMultiplier), 400, 4500, -0.18, 0.05, 0xffe8ff, 1.6, 0.28));
+  starGroup.add(createStarRing(Math.floor(2100 * starMultiplier), 520, 5500, 0.12, -0.08, 0xd0e0ff, 1.8, 0.22));
 
-  // Planet
-  const coreGeo = new THREE.SphereGeometry(1.15, 64, 64);
+  // Planet with mobile optimization
+  const coreGeo = new THREE.SphereGeometry(1.15, isMobile ? 32 : 64, isMobile ? 32 : 64);
   const coreMat = new THREE.MeshStandardMaterial({ 
     color: 0xffffff, 
     metalness: 0.3, 
@@ -118,7 +191,7 @@ export const initGalaxyScene = (
     transparent: false 
   });
   
-  // Load Earth texture
+  // Load Earth texture (async, non-blocking)
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
     new URL('./earth.jpg', import.meta.url).href,
@@ -141,7 +214,7 @@ export const initGalaxyScene = (
   holeGroup.add(core);
   scene.add(holeGroup);
 
-  // Inner ring
+  // Inner ring with mobile optimization
   const createInnerStarDisk = (params: any) => {
     const geo = new THREE.BufferGeometry();
     const positions = new Float32Array(params.count * 3);
@@ -171,7 +244,7 @@ export const initGalaxyScene = (
   const innerRing = createInnerStarDisk({ 
     radius: 2.5, 
     thickness: 0.9, 
-    count: 4200, 
+    count: isMobile ? 2500 : 4200, 
     color: 0x00ffff, 
     size: 0.09, 
     opacity: 0.95, 
@@ -254,7 +327,7 @@ export const initGalaxyScene = (
     });
   });
 
-  // Animation
+  // Animation - start immediately
   let t = 0;
   let animationId: number;
   
@@ -287,7 +360,7 @@ export const initGalaxyScene = (
     renderer.render(scene, camera);
   };
 
-  updateCamera(true);
+  // Start animation loop immediately
   animate();
 
   // Resize handler
