@@ -14,7 +14,6 @@ const config: TemplateConfig = {
         'Nhập nội dung'
     ],
 
-    demoId: 'demo',
     thumbnail: demo,
     thumbnailType: 'image',
     templateName: new URL('.', import.meta.url).pathname.split('/').pop() || ''

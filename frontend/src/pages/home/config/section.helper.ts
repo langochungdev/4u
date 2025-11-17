@@ -3,13 +3,15 @@ import type { TemplateConfig } from '@/config/templates';
 
 export interface TemplateVisibilityConfig {
   visible: boolean;
-  order: number;
+  order?: number;
+  demoId?: string;
 }
 
 export interface SectionMetadata {
   id: string;
   title: string;
   description: string;
+  demoId?: string;
   templatesConfig?: Record<string, TemplateVisibilityConfig>;
 }
 
@@ -23,6 +25,7 @@ export function createSection(metadata: SectionMetadata): Section {
     id: metadata.id,
     title: metadata.title,
     description: metadata.description,
+    demoId: metadata.demoId,
     cards: []
   };
 }
@@ -35,15 +38,14 @@ export function createSection(metadata: SectionMetadata): Section {
  */
 export async function loadSectionCards(
   sectionId: string,
-  templatesConfig?: Record<string, TemplateVisibilityConfig>
+  templatesConfig?: Record<string, TemplateVisibilityConfig>,
+  sectionDemoId?: string
 ): Promise<TemplateCard[]> {
   const cards: TemplateCard[] = [];
   
-  // Tự động load tất cả config trong thư mục section
   const configs = import.meta.glob('@/pages/templates/**/config.ts', { eager: true });
   
   for (const path in configs) {
-    // Chỉ lấy templates thuộc section này
     if (!path.includes(`/templates/${sectionId}/`)) continue;
     
     const config = (configs[path] as { default: TemplateConfig }).default;
@@ -51,19 +53,21 @@ export async function loadSectionCards(
       const templatePath = path.replace('/@/pages/templates/', '').replace('/config.ts', '');
       const templateId = templatePath.split('/').pop() || templatePath;
       
+      const templateSpecificDemoId = templatesConfig?.[templateId]?.demoId;
+      const finalDemoId = templateSpecificDemoId || sectionDemoId || config.demoId || '';
+      
       cards.push({
         id: templateId,
         title: config.title,
         description: config.description,
         thumbnail: config.thumbnail,
         thumbnailType: config.thumbnailType,
-        demoId: config.demoId,
+        demoId: finalDemoId,
         createdBy: config.createdBy
       });
     }
   }
   
-  // Filter và sort theo config (nếu có)
   if (templatesConfig) {
     return cards
       .filter(card => {
@@ -77,7 +81,6 @@ export async function loadSectionCards(
       });
   }
   
-  // Nếu không có config, return tất cả
   return cards;
 }
 
@@ -88,7 +91,8 @@ export async function loadSectionCards(
  */
 export async function loadSectionData(
   section: Section,
-  templatesConfig?: Record<string, TemplateVisibilityConfig>
+  templatesConfig?: Record<string, TemplateVisibilityConfig>,
+  sectionDemoId?: string
 ): Promise<void> {
-  section.cards = await loadSectionCards(section.id, templatesConfig);
+  section.cards = await loadSectionCards(section.id, templatesConfig, sectionDemoId);
 }

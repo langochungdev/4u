@@ -16,7 +16,6 @@ const config: TemplateConfig = {
     "Nội dung lời chúc chính",
   ],
 
-  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",

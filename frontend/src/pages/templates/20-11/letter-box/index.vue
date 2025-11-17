@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import type { Ref } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
 import TEMPLATE_CONFIG from "./config";
-import "./style.css";
+// import "./style.css";
 
 /* ===== LẤY DATA TỪ CONFIG / BUILDER ===== */
 
@@ -233,3 +233,4 @@ const closeModal = () => {
 </div>
   </div>
 </template>
+<style scoped src="./style.css"></style>

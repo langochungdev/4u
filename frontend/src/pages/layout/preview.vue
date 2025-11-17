@@ -63,7 +63,7 @@
         <div v-if="showBackButton && isPreviewMode" class="fixed bottom-6 right-6 z-50">
             <button 
                 @click="handleBackButton"
-                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg shadow-lg transition-colors flex items-center gap-2"
+                class="win2k-button flex items-center gap-2"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -269,5 +269,19 @@ const handleBackButton = async () => {
 .preview-layout {
     position: relative;
     min-height: 100vh;
+}
+
+.win2k-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 14px;
+    padding: 12px 24px;
+    cursor: pointer;
+    min-width: 120px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    transition: none; /* disable smooth transitions to make clicks immediate */
+    touch-action: manipulation; /* hint to browsers to avoid double-tap zoom */
+    -webkit-tap-highlight-color: transparent; /* remove highlight on tap for better UX */
 }
 </style>
