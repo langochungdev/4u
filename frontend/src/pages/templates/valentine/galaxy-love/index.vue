@@ -13,53 +13,52 @@ let cleanupFn: (() => void) | null = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+const initScene = async () => {
+  if (!canvasRef.value) return;
+  
+  const content = contextData.value?.content || [];
+  const images = contextData.value?.images || [];
+  
+  console.log('[Galaxy] Initializing scene with:', {
+    contentCount: content.length,
+    imageCount: images.length,
+    images: images
+  });
+  
+  if (cleanupFn) {
+    cleanupFn();
+  }
+  
+  await nextTick();
+  cleanupFn = initGalaxyScene(canvasRef.value, content, images);
+  
+  // Hide loading after scene is ready
+  if (isIOS) {
+    isLoading.value = false;
+  } else {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isLoading.value = false;
+      });
+    });
+  }
+};
+
 onMounted(async () => {
   await nextTick();
   if (canvasRef.value) {
-    // Initialize immediately without waiting
-    cleanupFn = initGalaxyScene(
-      canvasRef.value,
-      [],
-      []
-    );
-    // Hide loading after first frame (instant on iOS)
-    if (isIOS) {
-      // iOS: hide loading immediately to prevent overlay blocking touch
-      isLoading.value = false;
-    } else {
-      // Android/Desktop: show loading animation
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          isLoading.value = false;
-        });
-      });
-    }
+    // Initialize scene (will use contextData if already available)
+    await initScene();
   }
 });
 
 watch(contextData, async (data) => {
   if (data && canvasRef.value) {
+    console.log('[Galaxy] Context data changed, reinitializing...');
     if (!isIOS) {
       isLoading.value = true;
     }
-    if (cleanupFn) {
-      cleanupFn();
-    }
-    await nextTick();
-    cleanupFn = initGalaxyScene(
-      canvasRef.value,
-      data.content || [],
-      data.images || []
-    );
-    if (isIOS) {
-      isLoading.value = false;
-    } else {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          isLoading.value = false;
-        });
-      });
-    }
+    await initScene();
   }
 });
 

@@ -307,24 +307,49 @@ export const initGalaxyScene = (
 
   const loader = new THREE.TextureLoader();
   imageUrls.forEach((url) => {
-    loader.load(url, (tex: THREE.Texture) => {
-      const img = tex.image as HTMLImageElement;
-      for (let i = 0; i < MAX_IMAGE_REPEAT; i++) {
-        const framedCanvas = createImageFrame(img);
-        const framedTex = new THREE.CanvasTexture(framedCanvas);
-        framedTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        const mat = new THREE.SpriteMaterial({ map: framedTex, transparent: true, depthWrite: false });
-        const spr = new THREE.Sprite(mat);
-        
-        // Calculate aspect ratio to prevent distortion
-        const aspect = framedCanvas.width / framedCanvas.height;
-        const base = 3.0 * (0.85 + Math.random() * 0.5);
-        spr.scale.set(base * aspect, base, 1);
-        
-        spr.position.copy(randomPosition(IMAGE_DISTANCE_MIN, IMAGE_DISTANCE_MAX));
-        imagesGroup.add(spr);
+    loader.load(
+      url, 
+      (tex: THREE.Texture) => {
+        const img = tex.image as HTMLImageElement;
+        for (let i = 0; i < MAX_IMAGE_REPEAT; i++) {
+          const framedCanvas = createImageFrame(img);
+          const framedTex = new THREE.CanvasTexture(framedCanvas);
+          
+          // Critical settings for preserving image quality
+          framedTex.colorSpace = THREE.SRGBColorSpace;
+          framedTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          framedTex.minFilter = THREE.LinearFilter;
+          framedTex.magFilter = THREE.LinearFilter;
+          framedTex.generateMipmaps = false;
+          framedTex.premultiplyAlpha = false;
+          framedTex.needsUpdate = true;
+          
+          const mat = new THREE.SpriteMaterial({ 
+            map: framedTex, 
+            transparent: true,
+            depthWrite: false,
+            depthTest: true,
+            blending: THREE.NormalBlending,
+            opacity: 1.0,
+            // Prevent any color manipulation
+            toneMapped: false
+          });
+          const spr = new THREE.Sprite(mat);
+          
+          // Calculate aspect ratio to prevent distortion
+          const aspect = framedCanvas.width / framedCanvas.height;
+          const base = 3.0 * (0.85 + Math.random() * 0.5);
+          spr.scale.set(base * aspect, base, 1);
+          
+          spr.position.copy(randomPosition(IMAGE_DISTANCE_MIN, IMAGE_DISTANCE_MAX));
+          imagesGroup.add(spr);
+        }
+      },
+      undefined,
+      (error) => {
+        console.error('Failed to load image:', url, error);
       }
-    });
+    );
   });
 
   // Animation - start immediately
