@@ -109,14 +109,7 @@ onUnmounted(() => {
   }
 });
 
-const copyToClipboard = async (text: string, type: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    alert(`${type} đã được copy!`);
-  } catch (error) {
-    console.error("Error copying to clipboard:", error);
-  }
-};
+
 </script>
 
 <template>
