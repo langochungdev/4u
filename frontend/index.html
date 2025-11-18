@@ -1,28 +1,99 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light only" />
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
     
-    <title>STORY4U</title>
-    <meta name="description"
-        content="Create and send custom e-cards in seconds">
+    <title>STORY4U - Thiệp điện tử</title>
+    <meta name="description" content="Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây" />
+    
+    <!-- Open Graph / Facebook / Zalo -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STORY4U" />
+    <meta property="og:locale" content="vi_VN" />
     <meta property="og:url" content="https://story4u.online/" />
-    <meta property="og:title" content="STORY4U" />
-    <meta property="og:description" content="Create and send custom interactive e-cards in seconds" />
-  <meta property="og:image" content="/meta-img.jpeg" />
-  <meta property="og:image:type" content="image/jpeg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="900" />
-  <meta property="og:image:alt" content="Create interactive cards at story4u.online" />
-    <!-- Twitter card for better previews on Twitter/X -->
+    <meta property="og:title" content="STORY4U - Thiệp điện tử" />
+    <meta property="og:description" content="Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây" />
+    <meta property="og:image" content="https://story4u.online/meta-img.jpeg" />
+    <meta property="og:image:secure_url" content="https://story4u.online/meta-img.jpeg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="900" />
+    <meta property="og:image:alt" content="STORY4U - Tạo thiệp điện tử" />
+    
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/meta-img.jpeg" />
-    <meta name="twitter:image:alt" content="Create interactive cards at story4u.online" />
+    <meta name="twitter:title" content="STORY4U - Thiệp điện tử" />
+    <meta name="twitter:description" content="Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây" />
+    <meta name="twitter:image" content="https://story4u.online/meta-img.jpeg" />
+    <meta name="twitter:image:alt" content="STORY4U - Tạo thiệp điện tử" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://story4u.online/" />
+    
+    <!-- Early meta update for crawlers - runs before Vue loads -->
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        var isEcard = path !== '/' && path.length > 1;
+        
+        if (isEcard) {
+          var currentUrl = window.location.href;
+          var title = 'Xem thiệp của bạn - STORY4U';
+          var description = 'Ai đó đã gửi cho bạn một thiệp điện tử đặc biệt. Nhấn vào để xem ngay!';
+          
+          // Update document title immediately
+          document.title = title;
+          
+          // Update or create meta tags
+          function updateMeta(property, content) {
+            var meta = document.querySelector('meta[property="' + property + '"]');
+            if (meta) {
+              meta.content = content;
+            } else {
+              meta = document.createElement('meta');
+              meta.setAttribute('property', property);
+              meta.content = content;
+              document.head.appendChild(meta);
+            }
+          }
+          
+          function updateMetaName(name, content) {
+            var meta = document.querySelector('meta[name="' + name + '"]');
+            if (meta) {
+              meta.content = content;
+            }
+          }
+          
+          // Update OG tags
+          updateMeta('og:url', currentUrl);
+          updateMeta('og:title', title);
+          updateMeta('og:description', description);
+          
+          // Update Twitter tags
+          updateMetaName('twitter:title', title);
+          updateMetaName('twitter:description', description);
+          
+          // Update description
+          updateMetaName('description', description);
+          
+          // Update canonical
+          var canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) {
+            canonical.href = currentUrl;
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

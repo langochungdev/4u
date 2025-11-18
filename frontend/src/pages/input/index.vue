@@ -279,6 +279,7 @@ const validate = () => {
     for (const type of ['image', 'video', 'audio'] as const) {
         const max = constraints.value[`max${type.charAt(0).toUpperCase() + type.slice(1)}s` as keyof typeof constraints.value] as number;
         const current = getCount(type);
+    if (type === 'audio') continue; // audio is optional
         if (max !== Infinity && current < max) {
             alert(`Vui lòng tải lên đủ ${max} ${labels[type]}. Hiện tại: ${current}/${max}`);
             return false;
@@ -309,7 +310,7 @@ const handlePreview = () => {
         template: templateName,
         topic: topic,
         editId: isEditMode.value ? currentId.value : undefined,
-        deletedUrls: isEditMode.value ? deletedUrls.value : undefined
+    deletedUrls: isEditMode.value ? deletedUrls.value : undefined,
     });
 
     
@@ -619,13 +620,11 @@ onMounted(async () => {
             isEditMode.value = true;
             currentId.value = previewStore.editId;
             deletedUrls.value = previewStore.deletedUrls || [];
-            
-            
+
             if (!existingData.value && currentId.value) {
                 existingData.value = await fetchContext(currentId.value);
             }
-            
-            
+
             if (existingData.value && deletedUrls.value.length > 0) {
                 existingData.value.images = existingData.value.images.filter((url: string) => !deletedUrls.value.includes(url));
                 if (existingData.value.videos) {
@@ -636,6 +635,8 @@ onMounted(async () => {
                 }
             }
         }
+
+    // bypassAudio removed - audio is optional by default
         
         const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.query.template);
         if (needRestore) {
@@ -815,10 +816,9 @@ onUnmounted(() => {
                                 <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ media.label }}
-                                        <span v-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">
-                                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
-                                        </span>
-                                        <span v-else-if="media.max === Infinity" class="text-xs text-gray-500">(không bắt buộc)</span>
+                                        <span v-if="media.key === 'audio'" class="text-xs text-gray-500">(không bắt buộc)</span>
+                                        <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})</span>
+                                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
                                     </label>
                                     <input 
                                         :type="'file'" 
@@ -862,7 +862,7 @@ onUnmounted(() => {
                                                     <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="url" controls class="flex-1"></audio>
                                                     <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2 cursor-pointer' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer'">×</button>
-                                eExist          </div>
+                                          </div>
                                             </div>
                                         </div>
                                     </div>
