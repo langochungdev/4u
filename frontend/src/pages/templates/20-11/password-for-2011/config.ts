@@ -3,7 +3,7 @@ import demo from './demo.png';
 
 const config: TemplateConfig = {
     title: 'Mật Mã Tri Ân 20/11',
-    description: 'Một món quà bất ngờ! Yêu cầu người nhận nhập mật mã "2011" để mở khóa lá thư tri ân và album ảnh lộng lẫy.',
+    description: 'Nhập mật mã "2011"',
     createdBy: 'DuongDinhTrac',
     maxImages: 5,
     maxVideos: 0,

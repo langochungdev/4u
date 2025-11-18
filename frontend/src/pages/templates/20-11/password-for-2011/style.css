@@ -205,6 +205,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Vertically center content across most screens */
+  justify-content: center;
+  min-height: 70vh; /* Make wrapper tall enough to center vertically */
 }
 @media (min-width: 768px) {
   .view-wrapper {
@@ -234,7 +237,12 @@
   overflow-y: auto;
   padding: 2rem;
   box-sizing: border-box;
-  margin-top: 2.5rem;
+  /* Remove top margin to allow perfect vertical centering inside wrapper */
+  margin-top: 0;
+  /* Center the message vertically within the card when content is shorter */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .paper-texture {
   background-color: #faf8f0;
@@ -248,6 +256,8 @@
   color: #a12c2c; 
   white-space: pre-wrap; 
   word-break: break-word;
+  width: 100%;
+  text-align: left; /* Keep the handwriting aligned to the left */
 }
 .message-body .ti-cursor {
   display: none;
