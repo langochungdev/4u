@@ -7,7 +7,7 @@ const config: TemplateConfig = {
     createdBy: 'Langochungdev',
     maxImages: 1,
     maxVideos: 0,
-    maxAudios: 0,
+    maxAudios: 1,
     maxContent: 1,
     contentPlaceholders: [
         'gợi ý 1',
