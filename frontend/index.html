@@ -20,7 +20,6 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="STORY4U" />
     <meta property="og:locale" content="vi_VN" />
-    <meta property="og:url" content="https://story4u.online/" />
     <meta property="og:title" content="STORY4U - Thiệp điện tử" />
     <meta property="og:description" content="Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây" />
     <meta property="og:image" content="https://story4u.online/meta-img.jpeg" />
@@ -74,8 +73,10 @@
             }
           }
           
-          // Update OG tags
+          // Add og:url dynamically with current URL (keeps original URL intact)
           updateMeta('og:url', currentUrl);
+          
+          // Update OG tags
           updateMeta('og:title', title);
           updateMeta('og:description', description);
           
