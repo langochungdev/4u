@@ -105,4 +105,31 @@ html, body {
   background-color: #ffffff;
   color: #000000;
 }
+
+/* Smooth scrolling for entire page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for all browsers */
+/* Chrome, Safari, Edge, Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE, Edge legacy */
+body {
+  -ms-overflow-style: none;
+}
+
+/* Ensure scrolling still works */
+html, body {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 </style>

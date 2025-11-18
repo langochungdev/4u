@@ -55,6 +55,9 @@ const currentAudioIndex = ref<number>(-1)
 const trimmedAudioIndexes = ref<Set<number>>(new Set())
 const isLoadingTemplate = ref(false)
 const isNavigating = ref(false)
+const isExtractingAudio = ref(false)
+const extractProgress = ref(0)
+const cancelExtract = ref<(() => void) | null>(null)
 
 function handleVerifiedEmail(email: string) {
     setCookie('email', email)
@@ -227,15 +230,79 @@ const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
         if (files.length === 1) {
             const file = files[0]!;
             
-            if (file.type && file.type.startsWith('audio/')) {
+            // Check file extension for video formats (more reliable on mobile)
+            const fileName = file.name.toLowerCase();
+            const isVideoFile = file.type.startsWith('video/') || 
+                               fileName.endsWith('.mp4') || 
+                               fileName.endsWith('.webm') ||
+                               fileName.endsWith('.mov');
+            
+            const isAudioFile = file.type.startsWith('audio/') || 
+                               fileName.endsWith('.mp3') || 
+                               fileName.endsWith('.m4a') ||
+                               fileName.endsWith('.wav') ||
+                               fileName.endsWith('.ogg') ||
+                               fileName.endsWith('.aac') ||
+                               fileName.endsWith('.flac');
+            
+            // Check if it's a video file
+            if (isVideoFile) {
+                try {
+                    const audioFile = await extractAudioFromVideo(file);
+                    currentAudioFile.value = audioFile;
+                    currentAudioIndex.value = -1;
+                    showAudioTrimmer.value = true;
+                } catch (error) {
+                    // Check if error is cancellation
+                    if (error instanceof Error && error.message === 'cancelled') {
+                        // Reset input to allow selecting the same file again
+                        input.value = '';
+                        return;
+                    }
+                    const errorMessage = error instanceof Error ? error.message : 'Không thể trích xuất audio từ video. Vui lòng chọn file audio hoặc video khác.';
+                    alert('❌ ' + errorMessage);
+                    // Reset input on error too
+                    input.value = '';
+                }
+            } else if (isAudioFile) {
                 currentAudioFile.value = file;
                 currentAudioIndex.value = -1;
                 showAudioTrimmer.value = true;
             } else {
-                alert('Vui lòng chọn tệp audio hợp lệ.');
+                alert('Vui lòng chọn tệp audio hoặc video hợp lệ.');
             }
         } else {
-            managers.audio.addFiles(files);
+            // Multiple files - process each one
+            const processedFiles: File[] = [];
+            for (const file of files) {
+                const fileName = file.name.toLowerCase();
+                const isVideoFile = file.type.startsWith('video/') || 
+                                   fileName.endsWith('.mp4') || 
+                                   fileName.endsWith('.webm') ||
+                                   fileName.endsWith('.mov');
+                
+                const isAudioFile = file.type.startsWith('audio/') || 
+                                   fileName.endsWith('.mp3') || 
+                                   fileName.endsWith('.m4a') ||
+                                   fileName.endsWith('.wav') ||
+                                   fileName.endsWith('.ogg') ||
+                                   fileName.endsWith('.aac') ||
+                                   fileName.endsWith('.flac');
+                
+                if (isVideoFile) {
+                    try {
+                        const audioFile = await extractAudioFromVideo(file);
+                        processedFiles.push(audioFile);
+                    } catch (error) {
+                        // Silent fail for batch processing
+                    }
+                } else if (isAudioFile) {
+                    processedFiles.push(file);
+                }
+            }
+            if (processedFiles.length > 0) {
+                managers.audio.addFiles(processedFiles);
+            }
         }
     } else {
         managers[type].addFiles(files);
@@ -266,6 +333,167 @@ const handleAudioTrimCancel = () => {
     currentAudioIndex.value = -1
 }
 
+// Extract audio from video file using Web Audio API (iOS compatible)
+const extractAudioFromVideo = async (videoFile: File): Promise<File> => {
+    return new Promise(async (resolve, reject) => {
+        let isCancelled = false;
+        let audioContext: AudioContext | null = null;
+        
+        // Setup cancel function
+        cancelExtract.value = () => {
+            isCancelled = true;
+            if (audioContext && audioContext.state !== 'closed') {
+                try {
+                    audioContext.close();
+                } catch (e) {
+                    // Silent fail
+                }
+            }
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            reject(new Error('cancelled'));
+        };
+        
+        try {
+            isExtractingAudio.value = true;
+            extractProgress.value = 10;
+            
+            // Read file as ArrayBuffer
+            const arrayBuffer = await videoFile.arrayBuffer();
+            extractProgress.value = 30;
+            
+            if (isCancelled) return;
+            
+            // Create audio context and decode
+            audioContext = new AudioContext();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            extractProgress.value = 60;
+            
+            if (isCancelled) return;
+            
+            const duration = audioBuffer.duration;
+            
+            // Check duration
+            if (duration > 30) {
+                if (audioContext) audioContext.close();
+                isExtractingAudio.value = false;
+                extractProgress.value = 0;
+                cancelExtract.value = null;
+                reject(new Error('Video quá dài! Chỉ chấp nhận video ≤ 30 giây.'));
+                return;
+            }
+            
+            extractProgress.value = 70;
+            
+            // Create offline context to render audio
+            const offlineContext = new OfflineAudioContext(
+                audioBuffer.numberOfChannels,
+                audioBuffer.length,
+                audioBuffer.sampleRate
+            );
+            
+            const source = offlineContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineContext.destination);
+            source.start();
+            
+            extractProgress.value = 80;
+            
+            // Render audio
+            const renderedBuffer = await offlineContext.startRendering();
+            extractProgress.value = 90;
+            
+            if (isCancelled) return;
+            
+            // Convert to WAV format (most compatible)
+            const wavBlob = audioBufferToWav(renderedBuffer);
+            const audioFile = new File(
+                [wavBlob],
+                videoFile.name.replace(/\.[^.]+$/, '.wav'),
+                { type: 'audio/wav' }
+            );
+            
+            extractProgress.value = 100;
+            
+            if (audioContext) audioContext.close();
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            
+            resolve(audioFile);
+            
+        } catch (error) {
+            if (audioContext) audioContext.close();
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            
+            if (error instanceof Error && error.message === 'cancelled') {
+                reject(error);
+            } else {
+                reject(new Error('Không thể decode audio từ video. File có thể bị lỗi hoặc không có audio track.'));
+            }
+        }
+    });
+};
+
+// Convert AudioBuffer to WAV blob
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+    const length = buffer.length * buffer.numberOfChannels * 2 + 44;
+    const arrayBuffer = new ArrayBuffer(length);
+    const view = new DataView(arrayBuffer);
+    const channels: Float32Array[] = [];
+    let offset = 0;
+    let pos = 0;
+    
+    // Write WAV header
+    const setUint16 = (data: number) => {
+        view.setUint16(pos, data, true);
+        pos += 2;
+    };
+    const setUint32 = (data: number) => {
+        view.setUint32(pos, data, true);
+        pos += 4;
+    };
+    
+    // "RIFF" chunk descriptor
+    setUint32(0x46464952);
+    setUint32(length - 8);
+    setUint32(0x45564157);
+    
+    // "fmt " sub-chunk
+    setUint32(0x20746d66);
+    setUint32(16);
+    setUint16(1);
+    setUint16(buffer.numberOfChannels);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * buffer.numberOfChannels);
+    setUint16(buffer.numberOfChannels * 2);
+    setUint16(16);
+    
+    // "data" sub-chunk
+    setUint32(0x61746164);
+    setUint32(length - pos - 4);
+    
+    // Write interleaved data
+    for (let i = 0; i < buffer.numberOfChannels; i++) {
+        channels.push(buffer.getChannelData(i));
+    }
+    
+    while (pos < length) {
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+            let sample = Math.max(-1, Math.min(1, channels[i]![offset]!));
+            sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            view.setInt16(pos, sample, true);
+            pos += 2;
+        }
+        offset++;
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
 // Increment template creation counter in Firestore
 const incrementTemplateStats = async (templateName: string, topic: string) => {
     try {
@@ -274,17 +502,12 @@ const incrementTemplateStats = async (templateName: string, topic: string) => {
         
         // Update the specific template count field
         await setDoc(topicDocRef, {
-            [templateName]: increment(1)
+                    [templateName]: increment(1)
         }, { merge: true });
-        
-        console.log(`✅ Template stats updated: ${topic}/${templateName}`);
     } catch (err) {
-        console.error('❌ Failed to increment template stats:', err);
         // Non-blocking error - don't interrupt user flow
     }
-};
-
-const validate = () => {
+};const validate = () => {
     const validContents = content.value.filter(c => c.trim());
     
     if (constraints.value.maxContent !== Infinity && validContents.length < constraints.value.maxContent) {
@@ -391,6 +614,7 @@ const handleSubmit = async () => {
                         body: JSON.stringify({ urls: deletedUrls.value }),
                     });
                 } catch (_err) {
+                    // Silent fail
                 }
             }
             
@@ -424,7 +648,7 @@ const handleSubmit = async () => {
                                 return;
                             }
                         } catch (err) {
-                            console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
+                            // Silent fail
                         }
                         const templateName = route.query.template as string || 'demo';
                         const topic = route.query.topic as string || '';
@@ -442,15 +666,12 @@ const handleSubmit = async () => {
                                 isNavigating.value = false;
                                 return;
                             }
-                            const txt = await res.text();
-                            console.warn('Failed to register ecard:', txt);
+                                await res.text();
                         }
                     }
                 } catch (err) {
-                    console.warn('Failed to register ecard with backend or send email', err);
-                }
-                
-                
+                    // Silent fail
+                }                
                 try { await waitUntilProgressComplete(4000); } catch (_e) {}
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
@@ -459,7 +680,7 @@ const handleSubmit = async () => {
                 try {
                     await incrementTemplateStats(templateName, topic);
                 } catch (err) {
-                    console.warn('Failed to increment template stats:', err);
+                    // Silent fail
                 }
                 
                 await router.push({
@@ -474,7 +695,6 @@ const handleSubmit = async () => {
 
         previewStore.clear();
     } catch (error) {
-        console.error("Lỗi:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại.");
         loading.value = false;
         isNavigating.value = false;
@@ -541,8 +761,7 @@ onMounted(async () => {
                 }
             }
         } catch (_err) {
-            
-            console.warn('Failed to load template config', _err);
+            // Silent fail
         }
         finally { isLoadingTemplate.value = false }
 
@@ -561,8 +780,7 @@ onMounted(async () => {
                     return;
                 }
             } catch (err) {
-                console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
-                
+                // Silent fail
             }
         }
     } else if (urlParamId && !queryDocId) {
@@ -595,7 +813,7 @@ onMounted(async () => {
                 }
             }
         } catch (err) {
-            console.warn('Failed to load template config', err);
+            // Silent fail
         }
     try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
         const emailToCheck = (route.query.email as string) || userEmail.value;
@@ -608,7 +826,7 @@ onMounted(async () => {
                     return;
                 }
             } catch (err) {
-                console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
+                // Silent fail
             }
         }
     });
@@ -710,6 +928,48 @@ onUnmounted(() => {
     <div class="input-container">
         <div class="input-window">
             <div v-if="isLoadingTemplate" class="loading-overlay"><div class="spinner"></div></div>
+            
+            <!-- Audio extraction progress overlay -->
+            <div v-if="isExtractingAudio" class="loading-overlay">
+                <div class="window-border" style="width: 90%; max-width: 500px;">
+                    <div class="window">
+                        <div class="title-bar">
+                            <div class="icon"></div>
+                            <span class="font-semibold text-sm">🎬 Đang trích xuất audio...</span>
+                            <div class="title-bar-buttons"></div>
+                        </div>
+                        <div class="text-area">
+                            <div class="input-content flex flex-col items-center justify-center p-8">
+                                <div class="mb-4 text-sm text-gray-700">Vui lòng đợi trong giây lát...</div>
+                                <div class="w-full">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-gray-700">Tiến trình</span>
+                                        <span class="text-sm font-medium text-gray-700">{{ extractProgress }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div 
+                                            class="progress-fill"
+                                            :style="{ width: extractProgress + '%' }"
+                                        >
+                                            <span v-if="extractProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ extractProgress }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-500">
+                                    💡 Đang chuyển đổi video sang audio...
+                                </div>
+                                <button 
+                                    @click="() => cancelExtract && cancelExtract()"
+                                    class="mt-4 win2k-button bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                                >
+                                    ❌ Hủy bỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="window-border">
                 <div class="window input-form" v-if="!loading && !isNavigating">
                     <div class="title-bar">
@@ -850,7 +1110,7 @@ onUnmounted(() => {
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
                                         multiple 
-                                        :accept="media.key === 'audio' ? 'audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac' : `${media.key}/*`" 
+                                        :accept="media.key === 'audio' ? 'audio/*,video/*' : `${media.key}/*`" 
                                         @change="handleMedia($event, media.key)" 
                                         class="hidden" 
                                         :disabled="!canAdd[media.key]" 
