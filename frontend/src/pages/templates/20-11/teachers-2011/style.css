@@ -1,0 +1,512 @@
+/* ============= RESET CƠ BẢN ============= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ============= NỀN CHUNG ============= */
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fbd1b7, #f8afa6);
+    padding: 20px;
+    overflow: hidden;
+}
+
+
+/* layout từng màn (Step) */
+
+.screen {
+    display: none;
+    width: 100%;
+    max-width: 430px;
+    animation: fadeIn 0.8s ease;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* ============= STEP 1 – PASSWORD CARD ============= */
+
+.card {
+    background: #ffffff;
+    border: 3px solid #f96f6f;
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(249, 111, 111, 0.35);
+}
+
+.cat-img {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 20px auto;
+    display: block;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+
+/* shake khi sai pass */
+
+.card.shake {
+    animation: shake 0.4s;
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+.password-input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid #f8afa6;
+    font-size: 16px;
+    margin-bottom: 10px;
+    outline: none;
+}
+
+.password-input:focus {
+    border-color: #f96f6f;
+    box-shadow: 0 0 10px rgba(249, 111, 111, 0.25);
+}
+
+.error-message {
+    height: 20px;
+    font-size: 14px;
+    color: #ff4f4f;
+    margin-bottom: 10px;
+}
+
+
+/* nút dùng chung */
+
+.btn {
+    background: linear-gradient(135deg, #f96f6f, #f8afa6);
+    border: none;
+    padding: 14px 40px;
+    border-radius: 40px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(249, 111, 111, 0.4);
+}
+
+
+/* ============= STEP 2 – BÁNH KEM ============= */
+
+.cake-container {
+    text-align: center;
+    position: relative;
+}
+
+.cake-img {
+    width: 300px;
+    max-width: 100%;
+    display: block;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(249, 111, 111, 0.35);
+}
+
+.title-2011 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #f96f6f;
+    animation: flyUp 2s ease-out infinite;
+    text-shadow: 0 4px 12px rgba(249, 111, 111, 0.4);
+}
+
+@keyframes flyUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(-12px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+}
+
+
+/* pháo hoa */
+
+.firework {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: explode 1.4s ease-out forwards;
+}
+
+@keyframes explode {
+    0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(1);
+        opacity: 0;
+    }
+}
+
+
+/* ============= STEP 3 – PHONG BÌ + THƯ ============= */
+
+.envelope-stage {
+    width: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+
+/* Lớp tim bay (overlay trên toàn card) */
+
+.heart-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+
+/* ========== CARD PHONG BÌ (khung lớn pastel) ========== */
+
+.envelope-card {
+    position: relative;
+    width: 100%;
+    padding: 26px 20px 26px;
+    border-radius: 32px;
+    background: linear-gradient(180deg, #ffe9f3 0%, #ffd8d1 50%, #ffc6bd 100%);
+    box-shadow: 0 24px 60px rgba(249, 111, 111, 0.38);
+    overflow: visible;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+
+/* khi mở thư: phong bì hơi nhỏ và mờ để thư nổi bật */
+
+.envelope-card--open {
+    transform: translateY(2px) scale(0.97);
+    box-shadow: 0 18px 40px rgba(249, 111, 111, 0.25);
+}
+
+
+/* tim 4 góc */
+
+.corner-heart {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.9);
+    transform: rotate(45deg);
+}
+
+.corner-heart::before,
+.corner-heart::after {
+    content: "";
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background: inherit;
+    border-radius: 50%;
+}
+
+.corner-heart::before {
+    left: -13px;
+}
+
+.corner-heart::after {
+    top: -13px;
+}
+
+.corner-heart--tl {
+    top: 10px;
+    left: 10px;
+}
+
+.corner-heart--tr {
+    top: 10px;
+    right: 10px;
+}
+
+.corner-heart--bl {
+    bottom: 10px;
+    left: 10px;
+}
+
+.corner-heart--br {
+    bottom: 10px;
+    right: 10px;
+}
+
+
+/* vùng trống trên card – để thư trắng trượt lên */
+
+.envelope-empty-space {
+    height: 170px;
+}
+
+
+/* ========== HÌNH PHONG BÌ 4 TAM GIÁC ========== */
+
+
+/* ========== HÌNH PHONG BÌ 4 TAM GIÁC ========== */
+
+.envelope-shape {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    aspect-ratio: 4 / 3;
+    perspective: 900px;
+    transform-style: preserve-3d;
+}
+
+
+/* base cho từng mảng tam giác */
+
+.env-part {
+    position: absolute;
+    inset: 0;
+}
+
+
+/* NẮP TRÊN – hồng rose pastel, có highlight nhẹ */
+
+.env-top {
+    background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.8), transparent 60%), linear-gradient(180deg, #ff8fb3 0%, #ff6a9a 55%, #f2487f 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 50%);
+    transform-origin: 50% 0%;
+    transform: rotateX(0deg);
+    z-index: 3;
+    transition: transform 0.7s ease-in-out;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    backface-visibility: hidden;
+}
+
+
+/* mở thư: nắp lật lên */
+
+.env-top--open {
+    transform: rotateX(-180deg);
+}
+
+
+/* THÂN DƯỚI – cam pastel (như giấy kraft nhẹ) */
+
+.env-bottom {
+    background: linear-gradient(180deg, #ffe0b5 0%, #ffc583 55%, #ffad62 100%);
+    clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+    z-index: 1;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.12);
+}
+
+
+/* CÁNH TRÁI – hồng đào nhẹ */
+
+.env-left {
+    background: linear-gradient(180deg, #ffd2e0 0%, #ff9fc0 55%, #ff7ca7 100%);
+    clip-path: polygon(0 0, 50% 50%, 0 100%);
+    z-index: 2;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.12);
+}
+
+
+/* CÁNH PHẢI – hồng đào nhẹ */
+
+.env-right {
+    background: linear-gradient(180deg, #ffd2e0 0%, #ff9fc0 55%, #ff7ca7 100%);
+    clip-path: polygon(100% 0, 100% 100%, 50% 50%);
+    z-index: 2;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.12);
+}
+
+
+/* Icon ở giữa phong bì (con tem / dấu sáp) */
+
+.envelope-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 20%, #e58383, #ffe6ef 60%, #ffb5c9 100%);
+    box-shadow: 0 6px 14px rgba(255, 120, 150, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #ff3b6d;
+    z-index: 4;
+}
+
+
+/* ========== NÚT MỞ/ĐÓNG THƯ DƯỚI CÙNG ========== */
+
+.btn-pill {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 13px 20px;
+    margin-top: 14px;
+    font-weight: 600;
+    font-size: 16px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff7f88, #ff9aa0);
+    box-shadow: 0 12px 30px rgba(249, 111, 111, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ========== LÁ THƯ TRẮNG TRƯỢT RA TRÊN NỀN ========== */
+
+
+/* ========== LÁ THƯ TRẮNG TRƯỢT RA CHẬM & ĐẸP ========== */
+
+.letter-panel {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 90%;
+    max-width: 360px;
+    /* bắt đầu khá thấp trong phong bì */
+    transform: translate(-50%, 150px) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+    /* CHẬM HƠN 0.95s + easing mềm */
+    transition: opacity 0.95s ease-out, transform 0.95s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.letter-panel--open {
+    opacity: 1;
+    /* lên nhẹ nhàng hơn, không bật quá mạnh */
+    transform: translate(-50%, -12px) scale(1);
+    pointer-events: auto;
+}
+
+.letter-inner {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 22px 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+
+.letter-title {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #ff777f;
+    font-weight: 700;
+}
+
+.letter-sep {
+    width: 60%;
+    height: 2px;
+    margin: 0 auto 14px auto;
+    background: linear-gradient(90deg, #ff777f, #ffc0c4);
+    border-radius: 999px;
+}
+
+.letter-text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #555;
+    margin-bottom: 18px;
+}
+
+.letter-sign {
+    text-align: right;
+    font-style: italic;
+    color: #666;
+}
+
+
+/* ========== TIM BAY 1 ĐỢT KHI MỞ THƯ ========== */
+
+.floating-heart {
+    position: absolute;
+    top: 65%;
+    width: 20px;
+    height: 20px;
+    background: #ff8a94;
+    transform: rotate(45deg);
+    animation: floatHeart 3s ease-out forwards;
+    opacity: 0;
+}
+
+.floating-heart::before,
+.floating-heart::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: inherit;
+    border-radius: 50%;
+}
+
+.floating-heart::before {
+    left: -10px;
+}
+
+.floating-heart::after {
+    top: -10px;
+}
+
+@keyframes floatHeart {
+    0% {
+        transform: translateY(0) rotate(45deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-180px) scale(1.4) rotate(45deg);
+        opacity: 0;
+    }
+}
