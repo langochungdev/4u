@@ -1,0 +1,30 @@
+name: Auto Merge dev to main after Vercel Preview success
+
+on:
+  deployment_status:
+
+jobs:
+  merge-dev:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment == 'Preview' &&
+      github.event.deployment_status.deployment.ref == 'dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge dev into main
+        run: |
+          git fetch origin
+          git checkout main
+          git merge --no-ff origin/dev -m "chore: auto merge dev to main after successful Vercel preview"
+          git push origin main

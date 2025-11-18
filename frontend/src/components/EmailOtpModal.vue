@@ -2,9 +2,9 @@
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div class="bg-white rounded-lg p-5 w-full max-w-md">
             <div v-if="step === 'email'">
-                <label class="block text-sm text-muted-foreground mb-2">Email</label>
-                <input v-model="emailInput" type="email" class="w-full p-2 border rounded mb-4"
-                    placeholder="nhập email của bạn" />
+        <label class="block text-sm text-muted-foreground mb-2">Email</label>
+        <input v-model="emailInput" type="email" class="w-full p-2 border rounded mb-4"
+          placeholder="nhập email của bạn" @keydown.enter.prevent="sendOtp" />
                 <div class="flex justify-center gap-2">
                     <button @click="onClose" class="win2k-button">Đóng</button>
                     <button :disabled="loading || !validEmail" @click="sendOtp" class="win2k-button">
@@ -32,6 +32,7 @@
             @keydown="handleKeyDown(index - 1, $event)"
             @input="handleOtpInput(index - 1, $event)"
             @paste="handlePaste($event)"
+            @keydown.enter.prevent="verifyOtp"
             type="tel"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -166,6 +167,11 @@ async function verifyOtp() {
   error.value = ''
   verifying.value = true
     try {
+      // require 4 digits to verify (guard if invoked by Enter prematurely)
+      if (otpDigits.value.filter(d => d).length < 4) {
+        verifying.value = false
+        return
+      }
       if (OTP_BYPASS) {
         message.value = 'Xác thực thành công (dev bypass).'
         emit('verified', emailInput.value)
