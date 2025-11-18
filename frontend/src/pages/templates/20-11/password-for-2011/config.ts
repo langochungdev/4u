@@ -2,7 +2,7 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'Mật Mã Tri Ân 20/11',
+    title: 'password-for-2011 - Mật Mã Tri Ân 20/11',
     description: 'Nhập mật mã "2011"',
     createdBy: 'DuongDinhTrac',
     maxImages: 5,
