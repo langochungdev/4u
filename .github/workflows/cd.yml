@@ -8,7 +8,17 @@ permissions:
   pull-requests: write
 
 jobs:
+  debug-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Event
+        run: |
+          echo "State: ${{ github.event.deployment_status.state }}"
+          echo "Environment: ${{ github.event.deployment_status.environment }}"
+          echo "Action: ${{ github.event.action }}"
+          
   merge-dev:
+    needs: debug-event
     if: |
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment == 'Preview'
