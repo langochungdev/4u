@@ -3,7 +3,7 @@ import demo from './demo.png';
 
 const config: TemplateConfig = {
     title: 'Birthday-2011',
-    description: 'Thư mừng sinh nhật phong cách năm 20-11',
+    description: 'Thư mừng Pass 2011',
     createdBy: 'tranminhkhadev',
     maxImages: 0,
     maxVideos: 0,
