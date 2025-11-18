@@ -7,8 +7,8 @@ jobs:
   merge-dev:
     if: |
       github.event.deployment_status.state == 'success' &&
-      github.event.deployment_status.environment == 'Preview' &&
-      github.event.deployment_status.deployment.ref == 'dev'
+      startsWith(github.event.deployment_status.environment, 'Preview') &&
+      github.event.deployment.ref == 'dev'
     runs-on: ubuntu-latest
 
     steps:
