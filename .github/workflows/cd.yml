@@ -5,39 +5,31 @@ on:
 
 jobs:
   merge-dev:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment == 'Preview'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug Event
-        run: |
-          echo "=== Full Event Context ==="
-          echo '${{ toJSON(github.event) }}'
-          echo ""
-          echo "=== Deployment Status ==="
-          echo "State: ${{ github.event.deployment_status.state }}"
-          echo "Environment: ${{ github.event.deployment_status.environment }}"
-          echo ""
-          echo "=== Deployment Info ==="
-          echo "Ref: ${{ github.event.deployment.ref }}"
-          echo "Task: ${{ github.event.deployment.task }}"
-          echo "Environment: ${{ github.event.deployment.environment }}"
-          
-      - name: Check if should merge
-        id: check
-        run: |
-          if [[ "${{ github.event.deployment_status.state }}" == "success" ]] && \
-             [[ "${{ github.event.deployment_status.environment }}" == *"Preview"* ]] && \
-             [[ "${{ github.event.deployment.ref }}" == "dev" ]]; then
-            echo "should_merge=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_merge=false" >> $GITHUB_OUTPUT
-          fi
-          
       - uses: actions/checkout@v4
-        if: steps.check.outputs.should_merge == 'true'
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check if deployment is from dev branch
+        id: check
+        run: |
+          COMMIT_SHA="${{ github.event.deployment.sha }}"
+          
+          # Kiểm tra commit này có thuộc branch dev không
+          if git branch -r --contains "$COMMIT_SHA" | grep -q "origin/dev"; then
+            echo "Commit $COMMIT_SHA belongs to dev branch"
+            echo "should_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "Commit $COMMIT_SHA does not belong to dev branch"
+            echo "should_merge=false" >> $GITHUB_OUTPUT
+          fi
+
 
       - name: Configure Git
         if: steps.check.outputs.should_merge == 'true'
