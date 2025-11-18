@@ -10,6 +10,8 @@ import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
+import { db } from "@/config/firebase";
+import { doc, setDoc, increment } from "firebase/firestore";
 
 const route = useRoute();
 const router = useRouter();
@@ -264,6 +266,24 @@ const handleAudioTrimCancel = () => {
     currentAudioIndex.value = -1
 }
 
+// Increment template creation counter in Firestore
+const incrementTemplateStats = async (templateName: string, topic: string) => {
+    try {
+        // Structure: 4U/develop/template/{topic} with field {templateName}: count
+        const topicDocRef = doc(db, '4U', 'develop', 'template', topic || 'default');
+        
+        // Update the specific template count field
+        await setDoc(topicDocRef, {
+            [templateName]: increment(1)
+        }, { merge: true });
+        
+        console.log(`✅ Template stats updated: ${topic}/${templateName}`);
+    } catch (err) {
+        console.error('❌ Failed to increment template stats:', err);
+        // Non-blocking error - don't interrupt user flow
+    }
+};
+
 const validate = () => {
     const validContents = content.value.filter(c => c.trim());
     
@@ -434,6 +454,13 @@ const handleSubmit = async () => {
                 try { await waitUntilProgressComplete(4000); } catch (_e) {}
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
+                
+                // Increment template creation counter
+                try {
+                    await incrementTemplateStats(templateName, topic);
+                } catch (err) {
+                    console.warn('Failed to increment template stats:', err);
+                }
                 
                 await router.push({
                     name: 'Result',

@@ -2,7 +2,7 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.png";
 
 const config: TemplateConfig = {
-  title: "Thiệp gửi lời chúc",
+  title: "rose-and-letter - Thiệp gửi lời chúc",
   description: "Template thiệp chúc mừng cho 20/11.",
   createdBy: "TAN",
 

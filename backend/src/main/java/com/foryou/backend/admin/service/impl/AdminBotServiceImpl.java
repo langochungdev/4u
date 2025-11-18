@@ -4,6 +4,7 @@ import com.foryou.backend.admin.config.AdminBotConfig;
 import com.foryou.backend.admin.dto.TelegramMessageDto;
 import com.foryou.backend.admin.dto.TelegramUpdateDto;
 import com.foryou.backend.admin.service.AdminBotService;
+import com.foryou.backend.template.service.TemplateStatsService;
 import com.foryou.backend.util.CloudinaryService;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.FieldValue;
@@ -31,10 +32,12 @@ public class AdminBotServiceImpl implements AdminBotService {
     private final AdminBotConfig config;
     private final RestTemplate restTemplate;
     private final CloudinaryService cloudinaryService;
+    private final TemplateStatsService templateStatsService;
     
-    public AdminBotServiceImpl(AdminBotConfig config, CloudinaryService cloudinaryService) {
+    public AdminBotServiceImpl(AdminBotConfig config, CloudinaryService cloudinaryService, TemplateStatsService templateStatsService) {
         this.config = config;
         this.cloudinaryService = cloudinaryService;
+        this.templateStatsService = templateStatsService;
         this.restTemplate = new RestTemplate();
     }
     
@@ -48,7 +51,7 @@ public class AdminBotServiceImpl implements AdminBotService {
         Long chatId = update.getMessage().getChat().getId();
         
         if (!config.isSupportedCommand(command)) {
-            sendMessage(chatId, "❌ Command không hợp lệ. Các command hỗ trợ: /thongke, /cleanexpired");
+            sendMessage(chatId, "❌ Command không hợp lệ. Các command hỗ trợ: /thongke, /cleanexpired, /created");
             return;
         }
         
@@ -60,12 +63,25 @@ public class AdminBotServiceImpl implements AdminBotService {
                 case "/cleanexpired":
                     handleCleanExpiredCommand(chatId);
                     break;
+                case "/created":
+                    handleTemplateStatsCommand(chatId);
+                    break;
                 default:
                     sendMessage(chatId, "❌ Command chưa được implement.");
             }
         } catch (Exception e) {
             log.error("Error processing command: {}", command, e);
             sendMessage(chatId, "❌ Đã xảy ra lỗi khi xử lý command.");
+        }
+    }
+    
+    private void handleTemplateStatsCommand(Long chatId) {
+        try {
+            String stats = templateStatsService.getFormattedStats();
+            sendMessage(chatId, stats);
+        } catch (Exception e) {
+            log.error("Error getting template stats", e);
+            sendMessage(chatId, "❌ Lỗi khi lấy thống kê template: " + e.getMessage());
         }
     }
     

@@ -2,7 +2,7 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'Sách tri lưu giữ kỷ niệm 20-11 ',
+    title: 'notebook-for-2011 - Sách tri lưu giữ kỷ niệm 20-11',
     description: 'Hãy để lại những lời chúc ý nghĩa và hình ảnh đẹp nhất dành tặng thầy cô nhân ngày Nhà Giáo Việt Nam 20-11 với mẫu sổ tay tri ân này!',
     createdBy: 'DuongDinhTrac',
     maxImages: 5,

@@ -69,15 +69,43 @@ export async function loadSectionCards(
   }
   
   if (templatesConfig) {
+    // Lấy thứ tự khai báo từ keys của templatesConfig
+    const configKeys = Object.keys(templatesConfig);
+    const declarationOrderMap = new Map<string, number>();
+    configKeys.forEach((key, index) => {
+      declarationOrderMap.set(key, index);
+    });
+
     return cards
       .filter(card => {
         const templateConfig = templatesConfig[card.id];
         return templateConfig ? templateConfig.visible : true;
       })
       .sort((a, b) => {
-        const orderA = templatesConfig[a.id]?.order ?? 999;
-        const orderB = templatesConfig[b.id]?.order ?? 999;
-        return orderA - orderB;
+        // Ưu tiên sử dụng order nếu có khai báo (backward compatible)
+        const orderA = templatesConfig[a.id]?.order;
+        const orderB = templatesConfig[b.id]?.order;
+        
+        // Nếu cả 2 đều có order, so sánh theo order
+        if (orderA !== undefined && orderB !== undefined) {
+          return orderA - orderB;
+        }
+        
+        // Nếu chỉ a có order, a lên trước
+        if (orderA !== undefined) return -1;
+        // Nếu chỉ b có order, b lên trước
+        if (orderB !== undefined) return 1;
+        
+        // Nếu cả 2 đều không có order, dùng thứ tự khai báo trong config object
+        const declOrderA = declarationOrderMap.get(a.id) ?? 999;
+        const declOrderB = declarationOrderMap.get(b.id) ?? 999;
+        
+        if (declOrderA !== declOrderB) {
+          return declOrderA - declOrderB;
+        }
+        
+        // Tie-breaker cuối cùng: sắp xếp theo id để đảm bảo tính ổn định
+        return a.id.localeCompare(b.id);
       });
   }
   
