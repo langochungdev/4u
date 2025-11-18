@@ -1,0 +1,61 @@
+name: Auto Merge dev to main after Vercel Preview success
+
+on:
+  deployment_status:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  debug-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Event
+        run: |
+          echo "State: ${{ github.event.deployment_status.state }}"
+          echo "Environment: ${{ github.event.deployment_status.environment }}"
+          echo "Action: ${{ github.event.action }}"
+          
+  merge-dev:
+    needs: debug-event
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment == 'Preview'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          
+      - name: Check if deployment is from dev branch
+        id: check
+        run: |
+          COMMIT_SHA="${{ github.event.deployment.sha }}"
+          
+          # Kiểm tra commit này có thuộc branch dev không
+          if git branch -r --contains "$COMMIT_SHA" | grep -q "origin/dev"; then
+            echo "Commit $COMMIT_SHA belongs to dev branch"
+            echo "should_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "Commit $COMMIT_SHA does not belong to dev branch"
+            echo "should_merge=false" >> $GITHUB_OUTPUT
+          fi
+
+
+      - name: Configure Git
+        if: steps.check.outputs.should_merge == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge dev into main
+        if: steps.check.outputs.should_merge == 'true'
+        run: |
+          git fetch origin
+          git checkout main
+          git merge --no-ff origin/dev -m "chore: auto merge dev to main after successful Vercel preview"
+          git push origin main

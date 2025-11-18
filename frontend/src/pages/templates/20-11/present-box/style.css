@@ -403,6 +403,22 @@
     width: 40px;
     height: 40px;
   }
+
+  .teacher-gif-corner {
+    width: 100px;
+    height: 87px;
+    top: 15px;
+    left: 15px;
+  }
+
+  .fly-gif-card-background {
+    height: 30vh;
+    bottom: 10px;
+  }
+
+  .gif-overlay.show {
+    opacity: 0.6;
+  }
 }
 
 .gif-overlay {

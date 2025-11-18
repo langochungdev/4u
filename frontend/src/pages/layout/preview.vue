@@ -1,8 +1,8 @@
 <template>
     <!-- Fullscreen Trigger Overlay - Click anywhere to enter fullscreen (first time only) -->
-    <!-- Only show when NOT in preview mode -->
+    <!-- Only show when NOT in preview mode AND NOT on iOS -->
     <div 
-        v-if="showFullscreenOverlay && !isPreviewMode" 
+        v-if="showFullscreenOverlay && !isPreviewMode && !isIOS" 
         @click="handleFirstClick"
         class="fixed inset-0 z-50 cursor-pointer bg-transparent"
         title="Click để xem toàn màn hình"
@@ -63,7 +63,7 @@
         <div v-if="showBackButton && isPreviewMode" class="fixed bottom-6 right-6 z-50">
             <button 
                 @click="handleBackButton"
-                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg shadow-lg transition-colors flex items-center gap-2"
+                class="win2k-button flex items-center gap-2"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -91,6 +91,10 @@ const countdown24h = ref<string>('');
 const countdownInterval = ref<number | null>(null);
 const showFullscreenOverlay = ref<boolean>(true);
 const hasRequestedFullscreen = ref<boolean>(false);
+
+// Detect iOS devices
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 const isPreviewMode = computed(() => route.query.preview === 'true');
 const showBackButton = computed(() => route.meta.showBackButton === true);
@@ -181,7 +185,46 @@ const handleFirstClick = async () => {
     await requestFullscreen();
 };
 
+// Helper to set status bar color
+const setStatusBarColor = (color: string, appleStyle: string = 'black-translucent') => {
+    // Set theme-color for Android/Chrome
+    let themeColorMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+    if (!themeColorMeta) {
+        themeColorMeta = document.createElement('meta');
+        themeColorMeta.name = 'theme-color';
+        document.head.appendChild(themeColorMeta);
+    }
+    themeColorMeta.content = color;
+    
+    // Set apple-mobile-web-app-status-bar-style for iOS
+    let appleStatusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]') as HTMLMetaElement;
+    if (!appleStatusMeta) {
+        appleStatusMeta = document.createElement('meta');
+        appleStatusMeta.name = 'apple-mobile-web-app-status-bar-style';
+        document.head.appendChild(appleStatusMeta);
+    }
+    appleStatusMeta.content = appleStyle;
+    
+    // Ensure apple-mobile-web-app-capable is set
+    let appleCapableMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement;
+    if (!appleCapableMeta) {
+        appleCapableMeta = document.createElement('meta');
+        appleCapableMeta.name = 'apple-mobile-web-app-capable';
+        document.head.appendChild(appleCapableMeta);
+    }
+    appleCapableMeta.content = 'yes';
+};
+
 onMounted(async () => {
+    // Set status bar to black for preview layout
+    setStatusBarColor('#000000', 'black-translucent');
+    
+    // Hide fullscreen overlay immediately on iOS (Safari doesn't support fullscreen)
+    if (isIOS) {
+        showFullscreenOverlay.value = false;
+        hasRequestedFullscreen.value = true;
+    }
+    
     // Only check expiration if we have an ID in params and NOT in preview mode
     const id = route.params.id as string;
     
@@ -205,6 +248,17 @@ const cleanup = () => {
     if (countdownInterval.value) {
         clearInterval(countdownInterval.value);
         countdownInterval.value = null;
+    }
+    
+    // Restore status bar color when leaving preview
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+    if (themeColorMeta) {
+        themeColorMeta.content = 'rgba(22,16,12,0)';
+    }
+    
+    const appleStatusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]') as HTMLMetaElement;
+    if (appleStatusMeta) {
+        appleStatusMeta.content = 'black-translucent';
     }
 };
 
@@ -269,5 +323,19 @@ const handleBackButton = async () => {
 .preview-layout {
     position: relative;
     min-height: 100vh;
+}
+
+.win2k-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 14px;
+    padding: 12px 24px;
+    cursor: pointer;
+    min-width: 120px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    transition: none; /* disable smooth transitions to make clicks immediate */
+    touch-action: manipulation; /* hint to browsers to avoid double-tap zoom */
+    -webkit-tap-highlight-color: transparent; /* remove highlight on tap for better UX */
 }
 </style>

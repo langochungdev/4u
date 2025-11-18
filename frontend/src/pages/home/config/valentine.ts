@@ -3,17 +3,15 @@ import { createSection, loadSectionData, type TemplateVisibilityConfig } from '.
 export const VALENTINE_SECTION = createSection({
   id: 'valentine',
   title: 'Valentine',
-  description: 'Thiệp tình yêu lãng mạn cho ngày Valentine'
+  description: 'Thiệp tình yêu lãng mạn cho ngày Valentine',
+  demoId: 'JunoH3uUS2RgQJUmTdU1'
 });
 
 export const VALENTINE_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-  'galaxy-love': { visible: true, order: 1 },
-  'love-more-v1': { visible: true, order: 2 },
-  'anniversary-love': { visible: true, order: 3 },
-  'love-more-v2': { visible: true, order: 4 },
+//   'galaxy-love': { visible: true, order: 1 },
 };
 
 
 export const loadValentineSection = async () => {
-  await loadSectionData(VALENTINE_SECTION, VALENTINE_TEMPLATES_CONFIG);
+  await loadSectionData(VALENTINE_SECTION, VALENTINE_TEMPLATES_CONFIG, VALENTINE_SECTION.demoId);
 };

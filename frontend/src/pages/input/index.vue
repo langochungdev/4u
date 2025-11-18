@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted } from "vue";
+import { ref, onMounted, computed, onUnmounted, watch } from "vue";
 import { MEDIA_LIMITS } from '@/config/app'
 import EmailOtpModal from '@/components/EmailOtpModal.vue'
 import AudioTrimmer from '@/components/AudioTrimmer.vue'
-// Firestore reads are handled inside fetchActiveEcards composable
 import { canCreate, ECARD_LIMIT } from '@/composables/useEcards'
 import { getCookie, setCookie } from '@/utils/cookies'
 import { useRoute, useRouter } from "vue-router";
@@ -11,12 +10,30 @@ import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
-import "./css/style.css";
 
 const route = useRoute();
 const router = useRouter();
 const { content, loading, submit, imageManager, videoManager, audioManager, fetchContext, update, addContentItem, removeContentItem, updateContentItem } = useContext();
 const { upload, totalProgress, prepareUpload } = useCloudinary();
+
+function waitUntilProgressComplete(timeoutMs = 5000) {
+    return new Promise<void>((resolve) => {
+        if (totalProgress.value >= 100) {
+            resolve();
+            return;
+        }
+        const stop = watch(totalProgress, (v) => {
+            if (v >= 100) {
+                try { stop(); } catch (_e) {}
+                resolve();
+            }
+        });
+        setTimeout(() => {
+            try { stop(); } catch (_e) {}
+            resolve();
+        }, timeoutMs);
+    });
+}
 const previewStore = usePreviewStore();
 
 const managers = { image: imageManager, video: videoManager, audio: audioManager };
@@ -34,6 +51,8 @@ const showAudioTrimmer = ref(false)
 const currentAudioFile = ref<File | null>(null)
 const currentAudioIndex = ref<number>(-1)
 const trimmedAudioIndexes = ref<Set<number>>(new Set())
+const isLoadingTemplate = ref(false)
+const isNavigating = ref(false)
 
 function handleVerifiedEmail(email: string) {
     setCookie('email', email)
@@ -54,8 +73,41 @@ const constraints = ref({
     contentPlaceholders: [] as string[],
     template: 'default'
 });
+let stopWatchRef: (() => void) | undefined;
+const prefetchedTemplates = new Set<string>();
+const templateModules = import.meta.glob('@/pages/templates/*/*/index.vue') as Record<string, () => Promise<any>>;
 
-// limit value is available via ECARD_LIMIT imported from the composable
+async function prefetchTemplateShell(topic?: string, templateName?: string) {
+    const t = templateName || (constraints.value.template || '');
+    const top = topic || (route.query.topic as string) || '';
+    const key = top ? `${top}/${t}` : t;
+    if (!t) return false;
+    if (prefetchedTemplates.has(key)) return true;
+    try {
+        if (top) {
+        for (const p in templateModules) {
+            if (p.includes(`${top}/${t}/index.vue`)) {
+                const loader = templateModules[p];
+                if (typeof loader === 'function') await loader();
+                    prefetchedTemplates.add(key);
+                    return true;
+                }
+            }
+    }
+        for (const p in templateModules) {
+            if (p.includes(`/${t}/index.vue`)) {
+                const loader = templateModules[p];
+                if (typeof loader === 'function') await loader();
+                prefetchedTemplates.add(key);
+                return true;
+            }
+        }
+    try { await import(`@/pages/templates/${top}/${t}/index.vue`); prefetchedTemplates.add(key); return true } catch (_e) {}
+    } catch (_e) {
+    }
+    return false;
+}
+ 
 
 const calculateExpiryDate = (duration: '1day' | '1week' | '1month' | '6months'): Date => {
     const now = new Date();
@@ -96,6 +148,14 @@ const mediaTypes = computed(() => [
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
     { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
 ]);
+
+const filledContentCount = computed(() => content.value.filter(c => c.trim()).length);
+
+const getMaxForMedia = (mediaKey: 'image' | 'video' | 'audio') => {
+    if (mediaKey === 'image') return constraints.value.maxImages;
+    if (mediaKey === 'video') return constraints.value.maxVideos;
+    return constraints.value.maxAudios;
+}
 
 const updateCountdown = () => {
     if (!expiresAt.value) {
@@ -139,7 +199,7 @@ const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
     existingData.value[key].splice(index, 1);
 };
 
-// no client-side audio conversion; keep audio selection simple
+ 
 
 const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
     const input = e.target as HTMLInputElement;
@@ -162,20 +222,17 @@ const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
     }
     
     if (type === 'audio' && files.length > 0) {
-        // If selecting a single audio file, open trimmer to let user choose start/end.
         if (files.length === 1) {
             const file = files[0]!;
-            // ensure it's an audio file by MIME or extension
+            
             if (file.type && file.type.startsWith('audio/')) {
                 currentAudioFile.value = file;
                 currentAudioIndex.value = -1;
                 showAudioTrimmer.value = true;
             } else {
-                // Not an audio file — ignore and inform user
                 alert('Vui lòng chọn tệp audio hợp lệ.');
             }
         } else {
-            // Multiple files — add to audio manager directly
             managers.audio.addFiles(files);
         }
     } else {
@@ -222,6 +279,7 @@ const validate = () => {
     for (const type of ['image', 'video', 'audio'] as const) {
         const max = constraints.value[`max${type.charAt(0).toUpperCase() + type.slice(1)}s` as keyof typeof constraints.value] as number;
         const current = getCount(type);
+    if (type === 'audio') continue; // audio is optional
         if (max !== Infinity && current < max) {
             alert(`Vui lòng tải lên đủ ${max} ${labels[type]}. Hiện tại: ${current}/${max}`);
             return false;
@@ -237,7 +295,7 @@ const handlePreview = () => {
     const templateName = route.query.template as string || 'demo';
     const topic = route.query.topic as string || '';
     
-    // Filter out deleted URLs from existing data before preview
+    
     const filterDeletedUrls = (urls: string[] = []) => 
         urls.filter(url => !deletedUrls.value.includes(url));
     
@@ -252,10 +310,10 @@ const handlePreview = () => {
         template: templateName,
         topic: topic,
         editId: isEditMode.value ? currentId.value : undefined,
-        deletedUrls: isEditMode.value ? deletedUrls.value : undefined
+    deletedUrls: isEditMode.value ? deletedUrls.value : undefined,
     });
 
-    // Build path based on whether topic exists
+    
     const previewPath = topic ? `/${topic}/${templateName}` : `/${templateName}`;
     router.push({ path: previewPath, query: { preview: 'true' } });
 };
@@ -263,15 +321,15 @@ const handlePreview = () => {
 const handleSubmit = async () => {
     if (!validate()) return;
 
-    // Validation for edit mode
     if (isEditMode.value && (!currentId.value || currentId.value.trim() === '')) {
         alert('Có lỗi xảy ra: không tìm thấy ID. Vui lòng thử lại.');
         loading.value = false;
         return;
     }
 
-    // submit initiated
+    
     loading.value = true;
+    isNavigating.value = true;
     prepareUpload(imageManager.files.value.length + videoManager.files.value.length + audioManager.files.value.length);
 
     try {
@@ -281,11 +339,10 @@ const handleSubmit = async () => {
             audioManager.files.value.length ? upload(audioManager.files.value) : []
         ]);
 
-        // Calculate expiry date based on selected duration
-        const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
+    const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
 
-        if (isEditMode.value && currentId.value) {
-            // Filter out deleted URLs before updating
+            if (isEditMode.value && currentId.value) {
+            
             const filterDeletedUrls = (urls: string[] = []) => 
                 urls.filter(url => !deletedUrls.value.includes(url));
             
@@ -293,7 +350,7 @@ const handleSubmit = async () => {
             const finalVideos = [...filterDeletedUrls(existingData.value?.videos), ...videoUrls];
             const finalAudios = [...filterDeletedUrls(existingData.value?.audios), ...audioUrls];
             
-            // Update data prepared
+            
             
             await update(
                 currentId.value,
@@ -303,9 +360,9 @@ const handleSubmit = async () => {
                 deletedUrls.value,
                 calculatedExpiresAt
             );
-            // Update successful
             
-            // Delete media from Cloudinary after successful update
+            
+            
             if (deletedUrls.value.length > 0) {
                 try {
                     await fetch(`${import.meta.env.VITE_BACKEND_URL}media/delete`, {
@@ -314,33 +371,36 @@ const handleSubmit = async () => {
                         body: JSON.stringify({ urls: deletedUrls.value }),
                     });
                 } catch (_err) {
-                    // ignore delete failures
                 }
             }
             
             deletedUrls.value = [];
             
-            // Redirect to result page after update
+            
+            try { await waitUntilProgressComplete(4000); } catch (_e) {}
+            
             const templateName = route.query.template as string || 'demo';
             const topic = route.query.topic as string || '';
-            router.push({
+            await router.push({
                 name: 'Result',
                 params: { id: currentId.value },
                 query: { template: templateName, topic }
             });
+            
+            return;
         } else {
             const id = await submit(imageUrls, videoUrls, audioUrls, calculatedExpiresAt);
             if (id) {
-                // If user has verified email or cookie exists, notify backend to save ecard and send result URL
                 try {
                     const email = userEmail.value || getCookie('email');
                     if (email) {
-                        // Check existing ecard count for this user using shared helper
+                        
                         try {
                             const { allowed } = await canCreate(email, id);
                             if (!allowed) {
                                 alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
                                 loading.value = false;
+                                isNavigating.value = false;
                                 return;
                             }
                         } catch (err) {
@@ -359,6 +419,7 @@ const handleSubmit = async () => {
                                 const txt = await res.text();
                                 alert(txt || `Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
                                 loading.value = false;
+                                isNavigating.value = false;
                                 return;
                             }
                             const txt = await res.text();
@@ -369,14 +430,18 @@ const handleSubmit = async () => {
                     console.warn('Failed to register ecard with backend or send email', err);
                 }
                 
+                
+                try { await waitUntilProgressComplete(4000); } catch (_e) {}
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
-                // Redirect to result page after create
-                router.push({
+                
+                await router.push({
                     name: 'Result',
                     params: { id },
                     query: { template: templateName, topic }
                 });
+                
+                return;
             }
         }
 
@@ -384,8 +449,8 @@ const handleSubmit = async () => {
     } catch (error) {
         console.error("Lỗi:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại.");
-    } finally {
         loading.value = false;
+        isNavigating.value = false;
     }
 };
 
@@ -434,11 +499,43 @@ onMounted(async () => {
     
     if (route.query.template) {
         constraints.value.template = route.query.template as string;
+
         
-        if (constraints.value.contentPlaceholders.length === 0) {
+        try {
+            isLoadingTemplate.value = true;
             const config = await getTemplateConfig(constraints.value.template);
-            if (config?.contentPlaceholders) {
-                constraints.value.contentPlaceholders = config.contentPlaceholders;
+            if (config) {
+                constraints.value.maxImages = config.maxImages;
+                constraints.value.maxVideos = config.maxVideos;
+                constraints.value.maxAudios = config.maxAudios;
+                constraints.value.maxContent = config.maxContent;
+                if (config.contentPlaceholders) {
+                    constraints.value.contentPlaceholders = config.contentPlaceholders;
+                }
+            }
+        } catch (_err) {
+            
+            console.warn('Failed to load template config', _err);
+        }
+        finally { isLoadingTemplate.value = false }
+
+    try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
+
+        
+        const emailFromQuery = route.query.email as string | undefined;
+        const emailToCheck = emailFromQuery || userEmail.value;
+        if (emailToCheck) {
+            try {
+                const { allowed } = await canCreate(emailToCheck, constraints.value.template);
+                if (!allowed) {
+                    alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
+                    
+                    router.push({ name: 'Home' });
+                    return;
+                }
+            } catch (err) {
+                console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
+                
             }
         }
     } else if (urlParamId && !queryDocId) {
@@ -454,15 +551,49 @@ onMounted(async () => {
         content.value = Array(constraints.value.maxContent).fill("");
     }
 
+    
+    stopWatchRef = watch(() => route.query.template, async (newTemplate) => {
+        if (!newTemplate) return;
+        if (newTemplate === constraints.value.template) return;
+        constraints.value.template = newTemplate as string;
+        try {
+            const config = await getTemplateConfig(constraints.value.template);
+            if (config) {
+                constraints.value.maxImages = config.maxImages;
+                constraints.value.maxVideos = config.maxVideos;
+                constraints.value.maxAudios = config.maxAudios;
+                constraints.value.maxContent = config.maxContent;
+                if (config.contentPlaceholders) {
+                    constraints.value.contentPlaceholders = config.contentPlaceholders;
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to load template config', err);
+        }
+    try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
+        const emailToCheck = (route.query.email as string) || userEmail.value;
+        if (emailToCheck) {
+            try {
+                const { allowed } = await canCreate(emailToCheck, constraints.value.template);
+                if (!allowed) {
+                    alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
+                    router.push({ name: 'Home' });
+                    return;
+                }
+            } catch (err) {
+                console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
+            }
+        }
+    });
+
     const docId = route.params.id as string;
     if (docId) {
         isEditMode.value = true;
         currentId.value = docId;
         existingData.value = await fetchContext(docId);
         
-        // Load expiresAt if exists
         if (existingData.value?.expiresAt) {
-            // Convert Firestore Timestamp to Date
+            
             if (existingData.value.expiresAt.toDate) {
                 expiresAt.value = existingData.value.expiresAt.toDate();
             } else if (existingData.value.expiresAt instanceof Date) {
@@ -471,32 +602,29 @@ onMounted(async () => {
                 expiresAt.value = new Date(existingData.value.expiresAt);
             }
             
-            // Start countdown
             if (expiresAt.value) {
                 startCountdown();
             }
         }
     }
 
-    // Restore preview
+    
     if ((route.query.fromPreview === 'true' || route.query.confirmPreview === 'true') && previewStore.hasData) {
         content.value = [...previewStore.content];
         if (previewStore.imageFiles.length) imageManager.addFiles(previewStore.imageFiles);
         if (previewStore.videoFiles.length) videoManager.addFiles(previewStore.videoFiles);
         if (previewStore.audioFiles.length) audioManager.addFiles(previewStore.audioFiles);
         
-        // Restore edit mode data
+        
         if (previewStore.editId) {
             isEditMode.value = true;
             currentId.value = previewStore.editId;
             deletedUrls.value = previewStore.deletedUrls || [];
-            
-            // Fetch existing data if not already loaded
+
             if (!existingData.value && currentId.value) {
                 existingData.value = await fetchContext(currentId.value);
             }
-            
-            // Filter out deleted URLs from existingData
+
             if (existingData.value && deletedUrls.value.length > 0) {
                 existingData.value.images = existingData.value.images.filter((url: string) => !deletedUrls.value.includes(url));
                 if (existingData.value.videos) {
@@ -507,6 +635,8 @@ onMounted(async () => {
                 }
             }
         }
+
+    // bypassAudio removed - audio is optional by default
         
         const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.query.template);
         if (needRestore) {
@@ -535,6 +665,9 @@ onUnmounted(() => {
     if (countdownInterval.value) {
         clearInterval(countdownInterval.value);
     }
+    if (typeof stopWatchRef === 'function') {
+        try { stopWatchRef(); } catch (e) { }
+    }
 });
 </script>
 
@@ -549,22 +682,24 @@ onUnmounted(() => {
     />
     <div class="input-container">
         <div class="input-window">
+            <div v-if="isLoadingTemplate" class="loading-overlay"><div class="spinner"></div></div>
             <div class="window-border">
-                <div class="window input-form">
+                <div class="window input-form" v-if="!loading && !isNavigating">
                     <div class="title-bar">
                         <div class="icon"></div>
                         <span class="font-semibold text-sm">Template: {{ constraints.template }}</span>
                         <div class="title-bar-buttons"></div>
                     </div>
+                    
                     <div class="text-area">
                         <div class="input-content">
-                            <!-- Duration Selector -->
+                            
                             <div class="mb-4 p-4 bg-linear-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg shadow-sm">
                                 <label class="block text-sm font-semibold text-purple-800 mb-3">
                                     ⏰ Thời hạn duy trì form
                                 </label>
                                 
-                                <!-- Countdown display (only in edit mode) -->
+                                
                                 <div v-if="isEditMode && expiresAt" class="mb-3 p-3 bg-white border border-purple-300 rounded-md">
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm font-medium text-gray-700">Thời gian còn lại:</span>
@@ -580,7 +715,7 @@ onUnmounted(() => {
                                     </div>
                                 </div>
 
-                                <!-- Duration options -->
+                                
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <label 
                                         v-for="option in [
@@ -639,12 +774,12 @@ onUnmounted(() => {
                             </div>
 
                             <div class="space-y-4">
-                                <!-- Content -->
+                                
                                 <div>
                                     <div class="flex justify-between items-center mb-2">
                                         <label class="block text-sm font-medium text-gray-700">
                                             Nội dung <span class="text-red-500">*</span>
-                                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
+                                            <span v-if="constraints.maxContent !== Infinity && filledContentCount < constraints.maxContent" class="text-xs text-red-500 font-normal">
                                                 (Bắt buộc: {{ constraints.maxContent }})
                                             </span>
                                         </label>
@@ -677,13 +812,12 @@ onUnmounted(() => {
                                     </div>
                                 </div>
 
-                                <!-- Media sections -->
+                                
                                 <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ media.label }}
-                                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
-                                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
-                                        </span>
+                                        <span v-if="media.key === 'audio'" class="text-xs text-gray-500">(không bắt buộc)</span>
+                                        <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})</span>
                                         <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
                                     </label>
                                     <input 
@@ -696,14 +830,15 @@ onUnmounted(() => {
                                         :disabled="!canAdd[media.key]" 
                                     />
                                     <label 
+                                        v-if="canAdd[media.key]"
                                         :for="`${media.key}Input`" 
-                                        :class="['file-input-button', !canAdd[media.key] ? 'file-input-button:disabled' : '']"
-                                        :disabled="!canAdd[media.key]"
+                                        class="file-input-button"
                                     >
                                         Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
                                     </label>
+                                    <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div>
                                     
-                                    <!-- New files preview -->
+                                    
                                     <div v-if="managers[media.key].previews.value.length" class="mt-2">
                                         <div class="media-preview">
                                             <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
@@ -711,13 +846,13 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                                    <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                                                    <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0 cursor-pointer' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer'">×</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Existing files -->
+                                    
                                     <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
                                         <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
                                         <div class="media-preview">
@@ -726,14 +861,14 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="url" controls class="flex-1"></audio>
-                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
-                                                </div>
+                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2 cursor-pointer' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer'">×</button>
+                                          </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Submit -->
+                                
                                 <div v-if="loading" class="w-full">
                                     <div class="flex justify-between items-center mb-2">
                                         <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
@@ -765,7 +900,31 @@ onUnmounted(() => {
                         </div>
                     </div>
                 </div>
+                <div v-if="loading" class="submit-overlay">
+                    <div class="window-border" style="width: 90%; max-width: 720px;">
+                        <div class="window">
+                            <div class="title-bar">
+                                <div class="icon"></div>
+                                <span class="font-semibold text-sm">Đang xử lý...</span>
+                                <div class="title-bar-buttons"></div>
+                            </div>
+                            <div class="text-area">
+                                <div class="input-content flex flex-col items-center justify-center p-8">
+                                    <div class="mb-4 text-sm text-gray-700">Đang tải lên, vui lòng chờ...</div>
+                                    <div class="w-full">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" :style="{ width: (totalProgress || 10) + '%' }">
+                                                <span v-if="totalProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ totalProgress }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
+<style scoped src="./css/style.css"></style>

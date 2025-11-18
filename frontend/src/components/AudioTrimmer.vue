@@ -289,8 +289,10 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-3 mb-3 sm:mb-4">
               <button
+                type="button"
+                aria-label="Play or pause preview"
                 @click="isPlaying ? stopPreview() : playPreview()"
                 :disabled="!wavesurfer || isTrimming || isLoading || audioDuration === 0"
                 class="win2k-button flex-1 text-xs sm:text-sm py-2 sm:py-2"
@@ -298,6 +300,8 @@ onUnmounted(() => {
                 {{ isPlaying ? '⏸ Dừng' : '▶ Nghe thử' }}
               </button>
               <button
+                type="button"
+                aria-label="Trim audio"
                 @click="handleTrim"
                 :disabled="!wavesurfer || isTrimming || isLoading || audioDuration === 0"
                 class="win2k-button flex-1 text-xs sm:text-sm py-2 sm:py-2"
@@ -305,6 +309,8 @@ onUnmounted(() => {
                 {{ isTrimming ? `Đang cắt... ${trimProgress}%` : '✂ Cắt Audio' }}
               </button>
               <button
+                type="button"
+                aria-label="Cancel trimming"
                 @click="handleCancel"
                 :disabled="isTrimming"
                 class="win2k-button flex-1 text-xs sm:text-sm py-2 sm:py-2"
@@ -399,9 +405,18 @@ onUnmounted(() => {
   }
   
   .win2k-button {
-    min-height: 32px;
-    padding: 4px 8px;
+    min-height: 48px;
+    padding: 10px 14px;
     transition: none; /* disable smooth transitions for immediate response */
+    width: 100%;
+    font-size: 16px !important;
+    border-radius: 6px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .win2k-button:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
   }
 }
 </style>

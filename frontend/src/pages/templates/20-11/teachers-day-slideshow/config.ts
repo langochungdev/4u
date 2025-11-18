@@ -2,20 +2,22 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.png";
 
 const config: TemplateConfig = {
-  title: "Thiệp gửi lời chúc",
-  description: "Template thiệp chúc mừng cho 20/11.",
+  title: "Thiệp chúc mừng 20/11",
+  description: "Template thiệp chúc mừng 20/11 với hiệu ứng slideshow.",
   createdBy: "TAN",
 
-  maxImages: 1,
+  maxImages: 4,
   maxVideos: 0,
   maxAudios: 1,
-  maxContent: 2,
+  maxContent: 3,
 
   contentPlaceholders: [
-    "Tiêu đề trên thiệp (ví dụ: 'Tặng Thầy/Cô')",
-    "Nội dung lời chúc chính",
+    "Tiêu đề trên thiệp (ví dụ: 'Chúc mừng 20/11')",
+    "Nội dung lời chúc 1 (hiển thị đầu tiên)",
+    "Nội dung lời chúc 2 (dùng để xoay vòng)",
   ],
 
+  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",
