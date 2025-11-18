@@ -17,7 +17,6 @@ const config: TemplateConfig = {
     "Nội dung lời chúc 2 (dùng để xoay vòng)",
   ],
 
-  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",
