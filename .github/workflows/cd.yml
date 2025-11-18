@@ -5,24 +5,48 @@ on:
 
 jobs:
   merge-dev:
-    if: |
-      github.event.deployment_status.state == 'success' &&
-      startsWith(github.event.deployment_status.environment, 'Preview') &&
-      github.event.deployment.ref == 'dev'
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug Event
+        run: |
+          echo "=== Full Event Context ==="
+          echo '${{ toJSON(github.event) }}'
+          echo ""
+          echo "=== Deployment Status ==="
+          echo "State: ${{ github.event.deployment_status.state }}"
+          echo "Environment: ${{ github.event.deployment_status.environment }}"
+          echo ""
+          echo "=== Deployment Info ==="
+          echo "Ref: ${{ github.event.deployment.ref }}"
+          echo "Task: ${{ github.event.deployment.task }}"
+          echo "Environment: ${{ github.event.deployment.environment }}"
+          
+      - name: Check if should merge
+        id: check
+        run: |
+          if [[ "${{ github.event.deployment_status.state }}" == "success" ]] && \
+             [[ "${{ github.event.deployment_status.environment }}" == *"Preview"* ]] && \
+             [[ "${{ github.event.deployment.ref }}" == "dev" ]]; then
+            echo "should_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_merge=false" >> $GITHUB_OUTPUT
+          fi
+          
       - uses: actions/checkout@v4
+        if: steps.check.outputs.should_merge == 'true'
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
+        if: steps.check.outputs.should_merge == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Merge dev into main
+        if: steps.check.outputs.should_merge == 'true'
         run: |
           git fetch origin
           git checkout main
