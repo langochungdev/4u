@@ -3,21 +3,22 @@ name: Auto Merge dev to main after Vercel Preview success
 on:
   deployment_status:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   merge-dev:
     if: |
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment == 'Preview'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
           
       - name: Check if deployment is from dev branch
