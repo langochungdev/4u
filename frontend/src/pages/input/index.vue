@@ -845,7 +845,6 @@ onUnmounted(() => {
                                         {{ media.label }}
                                         <span v-if="media.key === 'audio'" class="text-xs text-gray-500">(không bắt buộc)</span>
                                         <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})</span>
-                                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
                                     </label>
                                     <input 
                                         :type="'file'" 
