@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.net.URI;
 
 @Service
+@SuppressWarnings("null")
 public class ECardServiceImpl implements ECardService {
     private final String firestoreRootCollection;
     private final String firestoreRootDocument;
