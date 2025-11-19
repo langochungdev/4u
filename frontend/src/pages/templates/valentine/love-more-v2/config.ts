@@ -20,7 +20,6 @@ const config: TemplateConfig = {
     "Nội dung lời nhắn (VD: Bởi vì cậu đáng yêu hơn những gì tớ nói...)",
   ],
 
-  demoId: demoid,
   thumbnailType: "image",
   thumbnail: demo,
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",
