@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
     if (countdownInterval.value) {
         clearInterval(countdownInterval.value);
         countdownInterval.value = null;
-    })
+    }
 });
 </script>
 
