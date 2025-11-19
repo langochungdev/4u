@@ -4,7 +4,7 @@ export const NGAYNHAGIAO_SECTION = createSection({
   id: '20-11',
   title: '20 tháng 11',
   description: 'Thiệp tri ân thầy cô cho ngày Nhà giáo Việt Nam',
-  demoId: 'JunoH3uUS2RgQJUmTdU1'
+  demoId: 'FkzqcoAZs0kgrlCr1BHu'
 });
 
 export const NGAYNHAGIAO_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
