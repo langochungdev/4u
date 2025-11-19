@@ -8,9 +8,10 @@ const config: TemplateConfig = {
     maxImages: 5,
     maxVideos: 0,
     maxAudios: 1,
-    maxContent: 1,
+    maxContent: 2,
     contentPlaceholders: [
-        'Nhập Nội Dung Thư'
+        'Nhập tiêu đề của sách',
+        'Nhập lời chúc ý nghĩa dành tặng thầy cô...'
     ],
 
     thumbnail: demo,
