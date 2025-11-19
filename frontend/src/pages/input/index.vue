@@ -498,14 +498,14 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
 const incrementTemplateStats = async (templateName: string, topic: string) => {
     try {
         // Structure: 4U/develop/template/{topic} with field {templateName}: count
-        const topicDocRef = doc(db, '4U', 'develop', 'template', topic || 'default');
+        const firestorePath = import.meta.env.VITE_FIRESTORE.split('/');
+        const topicDocRef = doc(db, firestorePath[0], firestorePath[1], 'template', topic || 'default');
         
         // Update the specific template count field
         await setDoc(topicDocRef, {
                     [templateName]: increment(1)
         }, { merge: true });
     } catch (err) {
-        // Non-blocking error - don't interrupt user flow
     }
 };const validate = () => {
     const validContents = content.value.filter(c => c.trim());

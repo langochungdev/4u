@@ -394,18 +394,18 @@ function onVerified(email: string) {
     border: 1px inset #d0d0c8;
 }
 .section-title {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
     font-size: 2rem;
     font-weight: bold;
     color: #ffffff;
     margin-bottom: 0.5rem;
 }
 .section-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
     color: #ffffff;
 }
 .card-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
 }
 
 .divider-line {

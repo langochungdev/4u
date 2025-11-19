@@ -23,8 +23,8 @@ public class TemplateStatsServiceImpl implements TemplateStatsService {
         Map<String, Long> stats = new HashMap<>();
         Firestore db = FirestoreClient.getFirestore();
         
-        // Structure: 4U/develop/template/{topic} where each field is templateName: count
-        String templatePath = "4U/develop/template";
+        // Structure: {FIRESTORE_ROOT_PATH}/template/{topic} where each field is templateName: count
+        String templatePath = firestoreRootPath + "/template";
         
         try {
             QuerySnapshot snapshot = db.collection(templatePath).get().get();
