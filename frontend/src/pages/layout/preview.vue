@@ -231,14 +231,24 @@ onMounted(async () => {
     if (id && !isPreviewMode.value) {
         try {
             const data = await contextService.getById(id);
-            if (data?.expiresAt) {
+            
+            // If no data found, already deleted (past 24h grace period)
+            if (!data) {
+                isExpired.value = true;
+                expiresAt.value = new Date(Date.now() - 25 * 60 * 60 * 1000);
+                return;
+            }
+            
+            if (data.expiresAt) {
                 isExpired.value = checkExpiration(data.expiresAt);
                 if (isExpired.value) {
                     startCountdown24h();
                 }
             }
         } catch (error) {
-            // Error checking expiration
+            // Error checking expiration - treat as deleted
+            isExpired.value = true;
+            expiresAt.value = new Date(Date.now() - 25 * 60 * 60 * 1000);
         }
     }
 });
@@ -323,6 +333,10 @@ const handleBackButton = async () => {
 .preview-layout {
     position: relative;
     min-height: 100vh;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .win2k-button {
@@ -334,8 +348,15 @@ const handleBackButton = async () => {
     cursor: pointer;
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    transition: none; /* disable smooth transitions to make clicks immediate */
-    touch-action: manipulation; /* hint to browsers to avoid double-tap zoom */
-    -webkit-tap-highlight-color: transparent; /* remove highlight on tap for better UX */
+    transition: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+</style>
+
+<style>
+body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
 }
 </style>
