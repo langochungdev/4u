@@ -28,12 +28,11 @@ const focusedImage = ref<string | null>(null);
 // --- Style cho ảnh xếp chồng ---
 const getImageStyle = (index: number) => {
   const styles = [
-    // Điều chỉnh left/right để ảnh tập trung hơn vào giữa
-    { transform: 'rotate(-10deg)', left: '2rem', top: '-1rem', zIndex: 1 }, // Tăng left từ 1rem lên 2rem
-    { transform: 'rotate(5deg)', left: 'auto', right: '4rem', top: '-1.5rem', zIndex: 2 }, // Giảm right từ 5rem xuống 4rem
-    { transform: 'rotate(15deg)', left: 'auto', right: '2rem', top: '-0.5rem', zIndex: 3 }, // Tăng right từ 1rem lên 2rem
-    { transform: 'rotate(0deg)', left: '4rem', top: '-2rem', zIndex: 4 }, // Tăng left từ 3rem lên 4rem
-    { transform: 'rotate(-5deg)', left: '8rem', top: '-1rem', zIndex: 5 } // Tăng left từ 7rem lên 8rem
+    { transform: 'rotate(-10deg)', left: '1rem', top: '-1rem', zIndex: 1 }, // Giảm top: 1rem -> -1rem
+    { transform: 'rotate(5deg)', left: 'auto', right: '5rem', top: '-1.5rem', zIndex: 2 }, // Giảm top: 0.5rem -> -1.5rem
+    { transform: 'rotate(15deg)', left: 'auto', right: '1rem', top: '-0.5rem', zIndex: 3 }, // Giảm top: 1.5rem -> -0.5rem
+    { transform: 'rotate(0deg)', left: '3rem', top: '-2rem', zIndex: 4 }, // Giảm top: 0rem -> -2rem
+    { transform: 'rotate(-5deg)', left: '7rem', top: '-1rem', zIndex: 5 } // Giảm top: 1rem -> -1rem
   ];
   return styles[index % 5]; 
 };
@@ -98,7 +97,7 @@ const getParticleStyle = () => {
               :key="image" 
               :src="image" 
               alt="Ảnh kỷ niệm" 
-              class="absolute w-2 md:w-28 h-auto p-1 bg-white rounded shadow-md cursor-pointer transition-all duration-100 hover:scale-1 hover:shadow-lg hover:z-20"
+              class="absolute w-24 md:w-32 h-auto p-1 bg-white rounded shadow-md cursor-pointer transition-all duration-100 hover:scale-110 hover:shadow-lg hover:z-20"
               :style="getImageStyle(index)"
               @click="focusedImage = image"
             />
@@ -163,7 +162,6 @@ const getParticleStyle = () => {
 .paper-texture {
 background-color: #fafffb;
 background-image: url("https://www.transparenttextures.com/patterns/gray-floral.png");
-/* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0,0,0,0.05);
   border-radius: 0.5rem;
@@ -174,7 +172,6 @@ background-image: url("https://www.transparenttextures.com/patterns/gray-floral.
   font-family: 'Patrick Hand', cursive;
   font-weight: 400;
   line-height: 1.6;
-  /* Size chữ đã được chỉnh ở class tailwind (text-lg) để to hơn trên điện thoại */
 }
 
 /* FONT CHỮ TIÊU ĐỀ */
