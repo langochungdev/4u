@@ -129,14 +129,25 @@ onMounted(async () => {
     if (id && !isPreview) {
         try {
             const data = await contextService.getById(id);
-            if (data?.expiresAt) {
+            
+            // If no data found, already deleted (past 24h grace period)
+            if (!data) {
+                isExpired.value = true;
+                expiresAt.value = new Date(Date.now() - 25 * 60 * 60 * 1000);
+                isChecking.value = false;
+                return;
+            }
+            
+            if (data.expiresAt) {
                 isExpired.value = checkExpiration(data.expiresAt);
                 if (isExpired.value) {
                     startCountdown24h();
                 }
             }
         } catch (error) {
-            // Error checking expiration
+            // Error checking expiration - treat as deleted
+            isExpired.value = true;
+            expiresAt.value = new Date(Date.now() - 25 * 60 * 60 * 1000);
         }
     }
     
@@ -152,4 +163,22 @@ onBeforeUnmount(() => {
     }
 });
 </script>
+
+<style scoped>
+body,
+html,
+.empty-layout {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+</style>
+
+<style>
+body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+}
+</style>
 

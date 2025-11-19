@@ -200,6 +200,10 @@ function handleVerified(email: string) {
     background-attachment: fixed;
     font-family: 'Noto Sans', sans-serif;
     cursor: url('/cursor.cur'), auto;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .win2k-button {
@@ -223,5 +227,12 @@ function handleVerified(email: string) {
         padding: 12px 24px;
         min-width: 120px;
     }
+}
+</style>
+
+<style>
+body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
 }
 </style>
