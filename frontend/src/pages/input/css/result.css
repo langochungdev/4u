@@ -258,7 +258,7 @@
 }
 
 .section-title {
-    font-family: 'Noto Mono', monospace;
+    font-family: 'Noto Sans', sans-serif;
     font-size: 2rem;
     font-weight: bold;
     color: #ffffff;
@@ -266,12 +266,12 @@
 }
 
 .section-description {
-    font-family: 'Noto Mono', monospace;
+    font-family: 'Noto Sans', sans-serif;
     color: #ffffff;
 }
 
 .card-description {
-    font-family: 'Noto Mono', monospace;
+    font-family: 'Noto Sans', sans-serif;
 }
 
 /* Result specific styles */
