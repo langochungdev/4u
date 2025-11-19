@@ -521,3 +521,11 @@
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.9);
 }
+
+.audio-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}

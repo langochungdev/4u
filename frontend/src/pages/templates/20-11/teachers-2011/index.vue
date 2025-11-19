@@ -177,8 +177,7 @@ onUnmounted(() => {
           :src="bgAudio"
           autoplay
           loop
-          controls
-          class="audio-player"
+          class="audio-hidden"
         />
       </div>
     </div>
