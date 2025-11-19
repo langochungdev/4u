@@ -5,7 +5,7 @@ const config: TemplateConfig = {
     title: 'password-for-2011 - Mật Mã Tri Ân 20/11',
     description: 'Nhập mật mã "2011"',
     createdBy: 'DuongDinhTrac',
-    maxImages: 5,
+    maxImages: 6,
     maxVideos: 0,
     maxAudios: 1,
     maxContent: 1,

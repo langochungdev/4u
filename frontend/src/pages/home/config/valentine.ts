@@ -4,7 +4,7 @@ export const VALENTINE_SECTION = createSection({
   id: 'valentine',
   title: 'Valentine',
   description: 'Thiệp tình yêu lãng mạn cho ngày Valentine',
-  demoId: 'JunoH3uUS2RgQJUmTdU1'
+  demoId: 'FkzqcoAZs0kgrlCr1BHu'
 });
 
 export const VALENTINE_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {

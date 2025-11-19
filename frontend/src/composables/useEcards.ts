@@ -1,5 +1,6 @@
 import { db } from '@/config/firebase'
 import { doc, getDoc } from 'firebase/firestore'
+import type { DocumentReference, DocumentData, Timestamp } from 'firebase/firestore'
 import { ECARD_LIMIT as APP_ECARD_LIMIT } from '@/config/app'
 
 export const ECARD_LIMIT = APP_ECARD_LIMIT
@@ -13,20 +14,23 @@ export async function fetchActiveEcards(email: string): Promise<ActiveEcardsResu
 	if (!email) return { ids: [], map: {} }
 	try {
 		const normalized = email.trim().toLowerCase();
-		const ctx = (import.meta.env.VITE_FIRESTORE_CONTEXT || '').toString();
-		const parts = ctx.split('/').filter(Boolean);
-		const ctxRootCollection = parts[0] || '4U';
-		const ctxRootDocument = parts.length >= 2 ? parts[1] : null;
-		const contextsCol = parts.length >= 3 ? parts[2] : (parts[1] || parts[0] || 'context');
+		// prefer a clear default value; ensure we don't end up with 'undefined/context'
+		const envCtx = (import.meta.env.VITE_FIRESTORE ?? '').toString();
+		const ctx = envCtx ? envCtx + '/context' : 'context';
+	const parts = ctx.split('/').filter(Boolean)
+	const ctxRootCollection: string = parts[0] || '4U'
+	const ctxRootDocument: string | null = parts.length >= 2 ? (parts[1] || null) : null
+	const contextsCol: string = parts.length >= 3 ? (parts[2] || 'context') : (parts[1] || parts[0] || 'context')
 
 		// user document path
-		let userDocRef;
-		if (parts.length >= 2) {
-			userDocRef = doc(db, parts[0], parts[1], 'user', normalized);
-		} else if (parts.length === 1) {
-			userDocRef = doc(db, parts[0], normalized);
+		let userDocRef: DocumentReference<DocumentData>
+		if (ctxRootDocument) {
+			userDocRef = doc(db, ctxRootCollection, ctxRootDocument, 'user', normalized)
+		} else if (parts.length === 1 && ctxRootCollection) {
+			// If only collection provided in VITE_FIRESTORE (eg. '4U'), use it as root
+			userDocRef = doc(db, ctxRootCollection, normalized)
 		} else {
-			userDocRef = doc(db, 'user', normalized);
+			userDocRef = doc(db, 'user', normalized)
 		}
 		const snap = await getDoc(userDocRef);
 		if (!snap.exists()) return { ids: [], map: {} }
@@ -38,15 +42,19 @@ export async function fetchActiveEcards(email: string): Promise<ActiveEcardsResu
 		const now = Date.now()
 		const activeChecks = await Promise.all(ids.map(async (key) => {
 			try {
-				let ctxDocRef;
-				if (ctxRootDocument) ctxDocRef = doc(db, ctxRootCollection, ctxRootDocument, contextsCol, key);
-				else ctxDocRef = doc(db, ctxRootCollection, contextsCol, key);
+				let ctxDocRef: DocumentReference<DocumentData>
+				if (ctxRootDocument) ctxDocRef = doc(db, ctxRootCollection, ctxRootDocument, contextsCol, key)
+				else ctxDocRef = doc(db, ctxRootCollection, contextsCol, key)
 				const s = await getDoc(ctxDocRef);
 				if (!s.exists()) return false
 				const d = s.data() as any
-				const expiresAt = d?.expiresAt
+				const expiresAt = d?.expiresAt as (Timestamp | number | string | undefined)
 				if (!expiresAt) return true
-				const t = expiresAt.seconds ? expiresAt.seconds * 1000 : new Date(expiresAt).getTime()
+				let t = 0
+				// Firestore Timestamp
+				if (typeof (expiresAt as any)?.toMillis === 'function') t = (expiresAt as Timestamp).toMillis()
+				else if (typeof expiresAt === 'number') t = expiresAt
+				else t = new Date(expiresAt as string).getTime()
 				return t > now
 			} catch (e) {
 				// be permissive if can't determine

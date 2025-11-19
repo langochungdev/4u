@@ -151,7 +151,7 @@ const remaining = computed(() => ({
 const mediaTypes = computed(() => [
     { key: 'image' as const, label: 'Ảnh', max: constraints.value.maxImages },
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
-    { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
+    { key: 'audio' as const, label: 'Audio hoặc video', max: constraints.value.maxAudios }
 ]);
 
 const filledContentCount = computed(() => content.value.filter(c => c.trim()).length);
@@ -432,7 +432,7 @@ const extractAudioFromVideo = async (videoFile: File): Promise<File> => {
             if (error instanceof Error && error.message === 'cancelled') {
                 reject(error);
             } else {
-                reject(new Error('Không thể decode audio từ video. File có thể bị lỗi hoặc không có audio track.'));
+                reject(new Error('chỉ hỗ trợ chuyển mp4 sang audio'));
             }
         }
     });
@@ -498,14 +498,14 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
 const incrementTemplateStats = async (templateName: string, topic: string) => {
     try {
         // Structure: 4U/develop/template/{topic} with field {templateName}: count
-        const topicDocRef = doc(db, '4U', 'develop', 'template', topic || 'default');
+        const firestorePath = import.meta.env.VITE_FIRESTORE.split('/');
+        const topicDocRef = doc(db, firestorePath[0], firestorePath[1], 'template', topic || 'default');
         
         // Update the specific template count field
         await setDoc(topicDocRef, {
                     [templateName]: increment(1)
         }, { merge: true });
     } catch (err) {
-        // Non-blocking error - don't interrupt user flow
     }
 };const validate = () => {
     const validContents = content.value.filter(c => c.trim());
@@ -1110,7 +1110,7 @@ onUnmounted(() => {
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
                                         multiple 
-                                        :accept="media.key === 'audio' ? 'audio/*,video/*' : `${media.key}/*`" 
+                                        :accept="media.key === 'audio' ? 'audio/*,video/mp4,video/webm,video/quicktime,.mp3,.m4a,.wav,.mp4,.webm,.mov' : `${media.key}/*`" 
                                         @change="handleMedia($event, media.key)" 
                                         class="hidden" 
                                         :disabled="!canAdd[media.key]" 
@@ -1120,7 +1120,7 @@ onUnmounted(() => {
                                         :for="`${media.key}Input`" 
                                         class="file-input-button"
                                     >
-                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
+                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'nhạc nền' }}
                                     </label>
                                     <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div>
                                     

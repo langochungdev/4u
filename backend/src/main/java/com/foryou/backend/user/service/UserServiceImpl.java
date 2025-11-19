@@ -3,6 +3,7 @@ package com.foryou.backend.user.service;
 import com.foryou.backend.util.MailRepository;
 import com.foryou.backend.util.EmailRequest;
 import com.foryou.backend.user.template.OtpTemplate;
+import com.foryou.backend.user.template.ShareQrTemplate;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.cloud.firestore.Firestore;
 import org.springframework.stereotype.Service;
@@ -110,6 +111,23 @@ public class UserServiceImpl implements UserService {
 
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
+    }
+
+    @Override
+    public void shareQr(String email, String qrLink, String senderName) throws IOException {
+        String html = ShareQrTemplate.of(qrLink, senderName);
+        String subj = senderName != null && !senderName.isEmpty() ?
+            String.format("%s shared a story link from Story4u.online", senderName) :
+            "Your friend shared a story link from Story4u.online";
+
+        EmailRequest req = EmailRequest.builder()
+            .to(email)
+            .subject(subj)
+                .content(html)
+                .isHtml(true)
+                .build();
+
+        mailRepository.sendEmail(req);
     }
 
     private static class OtpEntry {

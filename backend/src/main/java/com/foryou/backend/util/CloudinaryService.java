@@ -46,8 +46,12 @@ public class CloudinaryService {
     public String detectResourceType(String url) {
         if (url == null) return "image";
         String lower = url.toLowerCase();
+        if (lower.endsWith(".mp3") || lower.endsWith(".wav") || lower.endsWith(".m4a") || 
+            lower.endsWith(".ogg") || lower.endsWith(".aac") || lower.endsWith(".flac")) {
+            return "video";
+        }
         if (lower.contains("/video/") || lower.endsWith(".mp4") || lower.endsWith(".mov") || 
-            lower.endsWith(".avi") || lower.endsWith(".wav") || lower.endsWith(".mp3")) {
+            lower.endsWith(".avi") || lower.endsWith(".webm")) {
             return "video";
         }
         if (lower.contains("/raw/")) {

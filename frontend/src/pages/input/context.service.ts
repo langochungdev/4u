@@ -9,11 +9,11 @@ import {
 } from "firebase/firestore";
 
 // Collection names
-const CONTEXTS_COLLECTION = import.meta.env.VITE_FIRESTORE_CONTEXT;
+const CONTEXTS_COLLECTION = import.meta.env.VITE_FIRESTORE + '/context';
 
 // Validate collection name
 if (!CONTEXTS_COLLECTION || CONTEXTS_COLLECTION.trim() === '') {
-  throw new Error('VITE_FIRESTORE_CONTEXT is not defined in .env');
+  throw new Error('VITE_FIRESTORE is not defined in .env');
 }
 
 export interface ContextPayload {
@@ -21,7 +21,7 @@ export interface ContextPayload {
   images: string[];
   videos?: string[];
   audios?: string[];
-  expiresAt?: any; // Timestamp for expiration
+  expiresAt?: any;
 }
 
 export const contextService = {
