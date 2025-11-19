@@ -17,6 +17,13 @@ const envReady = ref(false);
 const bowRef = ref<HTMLElement | null>(null);
 const bowY = ref(620);
 
+const bgAudio = computed<string | null>(() => {
+  const audios = contextData.value?.audios;
+  if (audios && audios.length > 0 && audios[0]) {
+    return audios[0];
+  }
+  return null;
+});
 
 const STEM_GROW = 700;   
 const BLOOM_DELAY = 800; 
@@ -307,6 +314,13 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
       </div>
     </div>
   </div>
+  <audio
+  v-if="bgAudio"
+  :src="bgAudio"
+  autoplay
+  loop
+  class="audio-hidden"
+/>
 </template>
 
 

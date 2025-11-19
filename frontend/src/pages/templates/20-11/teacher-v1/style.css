@@ -489,6 +489,22 @@
     animation: pop .2s ease-out both;
 }
 
+.audio-player {
+    margin-top: 16px;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.audio-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 
 /* ---------- Responsive nhỏ ---------- */
 
