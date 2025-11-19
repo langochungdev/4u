@@ -510,3 +510,14 @@
         opacity: 0;
     }
 }
+
+
+/* Player audio */
+
+.audio-player {
+    margin-top: 16px;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+}

@@ -7,7 +7,7 @@ const config: TemplateConfig = {
     createdBy: 'tranminhkhadev',
     maxImages: 0,
     maxVideos: 0,
-    maxAudios: 0,
+    maxAudios: 1,
     maxContent: 3,
     contentPlaceholders: [
         'Tên thầy / cô',

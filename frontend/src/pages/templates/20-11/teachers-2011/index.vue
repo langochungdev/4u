@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onUnmounted, type Ref } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
 import TEMPLATE_CONFIG from "./config";
 
 import catGif from "./img/cat.gif";
 import birthdayGif from "./img/birthday.gif";
 
+/* ===== KIỂU DỮ LIỆU TỪ BUILDER ===== */
+type TemplateContext = {
+  content: string[];
+  images: string[];
+  videos?: string[];
+  audios?: string[];
+};
+
 /* ===== LẤY DATA TỪ CONFIG ===== */
-const { contextData } = useTemplateData(TEMPLATE_CONFIG);
+const { contextData } = useTemplateData(TEMPLATE_CONFIG) as {
+  contextData: Ref<TemplateContext>;
+};
 
 const teacherName = computed(
   () => contextData.value?.content?.[0] || "Thầy/Cô kính mến"
@@ -22,6 +32,9 @@ const teacherWish = computed(
 const senderName = computed(
   () => contextData.value?.content?.[2] || "Học trò nhỏ của Thầy/Cô"
 );
+
+/* ✅ AUDIO TỪ BUILDER (nếu có) */
+const bgAudio = computed(() => contextData.value?.audios?.[0] || "");
 
 /* ===== STATE CHUNG 3 STEP ===== */
 type Screen = "password" | "cake" | "envelope";
@@ -157,88 +170,95 @@ onUnmounted(() => {
         <div id="fireworksContainer" ref="fireworksContainer"></div>
 
         <button class="btn" @click="goEnvelope">NEXT</button>
+
+        <!-- ✅ AUDIO PHÁT NHẠC (nếu có) -->
+        <audio
+          v-if="bgAudio"
+          :src="bgAudio"
+          autoplay
+          loop
+          controls
+          class="audio-player"
+        />
       </div>
     </div>
 
     <!-- ============ STEP 3 ============ -->
-<div class="screen" :class="{ active: step === 'envelope' }">
-  <div class="envelope-stage">
-    <!-- Lớp tim bay overlay -->
-    <div class="heart-layer">
-      <div
-        v-for="heart in hearts"
-        :key="heart.id"
-        class="floating-heart"
-        :style="{
-          left: heart.left + '%',
-          animationDelay: heart.delay + 's'
-        }"
-      ></div>
-    </div>
+    <div class="screen" :class="{ active: step === 'envelope' }">
+      <div class="envelope-stage">
+        <!-- Lớp tim bay overlay -->
+        <div class="heart-layer">
+          <div
+            v-for="heart in hearts"
+            :key="heart.id"
+            class="floating-heart"
+            :style="{
+              left: heart.left + '%',
+              animationDelay: heart.delay + 's'
+            }"
+          ></div>
+        </div>
 
-    <!-- Card pastel + phong bì -->
-    <div
-      :class="[
-        'envelope-card',
-        { 'envelope-card--open': envelopeOpen, 'envelope-card--pulse': !envelopeOpen }
-      ]"
-    >
-      <!-- Tim 4 góc -->
-      <div class="corner-heart corner-heart--tl"></div>
-      <div class="corner-heart corner-heart--tr"></div>
-      <div class="corner-heart corner-heart--bl"></div>
-      <div class="corner-heart corner-heart--br"></div>
+        <!-- Card pastel + phong bì -->
+        <div
+          :class="[
+            'envelope-card',
+            { 'envelope-card--open': envelopeOpen, 'envelope-card--pulse': !envelopeOpen }
+          ]"
+        >
+          <!-- Tim 4 góc -->
+          <div class="corner-heart corner-heart--tl"></div>
+          <div class="corner-heart corner-heart--tr"></div>
+          <div class="corner-heart corner-heart--bl"></div>
+          <div class="corner-heart corner-heart--br"></div>
 
-      <!-- LÁ THƯ TRẮNG: nằm trong khoảng trống phía trên -->
-      <div
-        class="letter-panel"
-        :class="{ 'letter-panel--open': envelopeOpen }"
-      >
-        <div class="letter-inner">
-          <h3 class="letter-title">Gửi {{ teacherName }}</h3>
-          <div class="letter-sep"></div>
-          <p class="letter-text">
-            {{ teacherWish }}
-          </p>
-          <div class="letter-sign">
-            <span>Thân gửi,</span><br />
-            <span>{{ senderName }}</span>
+          <!-- LÁ THƯ TRẮNG: nằm trong khoảng trống phía trên -->
+          <div
+            class="letter-panel"
+            :class="{ 'letter-panel--open': envelopeOpen }"
+          >
+            <div class="letter-inner">
+              <h3 class="letter-title">Gửi {{ teacherName }}</h3>
+              <div class="letter-sep"></div>
+              <p class="letter-text">
+                {{ teacherWish }}
+              </p>
+              <div class="letter-sign">
+                <span>Thân gửi,</span><br />
+                <span>{{ senderName }}</span>
+              </div>
+            </div>
           </div>
+
+          <!-- khoảng trống pastel phía trên (để thư nằm trong) -->
+          <div class="envelope-empty-space"></div>
+
+          <!-- PHONG BÌ 4 TAM GIÁC -->
+          <div class="envelope-shape">
+            <!-- nắp trên -->
+            <div
+              class="env-part env-top"
+              :class="{ 'env-top--open': envelopeOpen }"
+            ></div>
+
+            <!-- cánh trái / phải -->
+            <div class="env-part env-left"></div>
+            <div class="env-part env-right"></div>
+
+            <!-- thân dưới -->
+            <div class="env-part env-bottom"></div>
+
+            <!-- Icon giữa phong bì -->
+            <div class="envelope-icon">💌</div>
+          </div>
+
+          <!-- nút mở/đóng thư ở DƯỚI -->
+          <button class="btn-pill" @click="toggleEnvelope">
+            <span>{{ envelopeOpen ? "ĐÓNG THƯ" : "MỞ THƯ" }}</span>
+          </button>
         </div>
       </div>
-
-      <!-- khoảng trống pastel phía trên (để thư nằm trong) -->
-      <div class="envelope-empty-space"></div>
-
-      <!-- PHONG BÌ 4 TAM GIÁC -->
-      <div class="envelope-shape">
-        <!-- nắp trên -->
-        <div
-          class="env-part env-top"
-          :class="{ 'env-top--open': envelopeOpen }"
-        ></div>
-
-        <!-- cánh trái / phải -->
-        <div class="env-part env-left"></div>
-        <div class="env-part env-right"></div>
-
-        <!-- thân dưới -->
-        <div class="env-part env-bottom"></div>
-
-        <!-- ⬇️ THÊM ICON Ở GIỮA PHONG BÌ  ⬇️ -->
-        <div class="envelope-icon">💌</div>
-      </div>
-
-
-
-      <!-- nút mở/đóng thư ở DƯỚI -->
-      <button class="btn-pill" @click="toggleEnvelope">
-        <span>{{ envelopeOpen ? "ĐÓNG THƯ" : "MỞ THƯ" }}</span>
-      </button>
     </div>
-  </div>
-</div>
-
   </div>
 </template>
 
