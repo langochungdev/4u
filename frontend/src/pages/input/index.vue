@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted } from "vue";
+import { ref, onMounted, computed, onUnmounted, watch } from "vue";
 import { MEDIA_LIMITS } from '@/config/app'
 import EmailOtpModal from '@/components/EmailOtpModal.vue'
 import AudioTrimmer from '@/components/AudioTrimmer.vue'
-// Firestore reads are handled inside fetchActiveEcards composable
 import { canCreate, ECARD_LIMIT } from '@/composables/useEcards'
 import { getCookie, setCookie } from '@/utils/cookies'
 import { useRoute, useRouter } from "vue-router";
@@ -11,12 +10,32 @@ import { useContext } from "@/composables/useContext";
 import { useCloudinary } from "@/composables/useCloudinary";
 import { usePreviewStore } from "@/stores/previewStore";
 import { getTemplateConfig, isValidTemplate } from "@/config/templates";
-import "./css/style.css";
+import { db } from "@/config/firebase";
+import { doc, setDoc, increment } from "firebase/firestore";
 
 const route = useRoute();
 const router = useRouter();
 const { content, loading, submit, imageManager, videoManager, audioManager, fetchContext, update, addContentItem, removeContentItem, updateContentItem } = useContext();
 const { upload, totalProgress, prepareUpload } = useCloudinary();
+
+function waitUntilProgressComplete(timeoutMs = 5000) {
+    return new Promise<void>((resolve) => {
+        if (totalProgress.value >= 100) {
+            resolve();
+            return;
+        }
+        const stop = watch(totalProgress, (v) => {
+            if (v >= 100) {
+                try { stop(); } catch (_e) {}
+                resolve();
+            }
+        });
+        setTimeout(() => {
+            try { stop(); } catch (_e) {}
+            resolve();
+        }, timeoutMs);
+    });
+}
 const previewStore = usePreviewStore();
 
 const managers = { image: imageManager, video: videoManager, audio: audioManager };
@@ -34,6 +53,11 @@ const showAudioTrimmer = ref(false)
 const currentAudioFile = ref<File | null>(null)
 const currentAudioIndex = ref<number>(-1)
 const trimmedAudioIndexes = ref<Set<number>>(new Set())
+const isLoadingTemplate = ref(false)
+const isNavigating = ref(false)
+const isExtractingAudio = ref(false)
+const extractProgress = ref(0)
+const cancelExtract = ref<(() => void) | null>(null)
 
 function handleVerifiedEmail(email: string) {
     setCookie('email', email)
@@ -54,8 +78,41 @@ const constraints = ref({
     contentPlaceholders: [] as string[],
     template: 'default'
 });
+let stopWatchRef: (() => void) | undefined;
+const prefetchedTemplates = new Set<string>();
+const templateModules = import.meta.glob('@/pages/templates/*/*/index.vue') as Record<string, () => Promise<any>>;
 
-// limit value is available via ECARD_LIMIT imported from the composable
+async function prefetchTemplateShell(topic?: string, templateName?: string) {
+    const t = templateName || (constraints.value.template || '');
+    const top = topic || (route.query.topic as string) || '';
+    const key = top ? `${top}/${t}` : t;
+    if (!t) return false;
+    if (prefetchedTemplates.has(key)) return true;
+    try {
+        if (top) {
+        for (const p in templateModules) {
+            if (p.includes(`${top}/${t}/index.vue`)) {
+                const loader = templateModules[p];
+                if (typeof loader === 'function') await loader();
+                    prefetchedTemplates.add(key);
+                    return true;
+                }
+            }
+    }
+        for (const p in templateModules) {
+            if (p.includes(`/${t}/index.vue`)) {
+                const loader = templateModules[p];
+                if (typeof loader === 'function') await loader();
+                prefetchedTemplates.add(key);
+                return true;
+            }
+        }
+    try { await import(`@/pages/templates/${top}/${t}/index.vue`); prefetchedTemplates.add(key); return true } catch (_e) {}
+    } catch (_e) {
+    }
+    return false;
+}
+ 
 
 const calculateExpiryDate = (duration: '1day' | '1week' | '1month' | '6months'): Date => {
     const now = new Date();
@@ -96,6 +153,14 @@ const mediaTypes = computed(() => [
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
     { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
 ]);
+
+const filledContentCount = computed(() => content.value.filter(c => c.trim()).length);
+
+const getMaxForMedia = (mediaKey: 'image' | 'video' | 'audio') => {
+    if (mediaKey === 'image') return constraints.value.maxImages;
+    if (mediaKey === 'video') return constraints.value.maxVideos;
+    return constraints.value.maxAudios;
+}
 
 const updateCountdown = () => {
     if (!expiresAt.value) {
@@ -139,7 +204,7 @@ const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
     existingData.value[key].splice(index, 1);
 };
 
-// no client-side audio conversion; keep audio selection simple
+ 
 
 const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
     const input = e.target as HTMLInputElement;
@@ -162,21 +227,82 @@ const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
     }
     
     if (type === 'audio' && files.length > 0) {
-        // If selecting a single audio file, open trimmer to let user choose start/end.
         if (files.length === 1) {
             const file = files[0]!;
-            // ensure it's an audio file by MIME or extension
-            if (file.type && file.type.startsWith('audio/')) {
+            
+            // Check file extension for video formats (more reliable on mobile)
+            const fileName = file.name.toLowerCase();
+            const isVideoFile = file.type.startsWith('video/') || 
+                               fileName.endsWith('.mp4') || 
+                               fileName.endsWith('.webm') ||
+                               fileName.endsWith('.mov');
+            
+            const isAudioFile = file.type.startsWith('audio/') || 
+                               fileName.endsWith('.mp3') || 
+                               fileName.endsWith('.m4a') ||
+                               fileName.endsWith('.wav') ||
+                               fileName.endsWith('.ogg') ||
+                               fileName.endsWith('.aac') ||
+                               fileName.endsWith('.flac');
+            
+            // Check if it's a video file
+            if (isVideoFile) {
+                try {
+                    const audioFile = await extractAudioFromVideo(file);
+                    currentAudioFile.value = audioFile;
+                    currentAudioIndex.value = -1;
+                    showAudioTrimmer.value = true;
+                } catch (error) {
+                    // Check if error is cancellation
+                    if (error instanceof Error && error.message === 'cancelled') {
+                        // Reset input to allow selecting the same file again
+                        input.value = '';
+                        return;
+                    }
+                    const errorMessage = error instanceof Error ? error.message : 'Không thể trích xuất audio từ video. Vui lòng chọn file audio hoặc video khác.';
+                    alert('❌ ' + errorMessage);
+                    // Reset input on error too
+                    input.value = '';
+                }
+            } else if (isAudioFile) {
                 currentAudioFile.value = file;
                 currentAudioIndex.value = -1;
                 showAudioTrimmer.value = true;
             } else {
-                // Not an audio file — ignore and inform user
-                alert('Vui lòng chọn tệp audio hợp lệ.');
+                alert('Vui lòng chọn tệp audio hoặc video hợp lệ.');
             }
         } else {
-            // Multiple files — add to audio manager directly
-            managers.audio.addFiles(files);
+            // Multiple files - process each one
+            const processedFiles: File[] = [];
+            for (const file of files) {
+                const fileName = file.name.toLowerCase();
+                const isVideoFile = file.type.startsWith('video/') || 
+                                   fileName.endsWith('.mp4') || 
+                                   fileName.endsWith('.webm') ||
+                                   fileName.endsWith('.mov');
+                
+                const isAudioFile = file.type.startsWith('audio/') || 
+                                   fileName.endsWith('.mp3') || 
+                                   fileName.endsWith('.m4a') ||
+                                   fileName.endsWith('.wav') ||
+                                   fileName.endsWith('.ogg') ||
+                                   fileName.endsWith('.aac') ||
+                                   fileName.endsWith('.flac');
+                
+                if (isVideoFile) {
+                    try {
+                        const audioFile = await extractAudioFromVideo(file);
+                        processedFiles.push(audioFile);
+                    } catch (error) {
+                        // Silent fail for batch processing
+                    }
+                } else if (isAudioFile) {
+                    processedFiles.push(file);
+                }
+            }
+            if (processedFiles.length > 0) {
+                managers.audio.addFiles(processedFiles);
+            }
         }
     } else {
         managers[type].addFiles(files);
@@ -207,7 +333,181 @@ const handleAudioTrimCancel = () => {
     currentAudioIndex.value = -1
 }
 
-const validate = () => {
+// Extract audio from video file using Web Audio API (iOS compatible)
+const extractAudioFromVideo = async (videoFile: File): Promise<File> => {
+    return new Promise(async (resolve, reject) => {
+        let isCancelled = false;
+        let audioContext: AudioContext | null = null;
+        
+        // Setup cancel function
+        cancelExtract.value = () => {
+            isCancelled = true;
+            if (audioContext && audioContext.state !== 'closed') {
+                try {
+                    audioContext.close();
+                } catch (e) {
+                    // Silent fail
+                }
+            }
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            reject(new Error('cancelled'));
+        };
+        
+        try {
+            isExtractingAudio.value = true;
+            extractProgress.value = 10;
+            
+            // Read file as ArrayBuffer
+            const arrayBuffer = await videoFile.arrayBuffer();
+            extractProgress.value = 30;
+            
+            if (isCancelled) return;
+            
+            // Create audio context and decode
+            audioContext = new AudioContext();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            extractProgress.value = 60;
+            
+            if (isCancelled) return;
+            
+            const duration = audioBuffer.duration;
+            
+            // Check duration
+            if (duration > 30) {
+                if (audioContext) audioContext.close();
+                isExtractingAudio.value = false;
+                extractProgress.value = 0;
+                cancelExtract.value = null;
+                reject(new Error('Video quá dài! Chỉ chấp nhận video ≤ 30 giây.'));
+                return;
+            }
+            
+            extractProgress.value = 70;
+            
+            // Create offline context to render audio
+            const offlineContext = new OfflineAudioContext(
+                audioBuffer.numberOfChannels,
+                audioBuffer.length,
+                audioBuffer.sampleRate
+            );
+            
+            const source = offlineContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineContext.destination);
+            source.start();
+            
+            extractProgress.value = 80;
+            
+            // Render audio
+            const renderedBuffer = await offlineContext.startRendering();
+            extractProgress.value = 90;
+            
+            if (isCancelled) return;
+            
+            // Convert to WAV format (most compatible)
+            const wavBlob = audioBufferToWav(renderedBuffer);
+            const audioFile = new File(
+                [wavBlob],
+                videoFile.name.replace(/\.[^.]+$/, '.wav'),
+                { type: 'audio/wav' }
+            );
+            
+            extractProgress.value = 100;
+            
+            if (audioContext) audioContext.close();
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            
+            resolve(audioFile);
+            
+        } catch (error) {
+            if (audioContext) audioContext.close();
+            isExtractingAudio.value = false;
+            extractProgress.value = 0;
+            cancelExtract.value = null;
+            
+            if (error instanceof Error && error.message === 'cancelled') {
+                reject(error);
+            } else {
+                reject(new Error('Không thể decode audio từ video. File có thể bị lỗi hoặc không có audio track.'));
+            }
+        }
+    });
+};
+
+// Convert AudioBuffer to WAV blob
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+    const length = buffer.length * buffer.numberOfChannels * 2 + 44;
+    const arrayBuffer = new ArrayBuffer(length);
+    const view = new DataView(arrayBuffer);
+    const channels: Float32Array[] = [];
+    let offset = 0;
+    let pos = 0;
+    
+    // Write WAV header
+    const setUint16 = (data: number) => {
+        view.setUint16(pos, data, true);
+        pos += 2;
+    };
+    const setUint32 = (data: number) => {
+        view.setUint32(pos, data, true);
+        pos += 4;
+    };
+    
+    // "RIFF" chunk descriptor
+    setUint32(0x46464952);
+    setUint32(length - 8);
+    setUint32(0x45564157);
+    
+    // "fmt " sub-chunk
+    setUint32(0x20746d66);
+    setUint32(16);
+    setUint16(1);
+    setUint16(buffer.numberOfChannels);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * buffer.numberOfChannels);
+    setUint16(buffer.numberOfChannels * 2);
+    setUint16(16);
+    
+    // "data" sub-chunk
+    setUint32(0x61746164);
+    setUint32(length - pos - 4);
+    
+    // Write interleaved data
+    for (let i = 0; i < buffer.numberOfChannels; i++) {
+        channels.push(buffer.getChannelData(i));
+    }
+    
+    while (pos < length) {
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+            let sample = Math.max(-1, Math.min(1, channels[i]![offset]!));
+            sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            view.setInt16(pos, sample, true);
+            pos += 2;
+        }
+        offset++;
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+}
+
+// Increment template creation counter in Firestore
+const incrementTemplateStats = async (templateName: string, topic: string) => {
+    try {
+        // Structure: 4U/develop/template/{topic} with field {templateName}: count
+        const topicDocRef = doc(db, '4U', 'develop', 'template', topic || 'default');
+        
+        // Update the specific template count field
+        await setDoc(topicDocRef, {
+                    [templateName]: increment(1)
+        }, { merge: true });
+    } catch (err) {
+        // Non-blocking error - don't interrupt user flow
+    }
+};const validate = () => {
     const validContents = content.value.filter(c => c.trim());
     
     if (constraints.value.maxContent !== Infinity && validContents.length < constraints.value.maxContent) {
@@ -222,6 +522,7 @@ const validate = () => {
     for (const type of ['image', 'video', 'audio'] as const) {
         const max = constraints.value[`max${type.charAt(0).toUpperCase() + type.slice(1)}s` as keyof typeof constraints.value] as number;
         const current = getCount(type);
+    if (type === 'audio') continue; // audio is optional
         if (max !== Infinity && current < max) {
             alert(`Vui lòng tải lên đủ ${max} ${labels[type]}. Hiện tại: ${current}/${max}`);
             return false;
@@ -237,7 +538,7 @@ const handlePreview = () => {
     const templateName = route.query.template as string || 'demo';
     const topic = route.query.topic as string || '';
     
-    // Filter out deleted URLs from existing data before preview
+    
     const filterDeletedUrls = (urls: string[] = []) => 
         urls.filter(url => !deletedUrls.value.includes(url));
     
@@ -252,10 +553,10 @@ const handlePreview = () => {
         template: templateName,
         topic: topic,
         editId: isEditMode.value ? currentId.value : undefined,
-        deletedUrls: isEditMode.value ? deletedUrls.value : undefined
+    deletedUrls: isEditMode.value ? deletedUrls.value : undefined,
     });
 
-    // Build path based on whether topic exists
+    
     const previewPath = topic ? `/${topic}/${templateName}` : `/${templateName}`;
     router.push({ path: previewPath, query: { preview: 'true' } });
 };
@@ -263,15 +564,15 @@ const handlePreview = () => {
 const handleSubmit = async () => {
     if (!validate()) return;
 
-    // Validation for edit mode
     if (isEditMode.value && (!currentId.value || currentId.value.trim() === '')) {
         alert('Có lỗi xảy ra: không tìm thấy ID. Vui lòng thử lại.');
         loading.value = false;
         return;
     }
 
-    // submit initiated
+    
     loading.value = true;
+    isNavigating.value = true;
     prepareUpload(imageManager.files.value.length + videoManager.files.value.length + audioManager.files.value.length);
 
     try {
@@ -281,11 +582,10 @@ const handleSubmit = async () => {
             audioManager.files.value.length ? upload(audioManager.files.value) : []
         ]);
 
-        // Calculate expiry date based on selected duration
-        const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
+    const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
 
-        if (isEditMode.value && currentId.value) {
-            // Filter out deleted URLs before updating
+            if (isEditMode.value && currentId.value) {
+            
             const filterDeletedUrls = (urls: string[] = []) => 
                 urls.filter(url => !deletedUrls.value.includes(url));
             
@@ -293,7 +593,7 @@ const handleSubmit = async () => {
             const finalVideos = [...filterDeletedUrls(existingData.value?.videos), ...videoUrls];
             const finalAudios = [...filterDeletedUrls(existingData.value?.audios), ...audioUrls];
             
-            // Update data prepared
+            
             
             await update(
                 currentId.value,
@@ -303,9 +603,9 @@ const handleSubmit = async () => {
                 deletedUrls.value,
                 calculatedExpiresAt
             );
-            // Update successful
             
-            // Delete media from Cloudinary after successful update
+            
+            
             if (deletedUrls.value.length > 0) {
                 try {
                     await fetch(`${import.meta.env.VITE_BACKEND_URL}media/delete`, {
@@ -314,37 +614,41 @@ const handleSubmit = async () => {
                         body: JSON.stringify({ urls: deletedUrls.value }),
                     });
                 } catch (_err) {
-                    // ignore delete failures
+                    // Silent fail
                 }
             }
             
             deletedUrls.value = [];
             
-            // Redirect to result page after update
+            
+            try { await waitUntilProgressComplete(4000); } catch (_e) {}
+            
             const templateName = route.query.template as string || 'demo';
             const topic = route.query.topic as string || '';
-            router.push({
+            await router.push({
                 name: 'Result',
                 params: { id: currentId.value },
                 query: { template: templateName, topic }
             });
+            
+            return;
         } else {
             const id = await submit(imageUrls, videoUrls, audioUrls, calculatedExpiresAt);
             if (id) {
-                // If user has verified email or cookie exists, notify backend to save ecard and send result URL
                 try {
                     const email = userEmail.value || getCookie('email');
                     if (email) {
-                        // Check existing ecard count for this user using shared helper
+                        
                         try {
                             const { allowed } = await canCreate(email, id);
                             if (!allowed) {
                                 alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
                                 loading.value = false;
+                                isNavigating.value = false;
                                 return;
                             }
                         } catch (err) {
-                            console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
+                            // Silent fail
                         }
                         const templateName = route.query.template as string || 'demo';
                         const topic = route.query.topic as string || '';
@@ -359,33 +663,41 @@ const handleSubmit = async () => {
                                 const txt = await res.text();
                                 alert(txt || `Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
                                 loading.value = false;
+                                isNavigating.value = false;
                                 return;
                             }
-                            const txt = await res.text();
-                            console.warn('Failed to register ecard:', txt);
+                                await res.text();
                         }
                     }
                 } catch (err) {
-                    console.warn('Failed to register ecard with backend or send email', err);
-                }
-                
+                    // Silent fail
+                }                
+                try { await waitUntilProgressComplete(4000); } catch (_e) {}
                 const templateName = route.query.template as string || 'demo';
                 const topic = route.query.topic as string || '';
-                // Redirect to result page after create
-                router.push({
+                
+                // Increment template creation counter
+                try {
+                    await incrementTemplateStats(templateName, topic);
+                } catch (err) {
+                    // Silent fail
+                }
+                
+                await router.push({
                     name: 'Result',
                     params: { id },
                     query: { template: templateName, topic }
                 });
+                
+                return;
             }
         }
 
         previewStore.clear();
     } catch (error) {
-        console.error("Lỗi:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại.");
-    } finally {
         loading.value = false;
+        isNavigating.value = false;
     }
 };
 
@@ -434,11 +746,41 @@ onMounted(async () => {
     
     if (route.query.template) {
         constraints.value.template = route.query.template as string;
+
         
-        if (constraints.value.contentPlaceholders.length === 0) {
+        try {
+            isLoadingTemplate.value = true;
             const config = await getTemplateConfig(constraints.value.template);
-            if (config?.contentPlaceholders) {
-                constraints.value.contentPlaceholders = config.contentPlaceholders;
+            if (config) {
+                constraints.value.maxImages = config.maxImages;
+                constraints.value.maxVideos = config.maxVideos;
+                constraints.value.maxAudios = config.maxAudios;
+                constraints.value.maxContent = config.maxContent;
+                if (config.contentPlaceholders) {
+                    constraints.value.contentPlaceholders = config.contentPlaceholders;
+                }
+            }
+        } catch (_err) {
+            // Silent fail
+        }
+        finally { isLoadingTemplate.value = false }
+
+    try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
+
+        
+        const emailFromQuery = route.query.email as string | undefined;
+        const emailToCheck = emailFromQuery || userEmail.value;
+        if (emailToCheck) {
+            try {
+                const { allowed } = await canCreate(emailToCheck, constraints.value.template);
+                if (!allowed) {
+                    alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
+                    
+                    router.push({ name: 'Home' });
+                    return;
+                }
+            } catch (err) {
+                // Silent fail
             }
         }
     } else if (urlParamId && !queryDocId) {
@@ -454,15 +796,49 @@ onMounted(async () => {
         content.value = Array(constraints.value.maxContent).fill("");
     }
 
+    
+    stopWatchRef = watch(() => route.query.template, async (newTemplate) => {
+        if (!newTemplate) return;
+        if (newTemplate === constraints.value.template) return;
+        constraints.value.template = newTemplate as string;
+        try {
+            const config = await getTemplateConfig(constraints.value.template);
+            if (config) {
+                constraints.value.maxImages = config.maxImages;
+                constraints.value.maxVideos = config.maxVideos;
+                constraints.value.maxAudios = config.maxAudios;
+                constraints.value.maxContent = config.maxContent;
+                if (config.contentPlaceholders) {
+                    constraints.value.contentPlaceholders = config.contentPlaceholders;
+                }
+            }
+        } catch (err) {
+            // Silent fail
+        }
+    try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
+        const emailToCheck = (route.query.email as string) || userEmail.value;
+        if (emailToCheck) {
+            try {
+                const { allowed } = await canCreate(emailToCheck, constraints.value.template);
+                if (!allowed) {
+                    alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
+                    router.push({ name: 'Home' });
+                    return;
+                }
+            } catch (err) {
+                // Silent fail
+            }
+        }
+    });
+
     const docId = route.params.id as string;
     if (docId) {
         isEditMode.value = true;
         currentId.value = docId;
         existingData.value = await fetchContext(docId);
         
-        // Load expiresAt if exists
         if (existingData.value?.expiresAt) {
-            // Convert Firestore Timestamp to Date
+            
             if (existingData.value.expiresAt.toDate) {
                 expiresAt.value = existingData.value.expiresAt.toDate();
             } else if (existingData.value.expiresAt instanceof Date) {
@@ -471,32 +847,29 @@ onMounted(async () => {
                 expiresAt.value = new Date(existingData.value.expiresAt);
             }
             
-            // Start countdown
             if (expiresAt.value) {
                 startCountdown();
             }
         }
     }
 
-    // Restore preview
+    
     if ((route.query.fromPreview === 'true' || route.query.confirmPreview === 'true') && previewStore.hasData) {
         content.value = [...previewStore.content];
         if (previewStore.imageFiles.length) imageManager.addFiles(previewStore.imageFiles);
         if (previewStore.videoFiles.length) videoManager.addFiles(previewStore.videoFiles);
         if (previewStore.audioFiles.length) audioManager.addFiles(previewStore.audioFiles);
         
-        // Restore edit mode data
+        
         if (previewStore.editId) {
             isEditMode.value = true;
             currentId.value = previewStore.editId;
             deletedUrls.value = previewStore.deletedUrls || [];
-            
-            // Fetch existing data if not already loaded
+
             if (!existingData.value && currentId.value) {
                 existingData.value = await fetchContext(currentId.value);
             }
-            
-            // Filter out deleted URLs from existingData
+
             if (existingData.value && deletedUrls.value.length > 0) {
                 existingData.value.images = existingData.value.images.filter((url: string) => !deletedUrls.value.includes(url));
                 if (existingData.value.videos) {
@@ -507,6 +880,8 @@ onMounted(async () => {
                 }
             }
         }
+
+    // bypassAudio removed - audio is optional by default
         
         const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.query.template);
         if (needRestore) {
@@ -535,6 +910,9 @@ onUnmounted(() => {
     if (countdownInterval.value) {
         clearInterval(countdownInterval.value);
     }
+    if (typeof stopWatchRef === 'function') {
+        try { stopWatchRef(); } catch (e) { }
+    }
 });
 </script>
 
@@ -549,22 +927,66 @@ onUnmounted(() => {
     />
     <div class="input-container">
         <div class="input-window">
+            <div v-if="isLoadingTemplate" class="loading-overlay"><div class="spinner"></div></div>
+            
+            <!-- Audio extraction progress overlay -->
+            <div v-if="isExtractingAudio" class="loading-overlay">
+                <div class="window-border" style="width: 90%; max-width: 500px;">
+                    <div class="window">
+                        <div class="title-bar">
+                            <div class="icon"></div>
+                            <span class="font-semibold text-sm">🎬 Đang trích xuất audio...</span>
+                            <div class="title-bar-buttons"></div>
+                        </div>
+                        <div class="text-area">
+                            <div class="input-content flex flex-col items-center justify-center p-8">
+                                <div class="mb-4 text-sm text-gray-700">Vui lòng đợi trong giây lát...</div>
+                                <div class="w-full">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-gray-700">Tiến trình</span>
+                                        <span class="text-sm font-medium text-gray-700">{{ extractProgress }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div 
+                                            class="progress-fill"
+                                            :style="{ width: extractProgress + '%' }"
+                                        >
+                                            <span v-if="extractProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ extractProgress }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-500">
+                                    💡 Đang chuyển đổi video sang audio...
+                                </div>
+                                <button 
+                                    @click="() => cancelExtract && cancelExtract()"
+                                    class="mt-4 win2k-button bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                                >
+                                    ❌ Hủy bỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="window-border">
-                <div class="window input-form">
+                <div class="window input-form" v-if="!loading && !isNavigating">
                     <div class="title-bar">
                         <div class="icon"></div>
                         <span class="font-semibold text-sm">Template: {{ constraints.template }}</span>
                         <div class="title-bar-buttons"></div>
                     </div>
+                    
                     <div class="text-area">
                         <div class="input-content">
-                            <!-- Duration Selector -->
+                            
                             <div class="mb-4 p-4 bg-linear-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg shadow-sm">
                                 <label class="block text-sm font-semibold text-purple-800 mb-3">
                                     ⏰ Thời hạn duy trì form
                                 </label>
                                 
-                                <!-- Countdown display (only in edit mode) -->
+                                
                                 <div v-if="isEditMode && expiresAt" class="mb-3 p-3 bg-white border border-purple-300 rounded-md">
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm font-medium text-gray-700">Thời gian còn lại:</span>
@@ -580,7 +1002,7 @@ onUnmounted(() => {
                                     </div>
                                 </div>
 
-                                <!-- Duration options -->
+                                
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <label 
                                         v-for="option in [
@@ -639,12 +1061,12 @@ onUnmounted(() => {
                             </div>
 
                             <div class="space-y-4">
-                                <!-- Content -->
+                                
                                 <div>
                                     <div class="flex justify-between items-center mb-2">
                                         <label class="block text-sm font-medium text-gray-700">
                                             Nội dung <span class="text-red-500">*</span>
-                                            <span v-if="constraints.maxContent !== Infinity" class="text-xs text-red-500 font-normal">
+                                            <span v-if="constraints.maxContent !== Infinity && filledContentCount < constraints.maxContent" class="text-xs text-red-500 font-normal">
                                                 (Bắt buộc: {{ constraints.maxContent }})
                                             </span>
                                         </label>
@@ -677,33 +1099,32 @@ onUnmounted(() => {
                                     </div>
                                 </div>
 
-                                <!-- Media sections -->
+                                
                                 <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ media.label }}
-                                        <span v-if="media.max !== Infinity" class="text-xs text-red-500">
-                                            (Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})
-                                        </span>
-                                        <span v-else class="text-xs text-gray-500">(không bắt buộc)</span>
+                                        <span v-if="media.key === 'audio'" class="text-xs text-gray-500">(không bắt buộc)</span>
+                                        <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})</span>
                                     </label>
                                     <input 
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
                                         multiple 
-                                        :accept="media.key === 'audio' ? 'audio/*,.m4a,.mp3,.wav,.ogg,.aac,.flac' : `${media.key}/*`" 
+                                        :accept="media.key === 'audio' ? 'audio/*,video/*' : `${media.key}/*`" 
                                         @change="handleMedia($event, media.key)" 
                                         class="hidden" 
                                         :disabled="!canAdd[media.key]" 
                                     />
                                     <label 
+                                        v-if="canAdd[media.key]"
                                         :for="`${media.key}Input`" 
-                                        :class="['file-input-button', !canAdd[media.key] ? 'file-input-button:disabled' : '']"
-                                        :disabled="!canAdd[media.key]"
+                                        class="file-input-button"
                                     >
                                         Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
                                     </label>
+                                    <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div>
                                     
-                                    <!-- New files preview -->
+                                    
                                     <div v-if="managers[media.key].previews.value.length" class="mt-2">
                                         <div class="media-preview">
                                             <div :class="media.key === 'audio' ? 'space-y-2' : media.key === 'video' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-2 md:grid-cols-3 gap-4'">
@@ -711,13 +1132,13 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="p" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="p" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="p" controls :class="media.key === 'audio' ? 'flex-1' : ''"></audio>
-                                                    <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
+                                                    <button @click="managers[media.key].removeFile(i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shrink-0 cursor-pointer' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer'">×</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Existing files -->
+                                    
                                     <div v-if="isEditMode && existingData && existingData[`${media.key}s`]?.length" class="mt-2">
                                         <h4 class="text-xs font-medium text-gray-600 mb-1">{{ media.label }} hiện có:</h4>
                                         <div class="media-preview">
@@ -726,14 +1147,14 @@ onUnmounted(() => {
                                                     <img v-if="media.key === 'image'" :src="url" class="w-full h-24 object-cover rounded-md" />
                                                     <video v-else-if="media.key === 'video'" :src="url" controls class="w-full h-24 object-cover rounded-md"></video>
                                                     <audio v-else :src="url" controls class="flex-1"></audio>
-                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'">×</button>
-                                                </div>
+                                                    <button @click="removeExisting(media.key, i)" :class="media.key === 'audio' ? 'bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 ml-2 cursor-pointer' : 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer'">×</button>
+                                          </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Submit -->
+                                
                                 <div v-if="loading" class="w-full">
                                     <div class="flex justify-between items-center mb-2">
                                         <span class="text-sm font-medium text-gray-700">{{ totalProgress > 0 ? "Đang tải lên..." : "Đang xử lý..." }}</span>
@@ -765,7 +1186,31 @@ onUnmounted(() => {
                         </div>
                     </div>
                 </div>
+                <div v-if="loading" class="submit-overlay">
+                    <div class="window-border" style="width: 90%; max-width: 720px;">
+                        <div class="window">
+                            <div class="title-bar">
+                                <div class="icon"></div>
+                                <span class="font-semibold text-sm">Đang xử lý...</span>
+                                <div class="title-bar-buttons"></div>
+                            </div>
+                            <div class="text-area">
+                                <div class="input-content flex flex-col items-center justify-center p-8">
+                                    <div class="mb-4 text-sm text-gray-700">Đang tải lên, vui lòng chờ...</div>
+                                    <div class="w-full">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" :style="{ width: (totalProgress || 10) + '%' }">
+                                                <span v-if="totalProgress >= 20" class="absolute inset-0 flex items-center justify-center text-white text-sm font-medium">{{ totalProgress }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
+<style scoped src="./css/style.css"></style>

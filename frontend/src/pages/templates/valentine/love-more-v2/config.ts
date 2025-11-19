@@ -1,6 +1,5 @@
 import type { TemplateConfig } from "@/config/templates";
-import { demoid } from "@/pages/input/context.service";
-import demo from "./demo.png";
+import demo from './demo.png';
 
 const config: TemplateConfig = {
   title: "Love More v2",

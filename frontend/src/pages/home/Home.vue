@@ -39,12 +39,12 @@
                         <div class="window text">
                             <div class="title-bar">
                                 <div class="icon"></div>
-                                <span>{{ card.title }}</span>
+                                <span :title="card.title">{{ truncateTitle(card.title) }}</span>
                                 <div class="title-bar-buttons"></div>
                             </div>
                             <div class="text-area">
                                 <!-- Thumbnail -->
-                                <div class="aspect-16/10 cursor-pointer overflow-hidden" @click="goToDemo(section, card)">
+                                <div class="aspect-16/10 cursor-pointer overflow-hidden" @click="goToDemo(section, card)" @mouseenter="prefetchInput; prefetchPreview(section, card)">
                                     <video v-if="card.thumbnailType === 'video'" :src="card.thumbnail"
                                         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                                         autoplay loop muted playsinline>
@@ -67,14 +67,17 @@
                             </div>
                             <div class="status-bar">
                                     <div class="flex gap-2 justify-center">
-                                        <button @click="goToDemo(section, card)" class="win2k-button">
+                                        <button @click="goToDemo(section, card)" @mouseenter="prefetchInput; prefetchPreview(section, card)" class="win2k-button">
                                             Demo
                                         </button>
-                                        <button @click="buyCard(section, card)" class="win2k-button">
+                                        <button @click="buyCard(section, card)" @mouseenter="prefetchInput" class="win2k-button">
                                             Tạo thiệp
                                         </button>
                                     </div>
                             </div>
+                        </div>
+                        <div v-if="loadingDemo === getCardKey(section, card)" class="card-loading-overlay">
+                            <div class="spinner"></div>
                         </div>
                     </div>
                 </div>
@@ -87,12 +90,42 @@
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { HOME_SECTIONS, loadAllSections, type TemplateCard, type Section } from './home.config'
-import { getTemplateConfig } from '@/config/templates'
+// template config and creation checks are done inside the Input page to keep Home lightweight
 import EmailOtpModal from '@/components/EmailOtpModal.vue'
 import { getCookie, setCookie } from '@/utils/cookies'
-import { canCreate, ECARD_LIMIT } from '@/composables/useEcards'
+// creation checks are done within Input page
 
 const router = useRouter()
+const loadingDemo = ref<string | null>(null)
+const templateModules = import.meta.glob('@/pages/templates/*/*/index.vue') as Record<string, () => Promise<any>>;
+
+function getCardKey(section: Section, card: TemplateCard) {
+    return `${section.id}-${card.id}`
+}
+
+async function prefetchPreview(section: Section, card: TemplateCard) {
+    try {
+        const frag = `/${section.id}/${card.id}/index.vue`;
+        for (const p in templateModules) {
+            if (p.includes(frag)) {
+                await (templateModules[p] as any)();
+                return true;
+            }
+        }
+        // fallback (may not be supported in some bundlers), ignore errors
+        try { await import(/* @vite-ignore */ `@/pages/templates/${section.id}/${card.id}/index.vue`) } catch {}
+    } catch (_err) {
+        // ignore
+    }
+    return false;
+}
+const inputPrefetched = ref(false)
+
+function prefetchInput() {
+    if (inputPrefetched.value) return
+    inputPrefetched.value = true
+    try { import('@/pages/input/index.vue') } catch (_e) { /* ignore */ }
+}
 const sections = ref<Section[]>([])
 const isLoading = ref(true)
 const selectedTag = ref<string>('all')
@@ -117,52 +150,56 @@ onMounted(async () => {
     sections.value = HOME_SECTIONS;
     
     isLoading.value = false
+    // Prefetch Input page component (shell) to improve UX when user navigates to create
+    try {
+        // dynamic import to warm-up the input route chunk and its CSS
+        import('@/pages/input/index.vue')
+    } catch (_err) {
+        // ignore prefetch errors
+    }
 })
 
-function goToDemo(section: Section, card: TemplateCard) {
-    router.push(`/${section.id}/${card.id}/${card.demoId}`)
+async function goToDemo(section: Section, card: TemplateCard) {
+    const key = getCardKey(section, card)
+    loadingDemo.value = key
+    // Trigger prefetch of preview component
+    prefetchPreview(section, card)
+    try {
+        await router.push(`/${section.id}/${card.id}/${card.demoId}`)
+    } catch (err) {
+        // navigation failure – ignore; show message if needed
+        console.warn('Navigation failed:', err)
+    } finally {
+        // Clear loading indicator
+        loadingDemo.value = null
+    }
 }
 
 async function buyCard(section: Section, card: TemplateCard) {
-    const templatePath = `${section.id}/${card.id}`;
-    const config = await getTemplateConfig(templatePath);
-    if (!config) {
-        // Fallback nếu không tìm thấy config
-        router.push(`/${section.id}/${card.id}`)
-        return
-    }
-
     const query: Record<string, string> = {
         template: card.id,
-        topic: section.id,
-        maxImages: config.maxImages.toString(),
-        maxVideos: config.maxVideos.toString(),
-        maxAudios: config.maxAudios.toString(),
-        maxContent: config.maxContent.toString(),
+        topic: section.id
     }
 
     const existing = getCookie('email')
     if (existing) {
-        // Check user's existing active ecard count BEFORE redirecting
-        try {
-            const { allowed } = await canCreate(existing, card.id)
-            if (!allowed) {
-                alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
-                return
-            }
-        } catch (err) {
-            console.warn('Không thể kiểm tra số thiệp đã tạo:', err);
-            // If check fails, fall back to previous flow (allow creation and backend will handle)
-        }
+        // We avoid awaiting server-side checks here to make navigation instant and load the input shell immediately.
+        // The Input page itself will validate whether the user can create this template and show a message if not allowed.
         query.email = existing
         router.push({ path: `/input`, query })
         return
     }
 
-    // show modal to collect email + OTP
+    // show modal to collect email + OTP; we store query so we can navigate after verification
     pendingQuery.value = query
     emailFromCookie.value = null
     showEmailModal.value = true
+}
+
+// Truncate title to a maximum length (used for UI only). Keep full title for alt/title attributes for accessibility.
+function truncateTitle(title: string | undefined | null, max = 30) {
+    if (!title) return '';
+    return title.length > max ? `${title.slice(0, max)}...` : title;
 }
 
 // handle verified event from modal
@@ -216,6 +253,7 @@ function onVerified(email: string) {
     border-bottom-color: #404040;
     min-height: 380px; /* allow flexible content while keeping a default card height */
     overflow: hidden;
+    position: relative; /* allow overlay inside */
 }
 
 .window {
@@ -314,6 +352,8 @@ function onVerified(email: string) {
     min-width: 120px;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     transition: none; /* immediate interaction without smooth transitions */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 .win2k-button:hover {
     border: 1px solid #808080;
@@ -334,6 +374,8 @@ function onVerified(email: string) {
     margin-right: 8px;
     margin-bottom: 8px;
     transition: none; /* immediate interaction */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 .win2k-tag-button.selected {
     border: 1px inset #d0d0c8;
@@ -371,4 +413,24 @@ function onVerified(email: string) {
     border-right-color: #404040;
     border-bottom-color: #404040;
 }
+
+/* Loading overlay for card previews */
+.card-loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9);
+    z-index: 40;
+}
+.card-loading-overlay .spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 4px solid #d0d0c8;
+    border-top-color: #082468;
+    animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

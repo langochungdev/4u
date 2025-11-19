@@ -2,21 +2,16 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'Galaxy Love',
-    description: 'Tình yêu như vũ trụ bao la',
+    title: 'demo update',
+    description: 'mô tả template',
     createdBy: 'Langochungdev',
-    
-    maxImages: 4,
+    maxImages: 10,
     maxVideos: 0,
-    maxAudios: 0,
-    maxContent: 4,
+    maxAudios: 1,
+    maxContent: 10,
     contentPlaceholders: [
-        'Nội dung 1',
-        'Nội dung 2',
-        'Nội dung 3',
-        'Nội dung 4'
+        'gợi ý 1',
     ],
-
 
     thumbnail: demo,
     thumbnailType: 'image',

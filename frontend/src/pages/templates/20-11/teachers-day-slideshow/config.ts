@@ -2,7 +2,7 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.png";
 
 const config: TemplateConfig = {
-  title: "Thiệp chúc mừng 20/11",
+  title: "teachers-day-slideshow - Thiệp chúc mừng 20/11",
   description: "Template thiệp chúc mừng 20/11 với hiệu ứng slideshow.",
   createdBy: "TAN",
 
@@ -17,7 +17,6 @@ const config: TemplateConfig = {
     "Nội dung lời chúc 2 (dùng để xoay vòng)",
   ],
 
-  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",

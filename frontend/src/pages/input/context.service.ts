@@ -72,5 +72,3 @@ export const contextService = {
     await updateDoc(doc(db, CONTEXTS_COLLECTION, id), updateData);
   },
 };
-
-export const demoid = 'fLFM0pF6lgoPwcjZlwEb';

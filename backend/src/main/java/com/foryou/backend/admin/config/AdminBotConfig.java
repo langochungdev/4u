@@ -19,6 +19,7 @@ public class AdminBotConfig {
     static {
         COMMAND_DESCRIPTIONS.put("/thongke", "Thống kê số lượng users và contexts trong hệ thống");
         COMMAND_DESCRIPTIONS.put("/cleanexpired", "Xóa tất cả contexts và media đã hết hạn");
+        COMMAND_DESCRIPTIONS.put("/created", "Hiển thị thống kê số lần tạo của các templates");
     }
     
     public String getBotToken() {

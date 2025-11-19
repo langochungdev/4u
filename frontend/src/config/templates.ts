@@ -11,7 +11,7 @@ export interface TemplateConfig {
     description: string;
     thumbnail: string;
     thumbnailType: 'image' | 'video';
-    demoId: string;
+    demoId?: string;
     createdBy?: string;
     
     // Cấu hình upload media

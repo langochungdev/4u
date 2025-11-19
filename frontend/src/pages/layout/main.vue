@@ -3,17 +3,18 @@
         <header
             class=" top-0 z-50 border-b border-gray-700 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div class="container mx-auto px-2 py-1">
-                <div class="flex items-center justify-between">
-                    <router-link to="/" class="flex items-center gap-2">
-                        <img src="/logo.png" alt="foryou" class="h-16 w-auto" />
-                    </router-link>
-                    <div class="flex-1 text-center text-white text-xs max-w-[50ch] md:max-w-[80ch] px-2 hidden md:block">
+                <div class="flex items-center justify-between gap-2 md:grid md:grid-cols-3 md:gap-4">
+                    <div class="flex items-center justify-start shrink-0">
+                        <router-link to="/" class="flex items-center gap-2">
+                            <img src="/logo.png" alt="foryou" class="h-12 w-auto md:h-16" />
+                        </router-link>
+                    </div>
+                    <div class="text-center text-white text-xs max-w-[50ch] md:max-w-[80ch] px-2 hidden md:block">
                         <p>mail góp ý: langochungdev@gmail.com</p>
                         <p>mỗi tuần sẽ xuất bản 8 template chủ đề theo sự kiện gần nhất</p>
                         <p>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0 min-w-max">
-                        <div class="text-xs text-gray-300 mr-2 hidden md:block">{{ userEmail || 'Chưa xác thực' }}</div>
+                    <div class="flex items-center gap-1 md:gap-2 justify-end shrink-0">
                         <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button">Đã tạo</button>
                         <button v-else @click="showEmailModal = true" class="win2k-button header-button">Đăng nhập</button>
                         <button v-if="userEmail" @click="logout" class="win2k-button header-button">Đăng xuất</button>
@@ -35,7 +36,7 @@
                     <div class="flex flex-col items-center md:items-start">
                         <div class="mb-3 flex items-center gap-2">
                             <img src="/logo.png" alt="FOR YOU" class="h-8 w-auto" />
-                            <span class="text-xl font-bold text-[#00FFFF]">FOR YOU</span>
+                            <span class="text-xl font-bold ">FOR YOU</span>
                         </div>
                         <p class="text-gray-400 text-sm leading-relaxed truncate max-w-xs">
                             Tạo thiệp tương tác độc đáo và ý nghĩa cho mọi dịp đặc biệt.
@@ -43,7 +44,7 @@
                     </div>
 
                     <div class="flex flex-col items-center">
-                        <h3 class="mb-3 text-lg font-semibold text-[#00FFFF]">Liên kết</h3>
+                        <h3 class="mb-3 text-lg font-semibold ">Liên kết</h3>
                         <div class="flex flex-row gap-4 text-sm">
                             <router-link to="/" class="text-gray-400 hover:text-[#00FFFF] transition-colors">
                                 Trang chủ
@@ -58,7 +59,7 @@
                     </div>
 
                     <div class="flex flex-col items-center md:items-end">
-                        <h3 class="mb-3 text-lg font-semibold text-[#00FFFF]">Theo dõi chúng tôi</h3>
+                        <h3 class="mb-3 text-lg font-semibold ">Theo dõi chúng tôi</h3>
                         <div class="flex gap-4">
                             <a href="https://tiktok.com/@langochungdev" target="_blank" rel="noopener noreferrer"
                                 class="text-gray-400 hover:text-[#00FFFF] transition-colors">
@@ -80,7 +81,7 @@
 
                 <div class="mt-6 border-t border-gray-700 pt-6 text-center">
                     <p class="text-gray-400 text-sm">
-                        &copy; 2025 NEXTGEN. Tất cả quyền được bảo lưu.
+                        &copy; 2025 FORYOU. Tất cả quyền được bảo lưu.
                         <span class="mx-2">|</span>
                         <a href="#privacy" class="hover:text-[#00FFFF] transition-colors">Bảo mật</a>
                         <span class="mx-2">|</span>
@@ -205,11 +206,22 @@ function handleVerified(email: string) {
     border: 1px outset #d0d0c8;
     background-color: #e0e0e0;
     color: black;
-    font-size: 14px;
-    padding: 12px 24px;
+    font-size: 13px;
+    padding: 10px 16px;
     cursor: pointer;
-    min-width: 120px;
+    min-width: 85px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    transition: none; /* disable smooth transitions to make clicks immediate */
+    transition: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .win2k-button {
+        font-size: 14px;
+        padding: 12px 24px;
+        min-width: 120px;
+    }
 }
 </style>

@@ -2,7 +2,7 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.png";
 
 const config: TemplateConfig = {
-  title: "Hộp quà 3D & Thiệp",
+  title: "present-box - Hộp quà 3D & Thiệp",
   description:
     "Template hộp quà 3D tự xoay, khi click sẽ mở ra thiệp chúc mừng cho 20/11.",
   createdBy: "TAN",
@@ -19,7 +19,6 @@ const config: TemplateConfig = {
     "Caption dưới ảnh (ví dụ: 'GFF ❤️ 20-11-2023')",
   ],
 
-  demoId: "demo",
   thumbnail: demo,
   thumbnailType: "image",
   templateName: new URL(".", import.meta.url).pathname.split("/").pop() || "",
