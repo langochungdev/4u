@@ -2,6 +2,7 @@ package com.foryou.backend.user.controller;
 
 import com.foryou.backend.user.dto.OtpRequestDto;
 import com.foryou.backend.user.dto.OtpVerifyDto;
+import com.foryou.backend.user.dto.ShareQrRequestDto;
 import com.foryou.backend.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +50,22 @@ public class UserController {
             return ResponseEntity.status(400).body("invalid_or_expired_otp");
         } catch (ExecutionException | InterruptedException e) {
             return ResponseEntity.status(500).body("failed_to_save_user");
+        }
+    }
+
+    @PostMapping("/share-qr")
+    public ResponseEntity<?> shareQr(@RequestBody ShareQrRequestDto req) {
+        if (req == null || req.getEmail() == null || req.getEmail().isEmpty()
+            || req.getQrLink() == null || req.getQrLink().isEmpty()
+            || req.getSenderName() == null || req.getSenderName().isEmpty()) {
+            return ResponseEntity.badRequest().body("email, qrLink and senderName are required");
+        }
+        try {
+            userService.shareQr(req.getEmail(), req.getQrLink(), req.getSenderName());
+            return ResponseEntity.ok("qr_shared_successfully");
+        } catch (IOException e) {
+            String msg = e.getMessage() == null ? "" : e.getMessage();
+            return ResponseEntity.status(502).body("failed_to_send_email: " + msg);
         }
     }
 }

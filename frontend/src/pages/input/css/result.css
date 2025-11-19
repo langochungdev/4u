@@ -258,7 +258,7 @@
 }
 
 .section-title {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
     font-size: 2rem;
     font-weight: bold;
     color: #ffffff;
@@ -266,12 +266,12 @@
 }
 
 .section-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
     color: #ffffff;
 }
 
 .card-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Mono', monospace;
 }
 
 /* Result specific styles */
@@ -516,4 +516,253 @@
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.share-qr-form {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: #f0f0f0;
+    border: 2px inset #d0d0c8;
+    max-width: 400px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.share-label {
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.share-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    /* allow flex children to shrink properly */
+    flex-wrap: nowrap;
+    /* avoid wrapping children and keep button visible */
+}
+
+.share-email-input {
+    flex: 1;
+    padding: 5px 6px;
+    font-size: 13px;
+    border: 2px inset #d0d0c8;
+    background-color: white;
+    min-width: 0;
+    /* prevent overflow */
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    /* allow long emails to wrap */
+}
+
+.share-name-input {
+    flex: 0 0 160px;
+    /* fixed-ish width for sender name */
+    min-width: 0;
+    padding: 5px 6px;
+    font-size: 13px;
+    border: 2px inset #d0d0c8;
+    background-color: white;
+}
+
+.share-email-input,
+.share-name-input,
+.share-send-button {
+    box-sizing: border-box;
+}
+
+.share-email-input:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+.share-email-input:focus {
+    outline: 1px dotted #000;
+    outline-offset: -2px;
+}
+
+.share-send-button {
+    padding: 5px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.share-error {
+    color: #cc0000;
+    background-color: #ffe0e0;
+    border: 1px solid #cc0000;
+    padding: 4px 6px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.share-success {
+    color: #008800;
+    background-color: #e0ffe0;
+    border: 1px solid #008800;
+    padding: 4px 6px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* spinner inside button */
+.button-spinner {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: spin 1s linear infinite;
+}
+
+.button-text {
+    vertical-align: middle;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .share-input-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .share-email-input {
+        width: 100%;
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+    }
+
+    .share-send-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .share-qr-form {
+        padding: 12px;
+        margin-top: 16px;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .share-name-input {
+        flex: 1;
+        /* full width on mobile */
+    }
+}
+
+/* Wider layout for laptop / larger screens */
+@media (min-width: 769px) {
+    .share-qr-form {
+        max-width: 720px;
+        /* allow the inputs to be wider on laptop */
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .share-input-group {
+        gap: 12px;
+    }
+
+    .share-name-input {
+        flex: 0 0 180px;
+    }
+
+    .share-email-input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .share-send-button {
+        flex: 0 0 120px;
+    }
+
+    .share-email-input,
+    .share-name-input {
+        font-size: 15px;
+        padding: 8px 10px;
+    }
+
+    .share-send-button {
+        font-size: 15px;
+        padding: 8px 12px;
+    }
+}
+
+/* Use grid layout on wide screens to keep the send button visible and prevent overflow */
+@media (min-width: 1024px) {
+    .share-input-group {
+        display: grid;
+        /* allow columns to shrink gracefully on narrower desktop windows */
+        grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) minmax(80px, 120px);
+        /* name | email | button */
+        gap: 12px;
+        align-items: center;
+    }
+
+    .share-name-input {
+        width: 180px;
+        flex: none;
+    }
+
+    .share-email-input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .share-send-button {
+        width: 120px;
+        flex: none;
+    }
+}
+
+/* More narrow mobile handling to avoid overflow */
+@media (max-width: 420px) {
+    .share-qr-form {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .share-name-input {
+        flex-basis: 45%;
+    }
+
+    .share-email-input {
+        flex-basis: 55%;
+    }
+
+    .share-input-group {
+        gap: 6px;
+        align-items: stretch;
+    }
+
+    .share-send-button {
+        padding: 8px;
+    }
+
+    .share-send-button .button-text {
+        display: inline;
+    }
+
+    .share-send-button .button-icon {
+        display: inline-block;
+    }
 }

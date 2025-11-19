@@ -1,72 +1,60 @@
 package com.foryou.backend.util;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.*;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
 
 @Service
 public class MailService implements MailRepository {
     private static final Logger logger = LoggerFactory.getLogger(MailService.class);
-    private final SendGrid sendGrid;
+    private final JavaMailSender mailSender;
     private final String fromEmail;
     private final String replyToEmail;
 
-    public MailService(@Value("${SENDGRID_API_KEY}") String apiKey,
+    public MailService(JavaMailSender mailSender,
                        @Value("${mail.from:langochungdev@gmail.com}") String fromEmail,
                        @Value("${mail.reply-to:}") String replyToEmail) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalStateException("SENDGRID_API_KEY not set!");
-        }
-        this.sendGrid = new SendGrid(apiKey);
+        this.mailSender = mailSender;
         this.fromEmail = fromEmail;
         this.replyToEmail = replyToEmail;
     }
 
     @Override
     public void sendEmail(EmailRequest request) throws IOException {
-        Email from = new Email(fromEmail);
-        Email to = new Email(request.getTo());
-        Content content = new Content(request.isHtml() ? "text/html" : "text/plain", request.getContent());
-        Mail mail = new Mail(from, request.getSubject(), to, content);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        Personalization personalization = new Personalization();
-        personalization.addTo(to);
-        request.getCc().forEach(cc -> personalization.addCc(new Email(cc)));
-        request.getBcc().forEach(bcc -> personalization.addBcc(new Email(bcc)));
-        mail.addPersonalization(personalization);
+            helper.setFrom(fromEmail);
+            helper.setTo(request.getTo());
+            helper.setSubject(request.getSubject());
+            helper.setText(request.getContent(), request.isHtml());
 
-        if (!replyToEmail.isEmpty()) {
-            mail.setReplyTo(new Email(replyToEmail));
-        }
+            if (!replyToEmail.isEmpty()) {
+                helper.setReplyTo(replyToEmail);
+            }
 
-        request.getAttachments().forEach(att -> {
-            Attachments attachment = new Attachments();
-            attachment.setFilename(att.getFilename());
-            attachment.setContent(att.getContent());
-            attachment.setType(att.getType());
-            attachment.setDisposition(att.getDisposition());
-            mail.addAttachments(attachment);
-        });
+            if (!request.getCc().isEmpty()) {
+                helper.setCc(request.getCc().toArray(new String[0]));
+            }
 
-        Request sendGridRequest = new Request();
-        sendGridRequest.setMethod(Method.POST);
-        sendGridRequest.setEndpoint("mail/send");
-        sendGridRequest.setBody(mail.build());
+            if (!request.getBcc().isEmpty()) {
+                helper.setBcc(request.getBcc().toArray(new String[0]));
+            }
 
-        Response response = sendGrid.api(sendGridRequest);
-        logger.info("SendGrid response status: {}, body: {}", response.getStatusCode(), response.getBody());
+            mailSender.send(message);
+            logger.info("Email sent successfully to: {}", request.getTo());
 
-        if (response.getStatusCode() >= 400) {
-            throw new IOException("Failed to send email: " + response.getBody());
+        } catch (MessagingException e) {
+            logger.error("Failed to send email to {}: {}", request.getTo(), e.getMessage());
+            throw new IOException("Failed to send email: " + e.getMessage(), e);
         }
     }
 }
