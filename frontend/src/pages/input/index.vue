@@ -151,7 +151,7 @@ const remaining = computed(() => ({
 const mediaTypes = computed(() => [
     { key: 'image' as const, label: 'Ảnh', max: constraints.value.maxImages },
     { key: 'video' as const, label: 'Video', max: constraints.value.maxVideos },
-    { key: 'audio' as const, label: 'Audio', max: constraints.value.maxAudios }
+    { key: 'audio' as const, label: 'Audio hoặc video', max: constraints.value.maxAudios }
 ]);
 
 const filledContentCount = computed(() => content.value.filter(c => c.trim()).length);
@@ -1120,7 +1120,7 @@ onUnmounted(() => {
                                         :for="`${media.key}Input`" 
                                         class="file-input-button"
                                     >
-                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'audio' }}
+                                        Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'nhạc nền' }}
                                     </label>
                                     <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div>
                                     
