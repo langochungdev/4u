@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import type { Ref } from "vue";
 import { useTemplateData } from "@/composables/useTemplateData";
 import TEMPLATE_CONFIG from "./config";
-// import "./style.css";
 
 /* ===== LẤY DATA TỪ CONFIG / BUILDER ===== */
 
@@ -23,6 +22,13 @@ const safeContext = computed<TemplateContext>(() => {
   return raw ?? { content: [], images: [] };
 });
 
+const bgAudio = computed<string | null>(() => {
+  const audios = safeContext.value.audios;
+  if (audios && audios.length > 0 && audios[0]) {
+    return audios[0];
+  }
+  return null;
+});
 /* ===== CONTENT CHỈ DÙNG CHO MODAL ===== */
 
 const rawContent = computed<string>(() => {
@@ -53,14 +59,14 @@ const pageTitle = "💐 Chúc mừng Ngày Nhà Giáo Việt Nam 20/11 💕";
 const pageSubtitle =
   "Cảm ơn thầy/cô vì những cống hiến thầm lặng và tình yêu dành cho học trò.";
 
-/* ===== LÁ THƯ RƠI (img/Anh (1..12).png) ===== */
+/* ===== LÁ THƯ / ẢNH RƠI (img/Anh (1..12).png) ===== */
 
 interface FallingItem {
   id: number;
-  left: number;
-  width: number;
-  duration: number;
-  rotate: number;
+  left: number;      // % viewport width
+  width: number;     // px
+  duration: number;  // s
+  rotate: number;    // deg
   src: string;
 }
 
@@ -71,6 +77,7 @@ const fallingSources: string[] = Array.from({ length: 12 }, (_v, idx) =>
   new URL(`./img/Anh (${idx + 1}).png`, import.meta.url).href
 );
 
+// để tránh ảnh rơi dính chùm
 const activePositions: number[] = [];
 
 function getFallSrc(randomIndex: number): string {
@@ -84,9 +91,10 @@ function getFallSrc(randomIndex: number): string {
 function createFallingImage() {
   if (fallingSources.length === 0) return;
 
+  // tránh trùng vị trí
   let left: number;
-  const safe = 8;
-  const minDistance = 10;
+  const safe = 8;          // bỏ lề 2 bên
+  const minDistance = 10;  // tối thiểu cách nhau 10vw
   let tries = 0;
 
   do {
@@ -97,6 +105,7 @@ function createFallingImage() {
     tries < 20
   );
 
+  // responsive width
   let min = 80;
   let max = 120;
   if (window.innerWidth <= 480) {
@@ -108,7 +117,7 @@ function createFallingImage() {
   }
 
   const width = min + Math.random() * (max - min);
-  const duration = 8 + Math.random() * 4;
+  const duration = 8 + Math.random() * 4; // rơi 8–12s
   const rotate = Math.random() * 360;
 
   const randomIndex = Math.floor(Math.random() * fallingSources.length);
@@ -127,6 +136,7 @@ function createFallingImage() {
 
   activePositions.push(left);
 
+  // xoá item sau ~14s (hết animation)
   setTimeout(() => {
     const idx = fallingItems.value.findIndex((it) => it.id === id);
     if (idx !== -1) fallingItems.value.splice(idx, 1);
@@ -136,8 +146,20 @@ function createFallingImage() {
   }, 14000);
 }
 
+let timerId: number | null = null;
+
 onMounted(() => {
-  setInterval(createFallingImage, 1100);
+  // tạo 2–3 cái rơi sẵn cho đẹp
+  for (let i = 0; i < 3; i++) {
+    createFallingImage();
+  }
+  timerId = window.setInterval(createFallingImage, 1100);
+});
+
+onUnmounted(() => {
+  if (timerId !== null) {
+    clearInterval(timerId);
+  }
 });
 
 /* ===== MODAL ===== */
@@ -155,7 +177,9 @@ const closeModal = () => {
 
 <template>
   <div
-    class="letter-box-page relative min-h-screen overflow-hidden flex flex-col items-center justify-center bg-linear-to-br from-pink-200 via-amber-50 to-pink-100 text-center text-rose-800 px-4"
+    class="letter-box-page relative min-h-screen overflow-hidden flex flex-col items-center justify-center
+           bg-linear-to-br from-pink-200 via-amber-50 to-pink-100
+           text-center text-rose-800 px-4"
   >
     <!-- Nội dung trung tâm -->
     <div class="relative z-10 flex flex-col items-center max-w-xl gap-3">
@@ -187,50 +211,46 @@ const closeModal = () => {
       @click="openModal"
     />
 
-    <!-- MODAL GLASS NEW DESIGN -->
-<div
-  v-if="showModal"
-  class="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
-  @click.self="closeModal"
->
-  <div
-    class="modal-wrapper animate-pop-up w-full max-w-[560px]"
-  >
-    <!-- Lớp kính -->
+    <!-- MODAL – ẢNH + NỘI DUNG -->
     <div
-      class="glass-box rounded-[40px] border border-white/40 bg-white/10 backdrop-blur-2xl shadow-[0_28px_70px_rgba(0,0,0,0.45)] p-3 sm:p-4"
+      v-if="showModal"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-md px-4"
+      @click.self="closeModal"
     >
-      <!-- Card trắng bên trong -->
-      <div
-        class="inner-card bg-white rounded-4xl shadow-[0_20px_40px_rgba(0,0,0,0.25)] overflow-hidden"
-      >
+      <div class="modal-wrapper w-full max-w-[780px] animate-pop-up">
+        <div class="glass-box rounded-[30px] border border-white/25 bg-white/10 shadow-[0_32px_70px_rgba(0,0,0,0.45)] p-4">
+          <div class="inner-card bg-white rounded-[26px] shadow-[0_18px_40px_rgba(0,0,0,0.22)] overflow-hidden">
 
-        <!-- Ảnh thật sự to và rõ -->
-        <img
-          :src="mainImage"
-          alt="Card Image"
-          class="w-full h-[380px] sm:h-[440px] object-cover"
-        />
+            <!-- ẢNH -->
+            <img
+              :src="mainImage"
+              alt="Card Image"
+              class="modal-image"
+            />
 
-        <!-- Khối lời chúc rõ ràng -->
-        <div class="px-6 py-5 text-center">
-          <p
-            class="text-[15px] sm:text-[16px] text-slate-800 leading-relaxed whitespace-pre-line wrap-break-word"
-          >
-            {{ modalText }}
-          </p>
+            <!-- NỘI DUNG -->
+            <div class="modal-body">
+              <p class="modal-message">
+                {{ modalText }}
+              </p>
 
-        <button
-            class="close-button"
-            @click="closeModal"
-            >
-            <span>Đóng thư</span> 💗
-        </button>
+              <button class="close-button" @click="closeModal">
+                Đóng thư 💜
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-  </div>
+  <audio
+  v-if="bgAudio"
+  :src="bgAudio"
+  autoplay
+  loop
+  class="audio-hidden"
+/>
+
 </template>
+
 <style scoped src="./style.css"></style>

@@ -316,7 +316,7 @@
 /* NẮP TRÊN – hồng rose pastel, có highlight nhẹ */
 
 .env-top {
-    background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.8), transparent 60%), linear-gradient(180deg, #ff8fb3 0%, #ff6a9a 55%, #f2487f 100%);
+    background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.8), transparent 60%), linear-gradient(180deg, #ffe0b5 0%, #ffc583 55%, #ffad62 100%);
     clip-path: polygon(0 0, 100% 0, 50% 50%);
     transform-origin: 50% 0%;
     transform: rotateX(0deg);
@@ -337,7 +337,7 @@
 /* THÂN DƯỚI – cam pastel (như giấy kraft nhẹ) */
 
 .env-bottom {
-    background: linear-gradient(180deg, #ffe0b5 0%, #ffc583 55%, #ffad62 100%);
+    background: linear-gradient(180deg, #ff8fb3 0%, #ff6a9a 55%, #f2487f 100%);
     clip-path: polygon(0 100%, 50% 50%, 100% 100%);
     z-index: 1;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.12);

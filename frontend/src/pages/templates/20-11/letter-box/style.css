@@ -54,7 +54,7 @@
 
 @keyframes popUp {
     0% {
-        transform: scale(0.85) translateY(20px);
+        transform: scale(0.85) translateY(30px);
         opacity: 0;
     }
     100% {
@@ -63,12 +63,9 @@
     }
 }
 
-.animate-pop-up {
-    animation: popUp 0.25s ease-out both;
-}
-
+.animate-pop-up,
 .modal-wrapper {
-    animation: popUp 0.25s ease-out forwards;
+    animation: popUp 0.25s ease-out both;
 }
 
 .glass-box {
@@ -81,38 +78,84 @@
 }
 
 
-/* Popup smooth */
+/* ===== MODAL CARD MỚI ===== */
 
-@keyframes popUp {
-    0% {
-        transform: scale(0.85) translateY(30px);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
+
+/* Ảnh trong card */
+
+.modal-image {
+    width: 100%;
+    height: auto;
+    max-height: 460px;
+    object-fit: contain;
+    display: block;
+    background: #fbd4d4;
 }
+
+
+/* Khối nội dung bên dưới ảnh */
+
+.modal-body {
+    padding: 20px 28px 24px;
+    text-align: center;
+}
+
+
+/* Font nội dung – khác hẳn body */
+
+.modal-message {
+    font-family: "Nunito", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: #374151;
+    /* slate-700 */
+    font-weight: 500;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+
+/* Nút đóng thư */
 
 .close-button {
     margin-top: 18px;
     padding: 10px 26px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #ff6f91, #ff8fab);
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
     color: white;
     font-size: 14px;
     font-weight: 600;
-    box-shadow: 0 6px 18px rgba(255, 120, 150, 0.35);
+    box-shadow: 0 6px 18px rgba(148, 90, 255, 0.4);
     transition: 0.25s ease;
     border: none;
+    cursor: pointer;
 }
 
 .close-button:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 22px rgba(255, 120, 150, 0.5);
+    box-shadow: 0 8px 22px rgba(148, 90, 255, 0.55);
 }
 
 .close-button:active {
     transform: scale(0.96);
-    box-shadow: 0 3px 10px rgba(255, 120, 150, 0.4);
+    box-shadow: 0 3px 10px rgba(148, 90, 255, 0.45);
+}
+
+
+/* Player audio */
+
+.audio-player {
+    margin-top: 16px;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.audio-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
 }
