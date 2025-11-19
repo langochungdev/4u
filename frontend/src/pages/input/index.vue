@@ -432,7 +432,7 @@ const extractAudioFromVideo = async (videoFile: File): Promise<File> => {
             if (error instanceof Error && error.message === 'cancelled') {
                 reject(error);
             } else {
-                reject(new Error('Không thể decode audio từ video. File có thể bị lỗi hoặc không có audio track.'));
+                reject(new Error('chỉ hỗ trợ chuyển mp4 sang audio'));
             }
         }
     });
@@ -1110,7 +1110,7 @@ onUnmounted(() => {
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
                                         multiple 
-                                        :accept="media.key === 'audio' ? 'audio/*,video/*' : `${media.key}/*`" 
+                                        :accept="media.key === 'audio' ? 'audio/*,video/mp4,video/webm,video/quicktime,.mp3,.m4a,.wav,.mp4,.webm,.mov' : `${media.key}/*`" 
                                         @change="handleMedia($event, media.key)" 
                                         class="hidden" 
                                         :disabled="!canAdd[media.key]" 
