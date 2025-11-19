@@ -198,7 +198,7 @@ function handleVerified(email: string) {
     background-position: top left;
     background-repeat: repeat;
     background-attachment: fixed;
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     cursor: url('/cursor.cur'), auto;
 }
 
