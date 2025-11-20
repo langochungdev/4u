@@ -307,20 +307,20 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
           </div>
         </div>
       </div>
-
+      <audio
+        v-if="bgAudio"
+        :src="bgAudio"
+        autoplay
+        loop
+        class="audio-hidden"
+      />
       <!-- Footer nhỏ (nằm trong khung 480px) -->
       <div class="absolute bottom-3 w-full text-center text-xs text-gray-700 z-10">
         Made with ❤️ • 20/11
       </div>
     </div>
   </div>
-  <audio
-  v-if="bgAudio"
-  :src="bgAudio"
-  autoplay
-  loop
-  class="audio-hidden"
-/>
+  
 </template>
 
 

@@ -163,7 +163,7 @@ onUnmounted(() => {
     <!-- ============ STEP 2 ============ -->
     <div class="screen" :class="{ active: step === 'cake' }">
       <div class="cake-container">
-        <h1 class="title-2011">MỪNG NGÀY 20/11</h1>
+        <h1 class="title-2011">MỪNG NGÀY NHÀ GIÁO VIỆT NAM 20/11</h1>
 
         <img :src="birthdayGif" class="cake-img" />
 
