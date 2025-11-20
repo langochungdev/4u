@@ -51,6 +51,37 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://story4u.online/" />
     
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "logo": "https://story4u.online/logo.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "description": "Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây",
+            "publisher": { "@type": "Organization", "name": "STORY4U" }
+          },
+          {
+            "@type": "WebApplication",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "applicationCategory": "Multimedia",
+            "operatingSystem": "All",
+            "browserRequirements": "Requires a modern browser with JavaScript enabled",
+            "description": "Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây"
+          }
+        ]
+      }
+    </script>
+    
     <!-- Early meta update for crawlers - runs before Vue loads -->
     <script>
       (function() {
@@ -103,6 +134,30 @@
           var canonical = document.querySelector('link[rel="canonical"]');
           if (canonical) {
             canonical.href = currentUrl;
+          }
+
+          // Add or update structured data for the current page (WebPage) so crawlers can pick up dynamic pages
+          try {
+            var ldScript = document.querySelector('script[type="application/ld+json"][data-dynamic="true"]');
+            var pageLd = {
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              "url": currentUrl,
+              "name": title,
+              "description": description,
+              "isPartOf": { "@type": "WebSite", "name": "STORY4U", "url": "https://story4u.online" }
+            };
+
+            if (!ldScript) {
+              ldScript = document.createElement('script');
+              ldScript.type = 'application/ld+json';
+              ldScript.setAttribute('data-dynamic', 'true');
+              document.head.appendChild(ldScript);
+            }
+            ldScript.textContent = JSON.stringify(pageLd);
+          } catch (err) {
+            // fail silently if script injection isn't allowed
+            console.warn('Failed to add dynamic JSON-LD', err);
           }
         }
       })();
