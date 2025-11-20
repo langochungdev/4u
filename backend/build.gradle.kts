@@ -37,7 +37,6 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.google.firebase:firebase-admin:9.1.1")
-    implementation("com.sendgrid:sendgrid-java:4.9.3")
     implementation("com.cloudinary:cloudinary-http44:1.36.0")
     // implementation("io.github.cdimascio:java-dotenv:5.2.2")
     implementation("me.paulschwarz:spring-dotenv:4.0.0")

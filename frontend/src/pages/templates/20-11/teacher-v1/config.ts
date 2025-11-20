@@ -2,7 +2,7 @@ import type { TemplateConfig } from '@/config/templates';
 import teachears from './demo.png';
 
 const config: TemplateConfig = {
-    title: ' Teachears - lời chúc thầy cô 20-11',
+    title: 'teacher-v1 - Lời chúc thầy cô 20-11',
     description: 'Mẫu lời chúc thầy cô nhân ngày 20-11 ý nghĩa, trang trọng và đẹp mắt.',
     createdBy: 'tranminhkhadev',
     maxImages: 1,

@@ -2,16 +2,16 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'Sách kỷ niệm ngày 20/11',
-    description: 'Hãy để những hình ảnh thật ý nghĩa cùng những lời chúc chân thành gửi đến thầy cô giáo nhân ngày Nhà giáo Việt Nam 20/11 với mẫu sách kỷ niệm đẹp và trang trọng này.',
+    title: 'notebook-for-2011 - Sách tri lưu giữ kỷ niệm 20-11',
+    description: 'Hãy để lại những lời chúc ý nghĩa và hình ảnh đẹp nhất dành tặng thầy cô nhân ngày Nhà Giáo Việt Nam 20-11 với mẫu sổ tay tri ân này!',
     createdBy: 'DuongDinhTrac',
     maxImages: 5,
     maxVideos: 0,
     maxAudios: 1,
     maxContent: 2,
     contentPlaceholders: [
-        'Nhập title',
-        'Nhập nội dung'
+        'Nhập tiêu đề của sách',
+        'Nhập lời chúc ý nghĩa dành tặng thầy cô...'
     ],
 
     thumbnail: demo,

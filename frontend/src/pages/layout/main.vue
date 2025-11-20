@@ -193,13 +193,17 @@ function handleVerified(email: string) {
 
 <style scoped>
 .main-layout {
-    background-image: url('/b3.jpg');
+    background-image: url('/background.jpg');
     background-size: 300px auto;
     background-position: top left;
     background-repeat: repeat;
     background-attachment: fixed;
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     cursor: url('/cursor.cur'), auto;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .win2k-button {
@@ -223,5 +227,12 @@ function handleVerified(email: string) {
         padding: 12px 24px;
         min-width: 120px;
     }
+}
+</style>
+
+<style>
+body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
 }
 </style>

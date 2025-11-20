@@ -43,12 +43,19 @@ export const createTextSprite = (text: string, fontSize = 48) => {
 
 export const createImageFrame = (img: HTMLImageElement) => {
   const tempCanvas = document.createElement('canvas');
-  // Keep original aspect ratio
-  const width = img.width;
-  const height = img.height;
+  // Keep original resolution to preserve quality
+  const width = img.naturalWidth || img.width;
+  const height = img.naturalHeight || img.height;
   tempCanvas.width = width;
   tempCanvas.height = height;
-  const tempCtx = tempCanvas.getContext('2d')!;
+  const tempCtx = tempCanvas.getContext('2d', { 
+    alpha: true,
+    willReadFrequently: false,
+    desynchronized: true
+  })!;
+  
+  // Completely disable any smoothing or filtering
+  tempCtx.imageSmoothingEnabled = false;
   
   // Only rounded corners, no heart shape
   tempCtx.save();
@@ -66,7 +73,8 @@ export const createImageFrame = (img: HTMLImageElement) => {
   tempCtx.closePath();
   tempCtx.clip();
   
-  tempCtx.drawImage(img, 0, 0, width, height);
+  // Draw at 1:1 ratio - no scaling
+  tempCtx.drawImage(img, 0, 0);
   tempCtx.restore();
   
   return tempCanvas;

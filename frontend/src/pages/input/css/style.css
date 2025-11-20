@@ -170,7 +170,7 @@
 }
 
 .section-title {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     font-size: 2rem;
     font-weight: bold;
     color: #ffffff;
@@ -178,12 +178,12 @@
 }
 
 .section-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     color: #ffffff;
 }
 
 .card-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
 }
 
 /* Input specific styles */

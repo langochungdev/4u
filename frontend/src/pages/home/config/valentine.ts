@@ -4,10 +4,11 @@ export const VALENTINE_SECTION = createSection({
   id: 'valentine',
   title: 'Valentine',
   description: 'Thiệp tình yêu lãng mạn cho ngày Valentine',
-  demoId: 'demo'});
+  demoId: 'FkzqcoAZs0kgrlCr1BHu'
+});
 
 export const VALENTINE_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-//   'galaxy-love': { visible: true, order: 1 },
+  'galaxy-love': { visible: true},
 };
 
 

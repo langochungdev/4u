@@ -2,7 +2,7 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.png';
 
 const config: TemplateConfig = {
-    title: 'demo update',
+    title: 'demo - demo update',
     description: 'mô tả template',
     createdBy: 'Langochungdev',
     maxImages: 10,

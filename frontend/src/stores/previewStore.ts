@@ -12,7 +12,7 @@ export const usePreviewStore = defineStore('preview', {
     template: 'demo',
     topic: '',
     editId: null as string | null,
-    deletedUrls: [] as string[],
+  deletedUrls: [] as string[],
   }),
 
   getters: {
@@ -56,7 +56,7 @@ export const usePreviewStore = defineStore('preview', {
       this.template = data.template;
       this.topic = data.topic || '';
       this.editId = data.editId || null;
-      this.deletedUrls = data.deletedUrls || [];
+  this.deletedUrls = data.deletedUrls || [];
     },
 
     restoreToInput() {
@@ -67,6 +67,7 @@ export const usePreviewStore = defineStore('preview', {
         audioFiles: this.audioFiles,
         editId: this.editId,
         deletedUrls: this.deletedUrls,
+  // bypassAudio removed
       };
     },
 

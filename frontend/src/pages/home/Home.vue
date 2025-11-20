@@ -39,7 +39,7 @@
                         <div class="window text">
                             <div class="title-bar">
                                 <div class="icon"></div>
-                                <span>{{ card.title }}</span>
+                                <span :title="card.title">{{ truncateTitle(card.title) }}</span>
                                 <div class="title-bar-buttons"></div>
                             </div>
                             <div class="text-area">
@@ -194,6 +194,12 @@ async function buyCard(section: Section, card: TemplateCard) {
     pendingQuery.value = query
     emailFromCookie.value = null
     showEmailModal.value = true
+}
+
+// Truncate title to a maximum length (used for UI only). Keep full title for alt/title attributes for accessibility.
+function truncateTitle(title: string | undefined | null, max = 30) {
+    if (!title) return '';
+    return title.length > max ? `${title.slice(0, max)}...` : title;
 }
 
 // handle verified event from modal
@@ -388,18 +394,18 @@ function onVerified(email: string) {
     border: 1px inset #d0d0c8;
 }
 .section-title {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     font-size: 2rem;
     font-weight: bold;
     color: #ffffff;
     margin-bottom: 0.5rem;
 }
 .section-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
     color: #ffffff;
 }
 .card-description {
-    font-family: 'Courier New', monospace;
+    font-family: 'Noto Sans', sans-serif;
 }
 
 .divider-line {
