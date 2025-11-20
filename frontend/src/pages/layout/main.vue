@@ -193,7 +193,7 @@ function handleVerified(email: string) {
 
 <style scoped>
 .main-layout {
-    background-image: url('/b3.jpg');
+    background-image: url('/background.jpg');
     background-size: 300px auto;
     background-position: top left;
     background-repeat: repeat;
