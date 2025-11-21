@@ -1,7 +1,9 @@
 import { VALENTINE_SECTION, loadValentineSection } from './config/valentine';
 import { NGAYNHAGIAO_SECTION, loadNgayNhaGiaoSection } from './config/20-11';
+import { CHRISTMAS_SECTION, loadChristmasSection } from './config/christmas';
 
 export const HOME_SECTIONS: Section[] = [
+  CHRISTMAS_SECTION,
   NGAYNHAGIAO_SECTION,
   VALENTINE_SECTION,
 ];
@@ -12,6 +14,7 @@ export const HOME_SECTIONS: Section[] = [
 export const loadAllSections = async () => {
   await loadValentineSection();
   await loadNgayNhaGiaoSection();
+    await loadChristmasSection();
 };
 
 export interface TemplateCard {

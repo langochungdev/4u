@@ -1,4 +1,4 @@
-import { db } from '@/config/firebase'
+import { getDb } from '@/config/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import type { DocumentReference, DocumentData, Timestamp } from 'firebase/firestore'
 import { ECARD_LIMIT as APP_ECARD_LIMIT } from '@/config/app'
@@ -25,12 +25,12 @@ export async function fetchActiveEcards(email: string): Promise<ActiveEcardsResu
 		// user document path
 		let userDocRef: DocumentReference<DocumentData>
 		if (ctxRootDocument) {
-			userDocRef = doc(db, ctxRootCollection, ctxRootDocument, 'user', normalized)
+			userDocRef = doc(getDb(), ctxRootCollection, ctxRootDocument, 'user', normalized)
 		} else if (parts.length === 1 && ctxRootCollection) {
 			// If only collection provided in VITE_FIRESTORE (eg. '4U'), use it as root
-			userDocRef = doc(db, ctxRootCollection, normalized)
+			userDocRef = doc(getDb(), ctxRootCollection, normalized)
 		} else {
-			userDocRef = doc(db, 'user', normalized)
+			userDocRef = doc(getDb(), 'user', normalized)
 		}
 		const snap = await getDoc(userDocRef);
 		if (!snap.exists()) return { ids: [], map: {} }
@@ -43,8 +43,8 @@ export async function fetchActiveEcards(email: string): Promise<ActiveEcardsResu
 		const activeChecks = await Promise.all(ids.map(async (key) => {
 			try {
 				let ctxDocRef: DocumentReference<DocumentData>
-				if (ctxRootDocument) ctxDocRef = doc(db, ctxRootCollection, ctxRootDocument, contextsCol, key)
-				else ctxDocRef = doc(db, ctxRootCollection, contextsCol, key)
+				if (ctxRootDocument) ctxDocRef = doc(getDb(), ctxRootCollection, ctxRootDocument, contextsCol, key)
+				else ctxDocRef = doc(getDb(), ctxRootCollection, contextsCol, key)
 				const s = await getDoc(ctxDocRef);
 				if (!s.exists()) return false
 				const d = s.data() as any

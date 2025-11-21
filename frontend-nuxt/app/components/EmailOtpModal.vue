@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { OTP_BYPASS } from '@/config/app'
+import { useAppConfig } from '@/config/app'
 import otpSuggest from './otp-suggest.png'
 
 const props = defineProps({
@@ -72,6 +72,8 @@ const props = defineProps({
   defaultEmail: { type: String, default: '' }
 })
 const emit = defineEmits(['update:modelValue', 'verified'])
+
+const { OTP_BYPASS } = useAppConfig()
 
 const visible = computed({
   get: () => props.modelValue,

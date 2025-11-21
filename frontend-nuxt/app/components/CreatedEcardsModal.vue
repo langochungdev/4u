@@ -21,15 +21,12 @@
             <div class="flex items-center gap-2 ml-3">
               <button
                 @click.stop="deleteEcard(id)"
-                :disabled="!props.email || isDeleting(id)"
+                :disabled="!props.email"
                 class="text-sm text-red-600 hover:text-red-800 disabled:text-gray-400"
                 aria-label="Xóa ecard"
               >
-                <svg v-if="!isDeleting(id)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H3a1 1 0 100 2h.293l.853 9.647A2 2 0 006.138 18h7.724a2 2 0 001.992-1.353L16.707 6H17a1 1 0 100-2h-2V3a1 1 0 00-1-1H6zm3 5a1 1 0 012 0v7a1 1 0 11-2 0V7z" clip-rule="evenodd" />
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.582M20 4h-5M4 20h5" />
                 </svg>
               </button>
             </div>
@@ -46,6 +43,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { fetchActiveEcards } from '@/composables/useEcards'
+import { setLocalStorageItem } from '@/utils/localstorage.helper'
+import { contextService } from '@/pages/input/service/context.service'
+import { userService } from '@/pages/input/service/user.service'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -62,10 +62,38 @@ const items = ref<Record<string, string>>({})
 const loading = ref(false)
 const error = ref('')
 const entries = computed(() => Object.entries(items.value || {}))
-const deletingIds = ref<Record<string, boolean>>({})
 
-function isDeleting(id: string) {
-  return !!deletingIds.value[id]
+function extractPublicId(url: string): { publicId: string, resourceType: string } {
+  try {
+    const u = new URL(url);
+    const path = u.pathname;
+    let resourceType = 'image'; // default
+    if (path.includes('/video/upload/')) {
+      resourceType = 'video';
+    } else if (path.includes('/raw/upload/')) {
+      resourceType = 'raw';
+    } else if (path.includes('/image/upload/')) {
+      resourceType = 'image';
+    }
+    const uploadIndex = path.indexOf('/upload/');
+    if (uploadIndex === -1) return { publicId: '', resourceType };
+    let afterUpload = path.substring(uploadIndex + 8); // e.g., v123/folder/public_id.jpg
+    // Remove version if present (starts with v followed by digits)
+    if (afterUpload.length > 1 && afterUpload.startsWith('v') && afterUpload[1] && /^\d/.test(afterUpload[1])) {
+      const slashIndex = afterUpload.indexOf('/');
+      if (slashIndex !== -1) {
+        afterUpload = afterUpload.substring(slashIndex + 1);
+      } else {
+        // No folder, just version/public_id.jpg
+        afterUpload = afterUpload.substring(afterUpload.indexOf('/') + 1 || 0);
+      }
+    }
+    const dotIndex = afterUpload.lastIndexOf('.');
+    if (dotIndex === -1) return { publicId: afterUpload, resourceType };
+    return { publicId: afterUpload.substring(0, dotIndex), resourceType };
+  } catch (e) {
+    return { publicId: '', resourceType: 'image' };
+  }
 }
 
 function getTemplateName(url: string) {
@@ -99,6 +127,7 @@ watch(() => visible.value, async (v) => {
     const normalized = (props.email || '').trim().toLowerCase();
     const res = await fetchActiveEcards(normalized);
     items.value = res.map || {}
+    setLocalStorageItem('activeEcardsCount', res.ids.length)
   } catch (e: any) {
     items.value = {}
     error.value = e.message || String(e)
@@ -120,6 +149,7 @@ watch(() => props.email, async () => {
     const normalized = (props.email || '').trim().toLowerCase();
     const res = await fetchActiveEcards(normalized);
     items.value = res.map || {}
+    setLocalStorageItem('activeEcardsCount', res.ids.length)
   } catch (e: any) {
     items.value = {}
     error.value = e.message || String(e)
@@ -134,26 +164,51 @@ function onClose() {
 
 async function deleteEcard(id: string) {
   if (!props.email) return
-  if (!confirm('Bạn có chắc muốn xóa ecard này?')) return
-  deletingIds.value[id] = true
+  // Immediately hide the item from UI
+  const copy = { ...items.value }
+  const url = copy[id]
+  delete copy[id]
+  items.value = copy
+
   try {
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/ecard/delete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: props.email, ecardId: id })
-    })
-    if (!res.ok) {
-      const txt = await res.text()
-      throw new Error(txt || 'Failed to delete')
+    // Get context to retrieve media URLs
+    const context = await contextService.getById(id)
+    if (!context) {
+      throw new Error('Context not found')
     }
-    // remove from local items
-    const copy = { ...items.value }
-    delete copy[id]
-    items.value = copy
+    const allUrls = [
+      ...(context.images || []),
+      ...(context.videos || []),
+      ...(context.audios || [])
+    ]
+    const mediaInfos = allUrls.map(extractPublicId).filter(info => info.publicId !== '')
+    const mediaIds = mediaInfos.map(info => info.publicId)
+    const resourceTypes = mediaInfos.map(info => info.resourceType)
+
+    // Delete media on backend only if there are mediaIds
+    if (mediaIds.length > 0) {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}user/ecard/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: props.email, mediaIds, resourceTypes })
+      })
+      if (!res.ok) {
+        const txt = await res.text()
+        throw new Error(txt || 'Failed to delete media')
+      }
+    }
+
+    // Delete from Firestore
+    await contextService.delete(id)
+    await userService.deleteEcardFromUser(props.email, id, '4U', 'develop') // Assuming firestoreRoot
+
+    // Success: item already hidden, no further action needed
   } catch (e: any) {
+    // On error: restore the item and show error
+    const restoreCopy = { ...items.value }
+    if (url) restoreCopy[id] = url
+    items.value = restoreCopy
     error.value = e.message || String(e)
-  } finally {
-    deletingIds.value[id] = false
   }
 }
 </script>

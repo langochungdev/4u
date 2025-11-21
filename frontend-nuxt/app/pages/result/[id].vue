@@ -1,7 +1,11 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'main'
+})
+
 import QRCode from "qrcode"
-import { contextService } from "../input/context.service"
-import { userService } from "../input/user.service"
+import { contextService } from "../input/service/context.service"
+import { userService } from "../input/service/user.service"
 
 const route = useRoute()
 const emailCookie = useCookie('email')
@@ -54,7 +58,6 @@ const startCountdown = () => {
 
 onMounted(async () => {
     const id = route.params.id as string;
-    const template = route.query.template as string || 'demo';
     const topic = route.query.topic as string || '';
 
     if (!id) {
@@ -63,15 +66,32 @@ onMounted(async () => {
     }
 
     contextId.value = id;
-    templateName.value = template;
 
+    // Check if data is preloaded from localStorage
+    const preloadedJson = localStorage.getItem('preloadedResultData');
+    let contextData: any = null;
+    if (preloadedJson) {
+        try {
+            contextData = JSON.parse(preloadedJson);
+            localStorage.removeItem('preloadedResultData'); // Clean up
+        } catch (e) {
+            console.error('Failed to parse preloaded data:', e);
+        }
+    }
 
-    viewLink.value = `${window.location.origin}/${topic}/${template}/${id}`;
-    editLink.value = `${window.location.origin}/input/${template}?id=${id}&topic=${topic}`;
+    if (!contextData) {
+        // Fetch if not preloaded
+        try {
+            contextData = await contextService.getById(id);
+        } catch (error) {
+            console.error("Error fetching context:", error);
+            loading.value = false;
+            return;
+        }
+    }
 
-
-    try {
-        const contextData = await contextService.getById(id);
+    // Process contextData if available
+    if (contextData) {
         if (contextData?.expiresAt) {
 
             if (contextData.expiresAt.toDate) {
@@ -86,11 +106,23 @@ onMounted(async () => {
                 startCountdown();
             }
         }
-    } catch (error) {
-        console.error("Error fetching context:", error);
+
+        // Set template from contextData or fallback
+        templateName.value = contextData?.template || (route.query.template as string) || 'demo';
+
+        viewLink.value = `${window.location.origin}/${topic}/${templateName.value}/${id}`;
+        editLink.value = `${window.location.origin}/input/${templateName.value}?id=${id}&topic=${topic}`;
+    } else {
+        // Fallback if no contextData
+        templateName.value = (route.query.template as string) || 'demo';
+        viewLink.value = `${window.location.origin}/${topic}/${templateName.value}/${id}`;
+        editLink.value = `${window.location.origin}/input/${templateName.value}?id=${id}&topic=${topic}`;
     }
 
+    // Set loading to false after processing context data
+    loading.value = false;
 
+    // Generate QR code asynchronously without blocking the UI
     try {
         qrDataUrl.value = await QRCode.toDataURL(viewLink.value, {
             width: 300,
@@ -99,8 +131,6 @@ onMounted(async () => {
         });
     } catch (error) {
         console.error("Error generating QR code:", error);
-    } finally {
-        loading.value = false;
     }
 });
 
@@ -243,7 +273,11 @@ watch([shareEmail, shareName], () => { shareError.value = '' })
 
                                 <div class="qr-section">
                                     <div class="qr-container">
-                                        <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="qr-code" />
+                                        <div v-if="!qrDataUrl" class="qr-loading">
+                                            <div class="loading-spinner"></div>
+                                            <p class="qr-caption">Đang tạo mã QR...</p>
+                                        </div>
+                                        <img v-else :src="qrDataUrl" alt="QR Code" class="qr-code" />
                                         <p class="qr-caption">Quét mã để xem nội dung</p>
                                         <div class="qr-action-buttons">
                                             <button class="qr-button win2k-button" :disabled="!viewLink"

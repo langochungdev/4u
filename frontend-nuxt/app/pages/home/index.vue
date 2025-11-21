@@ -39,7 +39,7 @@
                                 <div class="title-bar-buttons"></div>
                             </div>
                             <div class="text-area">
-                                <div class="thumbnail-container cursor-pointer overflow-hidden" @click="goToDemo(section, card)" @mouseenter="prefetchInput; prefetchPreview(section, card)">
+                                <div class="thumbnail-container cursor-pointer overflow-hidden" @click="goToDemo(section, card)" @mouseenter="prefetchPreview(section, card)">
                                     <video v-if="card.thumbnailType === 'video'" :src="card.thumbnail"
                                         class="thumbnail-image"
                                         autoplay loop muted playsinline>
@@ -61,10 +61,10 @@
                             </div>
                             <div class="status-bar">
                                     <div class="flex gap-2 justify-center">
-                                        <button @click="goToDemo(section, card)" @mouseenter="prefetchInput; prefetchPreview(section, card)" class="win2k-button">
+                                        <button @click="goToDemo(section, card)" @mouseenter="prefetchPreview(section, card)" class="win2k-button">
                                             Demo
                                         </button>
-                                        <button @click="buyCard(section, card)" @mouseenter="prefetchInput" class="win2k-button">
+                                        <button @click="buyCard(section, card)" @mouseenter="updateActiveEcardsCount" class="win2k-button">
                                             Tạo thiệp
                                         </button>
                                     </div>
@@ -82,6 +82,8 @@
 
 <script setup lang="ts">
 import { HOME_SECTIONS, loadAllSections, type TemplateCard, type Section } from './home.config'
+import { getActiveCount } from '@/composables/useEcards'
+import { setLocalStorageItem } from '@/utils/localstorage.helper'
 
 definePageMeta({
   layout: 'main'
@@ -89,6 +91,16 @@ definePageMeta({
 
 const emailCookie = useCookie('email')
 const loadingDemo = ref<string | null>(null)
+
+async function updateActiveEcardsCount() {
+    if (!emailCookie.value) return
+    try {
+        const count = await getActiveCount(emailCookie.value)
+        setLocalStorageItem('activeEcardsCount', count)
+    } catch (error) {
+        console.error('Error updating active ecards count:', error)
+    }
+}
 
 function getCardKey(section: Section, card: TemplateCard) {
     return `${section.id}-${card.id}`
@@ -103,13 +115,6 @@ async function prefetchPreview(section: Section, card: TemplateCard) {
         // ignore
     }
     return false
-}
-const inputPrefetched = ref(false)
-
-function prefetchInput() {
-    if (inputPrefetched.value) return
-    inputPrefetched.value = true
-    try { import('../input/index.vue') } catch (_e) { }
 }
 const sections = ref<Section[]>([])
 const isLoading = ref(true)
@@ -129,10 +134,6 @@ onMounted(async () => {
     await loadAllSections();
     sections.value = HOME_SECTIONS;
     isLoading.value = false
-    try {
-        import('../input/index.vue')
-    } catch (_err) {
-    }
 })
 
 async function goToDemo(section: Section, card: TemplateCard) {
@@ -149,14 +150,13 @@ async function goToDemo(section: Section, card: TemplateCard) {
 
 async function buyCard(section: Section, card: TemplateCard) {
     const query: Record<string, string> = {
-        template: card.id,
         topic: section.id
     }
 
     const existing = emailCookie.value
     if (existing) {
         query.email = existing
-        navigateTo({ path: `/input`, query })
+        navigateTo({ path: `/input/${card.id}`, query })
         return
     }
 
@@ -176,10 +176,10 @@ function onVerified(email: string) {
     
     if (pendingQuery.value) {
         const q = { ...pendingQuery.value, email }
-        navigateTo({ path: `/input`, query: q })
+        navigateTo({ path: `/input/${pendingQuery.value.template}`, query: q })
         pendingQuery.value = null
     } else {
-        navigateTo({ path: `/input`, query: { email } })
+        navigateTo({ path: `/input/demo1`, query: { email } })
     }
 }
 </script>

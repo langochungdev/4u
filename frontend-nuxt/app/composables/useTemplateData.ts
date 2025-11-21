@@ -1,4 +1,4 @@
-import { contextService, type ContextPayload } from "~/pages/input/context.service"
+import { contextService, type ContextPayload } from "~/pages/input/service/context.service"
 import type { TemplateConfig } from "~/config/templates"
 
 export const useTemplateData = (templateConfig: TemplateConfig) => {

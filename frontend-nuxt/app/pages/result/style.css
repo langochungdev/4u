@@ -27,8 +27,8 @@
 
 .result-container {
     min-height: 100vh;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); */
     position: relative;
     padding: 20px;
     display: flex;
@@ -469,15 +469,12 @@
     padding: 40px;
 }
 
-.loading-spinner {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    border: 3px solid #d0d0c8;
-    border-radius: 50%;
-    border-top-color: #082468;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
+.qr-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px; /* Match QR code height */
 }
 
 .loading-text {

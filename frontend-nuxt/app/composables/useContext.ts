@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { contextService } from "@/pages/input/context.service";
+import { contextService } from "~/pages/input/service/context.service";
 import { useMediaGroupManager } from "@/composables/useMediaManager";
 
 export const useContext = () => {

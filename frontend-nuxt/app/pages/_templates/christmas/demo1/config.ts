@@ -1,14 +1,14 @@
 import type { TemplateConfig } from '@/config/templates';
-import demo from './demo.png';
+import demo from './demo.jpeg';
 
 const config: TemplateConfig = {
     title: 'demo update',
     description: 'mô tả template',
     createdBy: 'Langochungdev',
-    maxImages: 10,
+    maxImages: 2,
     maxVideos: 0,
     maxAudios: 1,
-    maxContent: 10,
+    maxContent: 1,
     contentPlaceholders: [
         'gợi ý 1',
     ],

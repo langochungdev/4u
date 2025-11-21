@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { contextService } from "@/pages/input/context.service";
+import { contextService } from "~/pages/input/service/context.service";
 
 const route = useRoute();
 const isExpired = ref<boolean>(false);

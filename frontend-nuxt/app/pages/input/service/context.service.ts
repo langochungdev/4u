@@ -6,6 +6,7 @@ import {
   addDoc,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 // Lazy get db
@@ -29,6 +30,7 @@ export interface ContextPayload {
   videos?: string[];
   audios?: string[];
   expiresAt?: any;
+  template?: string;
 }
 
 export const contextService = {
@@ -77,5 +79,29 @@ export const contextService = {
     }
     
     await updateDoc(doc(getFirestoreDb(), CONTEXTS_COLLECTION, id), updateData);
+  },
+
+  async submitContext(data: ContextPayload): Promise<string> {
+    return this.create(data);
+  },
+
+  async updateContextWithDeleted(id: string, data: Partial<ContextPayload>, deletedUrls: string[]): Promise<void> {
+    const filterDeletedUrls = (urls: string[] = []) => urls.filter(url => !deletedUrls.includes(url));
+    
+    const filteredData = {
+      ...data,
+      images: data.images ? filterDeletedUrls(data.images) : undefined,
+      videos: data.videos ? filterDeletedUrls(data.videos) : undefined,
+      audios: data.audios ? filterDeletedUrls(data.audios) : undefined,
+    };
+    
+    await this.update(id, filteredData);
+  },
+
+  async delete(id: string): Promise<void> {
+    if (!id || id.trim() === '') {
+      throw new Error('Document ID is required for delete');
+    }
+    await deleteDoc(doc(getFirestoreDb(), CONTEXTS_COLLECTION, id));
   },
 };

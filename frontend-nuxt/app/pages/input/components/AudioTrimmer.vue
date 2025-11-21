@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
-import { useAudioTrimmer } from '@/composables/useAudioTrimmer'
+import { useAudioTrimmer } from '~/pages/input/composables/useAudioTrimmer'
 
 const props = defineProps<{
   file: File
@@ -343,7 +343,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@import '../pages/input/style.css';
+@import '../css/style.css';
 
 .trimmer-window {
   background-color: #d0d0c8;

@@ -79,7 +79,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getTemplateConfig } from '@/config/templates';
 import { usePreviewStore } from '@/stores/previewStore';
-import { contextService } from '@/pages/input/context.service';
+import { contextService } from '~/pages/input/service/context.service';
 
 const route = useRoute();
 const router = useRouter();
@@ -93,8 +93,14 @@ const showFullscreenOverlay = ref<boolean>(true);
 const hasRequestedFullscreen = ref<boolean>(false);
 
 // Detect iOS devices
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isIOS = ref(false);
+
+onMounted(() => {
+  if (process.client) {
+    isIOS.value = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+});
 
 const isPreviewMode = computed(() => route.query.preview === 'true');
 const showBackButton = computed(() => {
@@ -314,11 +320,6 @@ const handleBackButton = async () => {
     }
     
     const query: Record<string, string> = {
-        maxImages: templateConfig.maxImages.toString(),
-        maxVideos: templateConfig.maxVideos.toString(),
-        maxAudios: templateConfig.maxAudios.toString(),
-        maxContent: templateConfig.maxContent.toString(),
-        template: templateConfig.templateName,
         fromPreview: 'true'
     };
     
@@ -332,7 +333,7 @@ const handleBackButton = async () => {
     const pushQuery = { ...query };
     if (editId) pushQuery.id = editId;
     router.push({
-        path: '/input',
+        path: `/input/${templateConfig.templateName}`,
         query: pushQuery
     });
 };
