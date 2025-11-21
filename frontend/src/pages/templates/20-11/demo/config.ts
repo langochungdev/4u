@@ -5,10 +5,10 @@ const config: TemplateConfig = {
     title: 'demo - demo update',
     description: 'mô tả template',
     createdBy: 'Langochungdev',
-    maxImages: 10,
+    maxImages: 1,
     maxVideos: 0,
     maxAudios: 1,
-    maxContent: 10,
+    maxContent: 1,
     contentPlaceholders: [
         'gợi ý 1',
     ],
