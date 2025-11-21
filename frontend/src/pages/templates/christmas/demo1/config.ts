@@ -1,9 +1,9 @@
 import type { TemplateConfig } from '@/config/templates';
-import demo from './demo.png';
+import demo from './demo.jpeg';
 
 const config: TemplateConfig = {
-    title: 'demo update',
-    description: 'mô tả template',
+    title: 'christmas',
+    description: 'Merry Christmas',
     createdBy: 'Langochungdev',
     maxImages: 10,
     maxVideos: 0,
