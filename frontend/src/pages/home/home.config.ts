@@ -3,9 +3,9 @@ import { NGAYNHAGIAO_SECTION, loadNgayNhaGiaoSection } from './config/20-11';
 import { CHRISTMAS_SECTION, loadChristmasSection } from './config/christmas';
 
 export const HOME_SECTIONS: Section[] = [
-    CHRISTMAS_SECTION,
     NGAYNHAGIAO_SECTION,
     VALENTINE_SECTION,
+    CHRISTMAS_SECTION,
 ];
 
 
