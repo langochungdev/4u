@@ -1,0 +1,15 @@
+
+# Default robots.txt for 4u frontend
+# Please replace `https://your-domain.com` with your production domain.
+#
+# For more info: https://developers.google.com/search/docs/advanced/robots/intro
+
+User-agent: *
+Allow: /
+
+# If there are private or admin areas, add them below. Example:
+# Disallow: /admin
+# Disallow: /api
+
+# Sitemap location (update to your production domain)
+Sitemap: https://your-domain.com/sitemap.xml

@@ -5,8 +5,18 @@
     <link rel="icon" type="image/jpeg" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="color-scheme" content="light only" />
-    
-    <!-- Preconnect to external resources -->
+    <!-- Google search console -->
+    <meta name="google-site-verification" content="VoSByWgOc_njDDOxWdM1w5WJYbTfTdtZdc62kKheBAI" />
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-KF6W2TV6');</script>
+    <!-- End Google Tag Manager -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
@@ -40,6 +50,37 @@
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://story4u.online/" />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "logo": "https://story4u.online/logo.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "description": "Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây",
+            "publisher": { "@type": "Organization", "name": "STORY4U" }
+          },
+          {
+            "@type": "WebApplication",
+            "name": "STORY4U",
+            "url": "https://story4u.online",
+            "applicationCategory": "Multimedia",
+            "operatingSystem": "All",
+            "browserRequirements": "Requires a modern browser with JavaScript enabled",
+            "description": "Tạo và gửi thiệp điện tử tương tác độc đáo chỉ trong vài giây"
+          }
+        ]
+      }
+    </script>
     
     <!-- Early meta update for crawlers - runs before Vue loads -->
     <script>
@@ -94,11 +135,39 @@
           if (canonical) {
             canonical.href = currentUrl;
           }
+
+          // Add or update structured data for the current page (WebPage) so crawlers can pick up dynamic pages
+          try {
+            var ldScript = document.querySelector('script[type="application/ld+json"][data-dynamic="true"]');
+            var pageLd = {
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              "url": currentUrl,
+              "name": title,
+              "description": description,
+              "isPartOf": { "@type": "WebSite", "name": "STORY4U", "url": "https://story4u.online" }
+            };
+
+            if (!ldScript) {
+              ldScript = document.createElement('script');
+              ldScript.type = 'application/ld+json';
+              ldScript.setAttribute('data-dynamic', 'true');
+              document.head.appendChild(ldScript);
+            }
+            ldScript.textContent = JSON.stringify(pageLd);
+          } catch (err) {
+            // fail silently if script injection isn't allowed
+            console.warn('Failed to add dynamic JSON-LD', err);
+          }
         }
       })();
     </script>
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KF6W2TV6" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
