@@ -3,5 +3,14 @@
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "framework": "nuxtjs",
-  "outputDirectory": ".output/public"
+  "outputDirectory": ".output/public",
+  "env": {
+    "NODE_VERSION": "18"
+  },
+  "functions": {
+    "app/**": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }

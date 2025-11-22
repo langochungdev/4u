@@ -146,7 +146,16 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'vercel',
     compressPublicAssets: true,
-    minify: true
+    minify: true,
+    errorHandler: '~/error.ts'
+  },
+
+  routeRules: {
+    '/': { prerender: true },
+    '/home': { prerender: true },
+    '/input/**': { ssr: true },
+    '/result/**': { ssr: true },
+    '/**': { ssr: true }
   },
   
   // Experimental features for better performance

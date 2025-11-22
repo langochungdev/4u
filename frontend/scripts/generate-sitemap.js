@@ -17,6 +17,14 @@ function scanTemplateConfigs() {
   const templateCategories = {}
   
   try {
+    // Check if config directory exists
+    try {
+      readdirSync(CONFIG_PATH)
+    } catch (e) {
+      console.warn('⚠️  Config directory not found, skipping template scan')
+      return templateCategories
+    }
+    
     const configFiles = readdirSync(CONFIG_PATH).filter(file => 
       file.endsWith('.ts') && file !== 'section.helper.ts'
     )
@@ -99,5 +107,6 @@ try {
   generateSitemap()
 } catch (error) {
   console.error('❌ Error generating sitemap:', error)
-  process.exit(1)
+  console.warn('⚠️  Continuing build without sitemap...')
+  // Don't exit with error to prevent build failure
 }
