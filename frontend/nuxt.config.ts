@@ -9,12 +9,12 @@ export default defineNuxtConfig({
       firestore: process.env.VITE_FIRESTORE || '',
       cloudinaryCloudName: process.env.VITE_CLOUDINARY_CLOUD_NAME || '',
       cloudinaryUploadPreset: process.env.VITE_CLOUDINARY_UPLOAD_PRESET || '',
-      disableDevtools: process.env.VITE_DISABLE_DEVTOOLS === '',
-      ecardLimit: parseInt(process.env.VITE_ECARD_LIMIT || ''),
+      disableDevtools: process.env.VITE_DISABLE_DEVTOOLS === 'true',
+      ecardLimit: parseInt(process.env.VITE_ECARD_LIMIT || '15'),
       otpBypass: process.env.VITE_OTP_BYPASS === 'true',
-      maxImages: parseInt(process.env.VITE_MAX_IMAGES || ''),
-      maxVideos: parseInt(process.env.VITE_MAX_VIDEOS || ''),
-      maxAudios: parseInt(process.env.VITE_MAX_AUDIOS || ''),
+      maxImages: parseInt(process.env.VITE_MAX_IMAGES || '10'),
+      maxVideos: parseInt(process.env.VITE_MAX_VIDEOS || '1'),
+      maxAudios: parseInt(process.env.VITE_MAX_AUDIOS || '1'),
       firebaseApiKey: process.env.VITE_FIREBASE_API_KEY || '',
       firebaseAuthDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
       firebaseDatabaseUrl: process.env.VITE_FIREBASE_DATABASE_URL || '',
@@ -144,7 +144,7 @@ export default defineNuxtConfig({
   
   // Nitro optimizations
   nitro: {
-    // preset: 'vercel',
+    preset: 'vercel',
     compressPublicAssets: true,
     minify: true
   },
