@@ -16,7 +16,6 @@ export const NGAYNHAGIAO_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConf
   'notebook-for-2011': { visible: true },
   'rose-and-letter': { visible: true },
   'present-box': { visible: true },
-  'demo': { visible: true }
 };
 
 

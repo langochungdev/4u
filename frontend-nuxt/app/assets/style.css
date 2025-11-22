@@ -1,0 +1,61 @@
+/* Critical CSS - Prevent FOUC */
+html {
+    visibility: visible;
+    opacity: 1;
+    scroll-behavior: smooth;
+}
+
+body {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Hide scrollbar but keep functionality */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* Optimize rendering performance */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+img, video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Global focus styles for inputs across the app to ensure consistent border */
+input:focus,
+textarea:focus,
+select:focus,
+.input-field:focus,
+.win2k-input:focus,
+.share-email-input:focus,
+.share-name-input:focus,
+.otp-box:focus {
+    outline: none !important;
+    border: 1px solid #082468 !important; /* same blue as input-field:focus */
+    box-shadow: none !important;
+}
+
+/* Use :focus-visible when a keyboard user focuses to keep an accessible focus ring */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.input-field:focus-visible,
+.win2k-input:focus-visible,
+.share-email-input:focus-visible,
+.share-name-input:focus-visible,
+.otp-box:focus-visible {
+    outline: 2px solid rgba(8,36,104,0.15);
+    outline-offset: 2px;
+}

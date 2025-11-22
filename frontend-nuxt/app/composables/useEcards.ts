@@ -1,9 +1,11 @@
 import { getDb } from '@/config/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import type { DocumentReference, DocumentData, Timestamp } from 'firebase/firestore'
-import { ECARD_LIMIT as APP_ECARD_LIMIT } from '@/config/app'
+import { useRuntimeConfig } from '#imports'
 
-export const ECARD_LIMIT = APP_ECARD_LIMIT
+export function getEcardLimit() {
+  return useRuntimeConfig().public.ecardLimit
+}
 
 export type ActiveEcardsResult = {
 	ids: string[]
@@ -77,9 +79,9 @@ export async function fetchActiveEcards(email: string): Promise<ActiveEcardsResu
 // a boolean and active count only. Use these to keep component code short and readable.
 export async function canCreate(email: string | null | undefined, candidateId?: string | null) {
 	if (!email) return { allowed: true, activeCount: 0 }
-	const res = await fetchActiveEcards(email)
-	const activeCount = res.ids.length
-	const allowed = res.ids.includes(candidateId || '') ? true : activeCount < ECARD_LIMIT
+	const activeCountStr = localStorage.getItem('activeEcardsCount')
+	const activeCount = activeCountStr ? parseInt(activeCountStr, 10) : 0
+	const allowed = activeCount < getEcardLimit()
 	return { allowed, activeCount }
 }
 

@@ -8,7 +8,10 @@ export const VALENTINE_SECTION = createSection({
 });
 
 export const VALENTINE_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-  'galaxy-love': { visible: true},
+  'galaxy-love': { visible: true },
+  'anniversary-love': { visible: true },
+  'love-more-v1': { visible: true },
+  'love-more-v2': { visible: true }
 };
 
 

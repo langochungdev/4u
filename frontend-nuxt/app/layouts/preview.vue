@@ -292,23 +292,41 @@ onBeforeUnmount(cleanup);
 const handleBackButton = async () => {
     const pathSegments = route.path.split('/').filter((s: string) => s);
     
+    console.log('[Back Button] Route path:', route.path);
+    console.log('[Back Button] Path segments:', pathSegments);
+    console.log('[Back Button] PreviewStore template:', previewStore.template);
+    
     let templateName = (route.query.template as string) || previewStore.template;
     
     if (!templateName) {
-        if (pathSegments.length === 1) {
-            templateName = pathSegments[0] || 'demo';
-        } else if (pathSegments.length >= 2) {
-            templateName = pathSegments[1] || 'demo';
+        // For routes like /christmas/demo1/preview or /_templates/christmas/demo1/preview
+        // We need to extract the template name (demo1)
+        if (pathSegments.length >= 2) {
+            // Check if path contains '_templates'
+            const templatesIndex = pathSegments.indexOf('_templates');
+            if (templatesIndex >= 0 && pathSegments.length > templatesIndex + 2) {
+                // /_templates/christmas/demo1/... -> demo1
+                templateName = pathSegments[templatesIndex + 2] || '';
+            } else {
+                // /christmas/demo1/preview -> demo1
+                templateName = pathSegments[pathSegments.length - 2] || ''; // Get second-to-last segment
+            }
         } else {
-            templateName = 'demo';
+            templateName = ''; // Default fallback
         }
     }
+    
+    console.log('[Back Button] Detected template name:', templateName);
     
     const templateConfig = await getTemplateConfig(templateName);
     
     if (!templateConfig) {
+        console.error('[Back Button] Template config not found for:', templateName);
+        console.error('[Back Button] Available path segments:', pathSegments);
         return;
     }
+    
+    console.log('[Back Button] Template config found:', templateConfig.templateName);
     
     // Use editId from previewStore, NOT from route.params.id (which is template name)
     const editId = previewStore.editId;
@@ -328,12 +346,15 @@ const handleBackButton = async () => {
     }
     
     // Navigating back to input
+    // Use templateName as fallback if templateConfig.templateName is undefined
+    const targetTemplate = templateConfig.templateName || templateName;
     
     // Put editId into query.id (input page expects id via query)
     const pushQuery = { ...query };
     if (editId) pushQuery.id = editId;
+    
     router.push({
-        path: `/input/${templateConfig.templateName}`,
+        path: `/input/${targetTemplate}`,
         query: pushQuery
     });
 };

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { MEDIA_LIMITS } from '@/config/app'
+import { useRuntimeConfig } from '#imports'
 
 const createManager = (type: "image" | "audio" | "video", limit: number) => {
   const files = ref<File[]>([]);
@@ -54,9 +54,10 @@ const createManager = (type: "image" | "audio" | "video", limit: number) => {
 };
 
 export const useMediaGroupManager = () => {
-  const imageManager = createManager("image", MEDIA_LIMITS.maxImages);
-  const videoManager = createManager("video", MEDIA_LIMITS.maxVideos);
-  const audioManager = createManager("audio", MEDIA_LIMITS.maxAudios);
+  const config = useRuntimeConfig().public;
+  const imageManager = createManager("image", config.maxImages);
+  const videoManager = createManager("video", config.maxVideos);
+  const audioManager = createManager("audio", config.maxAudios);
 
   const clearAll = () => {
     imageManager.clearAll();

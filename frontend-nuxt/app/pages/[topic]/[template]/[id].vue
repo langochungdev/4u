@@ -4,7 +4,8 @@ const topic = route.params.topic as string
 const template = route.params.template as string
 
 definePageMeta({
-  layout: 'preview'
+  layout: 'preview',
+  ssr: false
 })
 
 const templateModules = import.meta.glob('~/pages/_templates/*/*/[id].vue')

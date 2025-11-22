@@ -100,6 +100,10 @@ onMounted(async () => {
                 expiresAt.value = contextData.expiresAt;
             } else if (typeof contextData.expiresAt === 'number') {
                 expiresAt.value = new Date(contextData.expiresAt);
+            } else if (typeof contextData.expiresAt === 'string') {
+                expiresAt.value = new Date(contextData.expiresAt);
+            } else if (typeof contextData.expiresAt === 'object' && 'seconds' in contextData.expiresAt) {
+                expiresAt.value = new Date(contextData.expiresAt.seconds * 1000);
             }
 
             if (expiresAt.value) {

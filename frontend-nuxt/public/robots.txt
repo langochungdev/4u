@@ -1,15 +1,15 @@
 
-# Default robots.txt for 4u frontend
-# Please replace `https://your-domain.com` with your production domain.
-#
-# For more info: https://developers.google.com/search/docs/advanced/robots/intro
-
+# robots.txt for story4u.online
 User-agent: *
 Allow: /
+Allow: /home
+Allow: /templates/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_nuxt/
 
-# If there are private or admin areas, add them below. Example:
-# Disallow: /admin
-# Disallow: /api
+# Crawl-delay
+Crawl-delay: 1
 
-# Sitemap location (update to your production domain)
-Sitemap: https://your-domain.com/sitemap.xml
+# Sitemap location
+Sitemap: https://story4u.online/sitemap.xml

@@ -85,7 +85,7 @@
     float: right;
     width: 50px;
     height: 15px;
-    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-image: url('~/assets/win2kicon.png');
     background-repeat: no-repeat;
     background-position: -2px -33px;
 }
@@ -93,7 +93,7 @@
 .title-bar .icon {
     width: 16px;
     height: 16px;
-    background-image: url('//static.tumblr.com/anzluor/Fgkolwea1/m56u7v9.png');
+    background-image: url('~/assets/win2kicon.png');
     background-repeat: no-repeat;
     background-position: -96px 0;
     float: left;

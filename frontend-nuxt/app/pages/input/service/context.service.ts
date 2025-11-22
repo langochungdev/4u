@@ -90,6 +90,7 @@ export const contextService = {
     
     const filteredData = {
       ...data,
+      content: data.content || undefined,
       images: data.images ? filterDeletedUrls(data.images) : undefined,
       videos: data.videos ? filterDeletedUrls(data.videos) : undefined,
       audios: data.audios ? filterDeletedUrls(data.audios) : undefined,

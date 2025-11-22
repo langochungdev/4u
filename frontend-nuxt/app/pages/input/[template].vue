@@ -73,7 +73,6 @@ const {
 const isUploading = ref(false)
 
 const handleUploaded = (urls: { images: string[], videos: string[], audios: string[] }) => {
-  isUploading.value = false
   handleSubmit(urls)
 }
 
@@ -82,6 +81,7 @@ const handleConfirm = () => {
   if (hasFiles) {
     isUploading.value = true
   } else {
+    isUploading.value = true
     handleSubmit()
   }
 }
@@ -261,10 +261,7 @@ const performUpload = async () => {
                                         </div>
                                     </label>
                                 </div>
-                                
-                                <p class="text-xs text-gray-600 mt-3 italic">
-                                    💡 Form sẽ được duy trì đến 0:00 của ngày được tính từ thời điểm hiện tại
-                                </p>
+
                             </div>
 
                             <div v-if="constraints.template !== 'default'" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -282,7 +279,7 @@ const performUpload = async () => {
                                 <div>
                                     <div class="flex justify-between items-center mb-2">
                                         <label class="block text-sm font-medium text-gray-700">
-                                            Nội dung <span class="text-red-500">*</span>
+                                            Nội dung 
                                             <span v-if="constraints.maxContent !== Infinity && filledContentCount < constraints.maxContent" class="text-xs text-red-500 font-normal">
                                                 (Bắt buộc: {{ constraints.maxContent }})
                                             </span>
@@ -317,12 +314,14 @@ const performUpload = async () => {
                                 </div>
 
                                 
-                                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                        {{ media.label }}
-                                        <span v-if="media.key === 'audio'" class="text-xs text-gray-500">(không bắt buộc)</span>
-                                        <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: {{ media.max }} - Còn: {{ remaining[media.key] }})</span>
-                                    </label>
+                                <div v-for="media in mediaTypes" :key="media.key" v-show="media.max > 0" class="mb-6">
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ media.label }}
+                                            <span v-if="media.key === 'audio'" class="text-xs text-gray-500"></span>
+                                            <span v-else-if="media.max !== Infinity && remaining[media.key] > 0" class="text-xs text-red-500">(Bắt buộc: Còn: {{ remaining[media.key] }})</span>
+                                        </label>
+                                    </div>
                                     <input 
                                         :type="'file'" 
                                         :id="`${media.key}Input`" 
@@ -339,7 +338,7 @@ const performUpload = async () => {
                                     >
                                         Chọn {{ media.key === 'image' ? 'ảnh' : media.key === 'video' ? 'video' : 'nhạc nền' }}
                                     </label>
-                                    <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div>
+                                    <!-- <div v-else class="text-xs text-gray-500 mt-1">Đã đạt giới hạn: {{ getMaxForMedia(media.key) }}</div> -->
                                     
                                     
                                     <div v-if="managers[media.key].previews.value.length" class="mt-2">
@@ -371,20 +370,17 @@ const performUpload = async () => {
                                     </div>
                                 </div>
 
-                                <div v-if="!isUploading" class="submit-buttons">
-                                    <button @click="handlePreview" class="win2k-button">
-                                        Xem trước
-                                    </button>
-                                    <button @click="handleConfirm" class="win2k-button">
-                                        {{ isEditMode ? "Cập nhật" : "Xác nhận" }}
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="status-bar">
-                        <div class="text-center text-xs">
-                            Sẵn sàng
+                        <div class="submit-buttons mt-2">
+                            <button v-if="!isUploading" @click="handlePreview" class="win2k-button">
+                                Xem trước
+                            </button>
+                            <button v-if="!isUploading" @click="handleConfirm" class="win2k-button">
+                                {{ isEditMode ? "Cập nhật" : "Xác nhận" }}
+                            </button>
                         </div>
                     </div>
                 </div>

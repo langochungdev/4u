@@ -1,18 +1,17 @@
 import type { TemplateConfig } from '@/config/templates';
-import demo from './demo.png';
+import demo from './demo.webp';
 
 const config: TemplateConfig = {
-    title: 'letter-box - Hộp Thư Kỷ Niệm',
-    description: 'Hộp thư kỷ niệm để lưu trữ lời chúc và hình ảnh dành tặng thầy cô.',
-    createdBy: 'tranminhkhadev',
-    maxImages: 1,
+    title: 'demo update',
+    description: 'mô tả template',
+    createdBy: 'Langochungdev',
+    maxImages: 2,
     maxVideos: 0,
-    maxAudios: 0,
+    maxAudios: 1,
     maxContent: 1,
     contentPlaceholders: [
-        'Nội dung thiệp',
+        'gợi ý 1',
     ],
-
 
     thumbnail: demo,
     thumbnailType: 'image',

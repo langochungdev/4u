@@ -170,6 +170,11 @@ async function deleteEcard(id: string) {
   delete copy[id]
   items.value = copy
 
+  // Immediately update activeEcardsCount
+  const currentCountStr = localStorage.getItem('activeEcardsCount')
+  const currentCount = currentCountStr ? parseInt(currentCountStr, 10) : 0
+  setLocalStorageItem('activeEcardsCount', Math.max(0, currentCount - 1))
+
   try {
     // Get context to retrieve media URLs
     const context = await contextService.getById(id)
@@ -209,6 +214,11 @@ async function deleteEcard(id: string) {
     if (url) restoreCopy[id] = url
     items.value = restoreCopy
     error.value = e.message || String(e)
+
+    // Restore activeEcardsCount
+    const currentCountStr = localStorage.getItem('activeEcardsCount')
+    const currentCount = currentCountStr ? parseInt(currentCountStr, 10) : 0
+    setLocalStorageItem('activeEcardsCount', currentCount + 1)
   }
 }
 </script>

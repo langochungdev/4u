@@ -8,7 +8,7 @@ export const CHRISTMAS_SECTION = createSection({
 });
 
 export const  CHRISTMAS_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-  'demo1': { visible: true }
+  'demo': { visible: true }
 };
 
 

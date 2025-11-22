@@ -1,14 +1,15 @@
 import { doc, setDoc, increment } from "firebase/firestore"
-import { MEDIA_LIMITS } from '~/config/app'
-import { canCreate, ECARD_LIMIT } from '~/composables/useEcards'
+import { canCreate, getEcardLimit } from '~/composables/useEcards'
 import { useContext } from "~/composables/useContext"
 import { useCloudinary } from "~/composables/useCloudinary"
 import { getTemplateConfig, isValidTemplate } from "~/config/templates"
 import { contextService } from "../service/context.service"
 import { userService } from "../service/user.service"
-import { useAudioTrimmer } from "./useAudioTrimmer"
 import { useExpiry } from "./useExpiry"
 import { useTemplateManager } from "./useTemplateManager"
+import { useMediaInput } from "./useMediaInput"
+import { useValidation } from "./useValidation"
+import { useMediaUtils } from "./useMediaUtils"
 
 export const useInputLogic = () => {
   const route = useRoute()
@@ -17,12 +18,53 @@ export const useInputLogic = () => {
   const emailCookie = useCookie('email')
   const { $firestore } = useNuxtApp()
   const db = $firestore
+  const config = useRuntimeConfig()
 
   const { content, loading, submit, imageManager, videoManager, audioManager, fetchContext, update, addContentItem, removeContentItem, updateContentItem } = useContext()
   const { upload, totalProgress, prepareUpload } = useCloudinary()
-  const { isExtractingAudio, extractProgress, cancelExtract, extractAudioFromVideo } = useAudioTrimmer()
   const { expiresAt, countdown, countdownInterval, calculateExpiryDate, updateCountdown, startCountdown } = useExpiry()
   const { prefetchTemplateShell, incrementTemplateStats } = useTemplateManager()
+
+  const isEditMode = ref(false)
+  const currentId = ref<string | null>(null)
+  const existingData = ref<any>(null)
+  const userEmail = ref<string | null>(route.query.email ? String(route.query.email) : (emailCookie.value || null))
+  const showEmailModal = ref(false)
+  const isLoadingTemplate = ref(false)
+  const isNavigating = ref(false)
+  const deletedUrls = ref<string[]>([])
+  const selectedDuration = ref<'1day' | '1week' | '1month' | '6months'>('1day')
+
+  const constraints = ref({
+    maxImages: config.public.maxImages,
+    maxVideos: config.public.maxVideos,
+    maxAudios: config.public.maxAudios,
+    maxContent: Infinity,
+    contentPlaceholders: [] as string[],
+    template: 'default'
+  })
+
+  const {
+    showAudioTrimmer,
+    currentAudioFile,
+    currentAudioIndex,
+    trimmedAudioIndexes,
+    handleMedia,
+    handleAudioTrimmed,
+    handleAudioTrimCancel,
+    removeExisting: removeExistingMedia,
+    isExtractingAudio,
+    extractProgress,
+    cancelExtract,
+    extractAudioFromVideo
+  } = useMediaInput(imageManager, videoManager, audioManager, constraints, existingData)
+
+  const { validate } = useValidation(content, constraints, imageManager, videoManager, audioManager, existingData)
+  const { labels, managers, getCount } = useMediaUtils(imageManager, videoManager, audioManager, existingData)
+
+  const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
+    removeExistingMedia(type, index, deletedUrls)
+  }
 
   function waitUntilProgressComplete(timeoutMs = 5000) {
     return new Promise<void>((resolve) => {
@@ -43,41 +85,11 @@ export const useInputLogic = () => {
     });
   }
 
-  const managers = { image: imageManager, video: videoManager, audio: audioManager };
-  const labels = { image: 'ảnh', video: 'video', audio: 'audio' };
-
-  const getCount = (type: 'image' | 'video' | 'audio') =>
-    managers[type].files.value.length + (existingData.value?.[`${type}s`]?.length || 0);
-
-  const isEditMode = ref(false)
-  const currentId = ref<string | null>(null)
-  const existingData = ref<any>(null)
-  const userEmail = ref<string | null>(route.query.email ? String(route.query.email) : (emailCookie.value || null))
-  const showEmailModal = ref(false)
-  const showAudioTrimmer = ref(false)
-  const currentAudioFile = ref<File | null>(null)
-  const currentAudioIndex = ref<number>(-1)
-  const trimmedAudioIndexes = ref<Set<number>>(new Set())
-  const isLoadingTemplate = ref(false)
-  const isNavigating = ref(false)
-
   function handleVerifiedEmail(email: string) {
     emailCookie.value = email
     userEmail.value = email
     showEmailModal.value = false
   }
-
-  const deletedUrls = ref<string[]>([]);
-  const selectedDuration = ref<'1day' | '1week' | '1month' | '6months'>('1day');
-
-  const constraints = ref({
-    maxImages: MEDIA_LIMITS.maxImages,
-    maxVideos: MEDIA_LIMITS.maxVideos,
-    maxAudios: MEDIA_LIMITS.maxAudios,
-    maxContent: Infinity,
-    contentPlaceholders: [] as string[],
-    template: 'default'
-  });
 
   let stopWatchRef: (() => void) | undefined;
 
@@ -103,195 +115,102 @@ export const useInputLogic = () => {
   const filledContentCount = computed(() => content.value.filter(c => c.trim()).length);
 
   const getMaxForMedia = (mediaKey: 'image' | 'video' | 'audio') => {
-    if (mediaKey === 'image') return constraints.value.maxImages;
-    if (mediaKey === 'video') return constraints.value.maxVideos;
-    return constraints.value.maxAudios;
+    if (mediaKey === 'image') return constraints.value.maxImages
+    if (mediaKey === 'video') return constraints.value.maxVideos
+    return constraints.value.maxAudios
   }
 
-  const removeExisting = (type: 'image' | 'video' | 'audio', index: number) => {
-    if (!existingData.value) return;
-    const key = `${type}s`;
-    deletedUrls.value.push(existingData.value[key][index]);
-    existingData.value[key].splice(index, 1);
-  };
-
-  const handleAudioTrimmed = (trimmedFile: File) => {
-    if (currentAudioIndex.value >= 0) {
-      audioManager.files.value[currentAudioIndex.value] = trimmedFile
-      const newPreviews = [...audioManager.previews.value]
-      newPreviews[currentAudioIndex.value] = URL.createObjectURL(trimmedFile)
-      audioManager.previews.value = newPreviews
-      trimmedAudioIndexes.value.add(currentAudioIndex.value)
-    } else {
-      audioManager.addFiles([trimmedFile])
-      trimmedAudioIndexes.value.add(audioManager.files.value.length - 1)
-    }
-    showAudioTrimmer.value = false
-    currentAudioFile.value = null
-    currentAudioIndex.value = -1
+  const getTemplateInfo = () => {
+    const templateName = route.params.template as string || route.query.template as string || 'demo'
+    const topic = route.query.topic as string || ''
+    return { templateName, topic }
   }
 
-  const handleAudioTrimCancel = () => {
-    showAudioTrimmer.value = false
-    currentAudioFile.value = null
-    currentAudioIndex.value = -1
+  const applyTemplateConfig = async (config: any) => {
+    constraints.value.maxImages = config.maxImages
+    constraints.value.maxVideos = config.maxVideos
+    constraints.value.maxAudios = config.maxAudios
+    constraints.value.maxContent = config.maxContent
+    if (config.contentPlaceholders) {
+      constraints.value.contentPlaceholders = config.contentPlaceholders
+    }
   }
 
-  // Helper functions for file type checking
-  const isVideoFile = (file: File): boolean => {
-    const fileName = file.name.toLowerCase();
-    return file.type.startsWith('video/') ||
-           fileName.endsWith('.mp4') ||
-           fileName.endsWith('.webm') ||
-           fileName.endsWith('.mov');
-  };
-
-  const isAudioFile = (file: File): boolean => {
-    const fileName = file.name.toLowerCase();
-    return file.type.startsWith('audio/') ||
-           fileName.endsWith('.mp3') ||
-           fileName.endsWith('.m4a') ||
-           fileName.endsWith('.wav') ||
-           fileName.endsWith('.ogg') ||
-           fileName.endsWith('.aac') ||
-           fileName.endsWith('.flac');
-  };
-
-  // Validate file selection and return allowed files
-  const validateFileSelection = (input: HTMLInputElement, type: 'image' | 'video' | 'audio') => {
-    const max = constraints.value[`max${type.charAt(0).toUpperCase() + type.slice(1)}s` as keyof typeof constraints.value] as number;
-    const current = getCount(type);
-
-    if (current >= max) {
-      alert(`Chỉ được phép tối đa ${max} ${labels[type]}!`);
-      input.value = '';
-      return null;
+  const checkEmailLimit = async (email: string) => {
+    try {
+      const { allowed } = await canCreate(email, constraints.value.template)
+      if (!allowed) {
+        alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${getEcardLimit()}).`)
+        router.push({ name: 'Home' })
+        return false
+      }
+      return true
+    } catch (err) {
+      return true
     }
+  }
 
-    const allowed = max - current;
-    const files = Array.from(input.files!).slice(0, allowed);
+  const filterDeletedUrls = (urls: string[] = []) =>
+    urls.filter(url => !deletedUrls.value.includes(url))
 
-    if (input.files!.length > allowed) {
-      alert(`Chỉ thêm được ${allowed} ${labels[type]} nữa. Đã chọn ${allowed}/${input.files!.length}.`);
-    }
+  const parseFirestoreDate = (firestoreDate: any): Date | null => {
+    if (!firestoreDate) return null
+    if (firestoreDate.toDate) return firestoreDate.toDate()
+    if (firestoreDate instanceof Date) return firestoreDate
+    if (typeof firestoreDate === 'number') return new Date(firestoreDate)
+    return null
+  }
 
-    return files;
-  };
+  const restorePreviewData = async () => {
+    content.value = [...previewStore.content]
+    if (previewStore.imageFiles.length) imageManager.addFiles(previewStore.imageFiles)
+    if (previewStore.videoFiles.length) videoManager.addFiles(previewStore.videoFiles)
+    if (previewStore.audioFiles.length) audioManager.addFiles(previewStore.audioFiles)
 
-  // Handle single audio file processing
-  const handleAudioFile = async (file: File, input: HTMLInputElement) => {
-    if (isVideoFile(file)) {
-      try {
-        const audioFile = await extractAudioFromVideo(file);
-        currentAudioFile.value = audioFile;
-        currentAudioIndex.value = -1;
-        showAudioTrimmer.value = true;
-      } catch (error) {
-        if (error instanceof Error && error.message === 'cancelled') {
-          input.value = '';
-          return;
+    if (previewStore.editId) {
+      isEditMode.value = true
+      currentId.value = previewStore.editId
+      deletedUrls.value = previewStore.deletedUrls || []
+
+      if (!existingData.value && currentId.value) {
+        existingData.value = await fetchContext(currentId.value)
+      }
+
+      if (existingData.value && deletedUrls.value.length > 0) {
+        existingData.value.images = existingData.value.images.filter((url: string) => !deletedUrls.value.includes(url))
+        if (existingData.value.videos) {
+          existingData.value.videos = existingData.value.videos.filter((url: string) => !deletedUrls.value.includes(url))
         }
-        const errorMessage = error instanceof Error ? error.message : 'Không thể trích xuất audio từ video. Vui lòng chọn file audio hoặc video khác.';
-        alert('❌ ' + errorMessage);
-        input.value = '';
-      }
-    } else if (isAudioFile(file)) {
-      currentAudioFile.value = file;
-      currentAudioIndex.value = -1;
-      showAudioTrimmer.value = true;
-    } else {
-      alert('Vui lòng chọn tệp audio hoặc video hợp lệ.');
-    }
-  };
-
-  // Handle multiple audio files (batch processing)
-  const handleMultipleAudioFiles = async (files: File[]) => {
-    const processedFiles: File[] = [];
-
-    for (const file of files) {
-      if (isVideoFile(file)) {
-        try {
-          const audioFile = await extractAudioFromVideo(file);
-          processedFiles.push(audioFile);
-        } catch (error) {
-          // Silent fail for batch processing
+        if (existingData.value.audios) {
+          existingData.value.audios = existingData.value.audios.filter((url: string) => !deletedUrls.value.includes(url))
         }
-      } else if (isAudioFile(file)) {
-        processedFiles.push(file);
       }
     }
 
-    // Add all processed files to audio manager
-    for (const processedFile of processedFiles) {
-      await audioManager.addFiles([processedFile]);
-    }
-  };
-
-  // Handle image and video files
-  const handleMediaFiles = async (files: File[], type: 'image' | 'video') => {
-    const manager = type === 'image' ? imageManager : videoManager;
-    for (const file of files) {
-      await manager.addFiles([file]);
-    }
-  };
-
-  const handleMedia = async (e: Event, type: 'image' | 'video' | 'audio') => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files) return;
-
-    const files = validateFileSelection(input, type);
-    if (!files) return;
-
-    if (type === 'audio' && files.length > 0) {
-      if (files.length === 1) {
-        const file = files[0];
-        if (file) {
-          await handleAudioFile(file, input);
-        }
-      } else {
-        await handleMultipleAudioFiles(files);
+    const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.params.template)
+    if (needRestore) {
+      const newQuery = { ...route.query }
+      if (previewStore.topic && !route.query.topic) {
+        newQuery.topic = previewStore.topic
       }
-    } else if (type === 'image' || type === 'video') {
-      await handleMediaFiles(files, type);
-    }
-
-    // Reset input
-    input.value = '';
-  };
-
-  const validate = () => {
-    const validContents = content.value.filter(c => c.trim());
-
-    if (constraints.value.maxContent !== Infinity && validContents.length < constraints.value.maxContent) {
-      alert(`Vui lòng nhập đủ ${constraints.value.maxContent} nội dung. Hiện tại: ${validContents.length}/${constraints.value.maxContent}`);
-      return false;
-    }
-    if (constraints.value.maxContent === Infinity && !validContents.length) {
-      alert("Vui lòng nhập ít nhất một nội dung.");
-      return false;
-    }
-
-    for (const type of ['image', 'video', 'audio'] as const) {
-      const max = constraints.value[`max${type.charAt(0).toUpperCase() + type.slice(1)}s` as keyof typeof constraints.value] as number;
-      const current = getCount(type);
-      if (type === 'audio') continue; // audio is optional
-      if (max !== Infinity && current < max) {
-        alert(`Vui lòng tải lên đủ ${max} ${labels[type]}. Hiện tại: ${current}/${max}`);
-        return false;
+      if (previewStore.template && !route.params.template) {
+        newQuery.template = previewStore.template
       }
+      await router.replace({
+        ...route,
+        query: newQuery
+      })
     }
 
-    return true;
-  };
+    if (previewStore.template) {
+      constraints.value.template = previewStore.template
+    }
+  }
 
   const handlePreview = () => {
     if (!validate()) return;
 
-    const templateName = route.params.template as string || route.query.template as string || 'demo';
-    const topic = route.query.topic as string || '';
-
-    const filterDeletedUrls = (urls: string[] = []) =>
-      urls.filter(url => !deletedUrls.value.includes(url));
+    const { templateName, topic } = getTemplateInfo();
 
     previewStore.setPreviewData({
       content: content.value.filter(c => c.trim()),
@@ -349,14 +268,12 @@ export const useInputLogic = () => {
       const calculatedExpiresAt = expiresAt.value || calculateExpiryDate(selectedDuration.value);
 
       if (isEditMode.value && currentId.value) {
-        const filterDeletedUrls = (urls: string[] = []) =>
-          urls.filter(url => !deletedUrls.value.includes(url));
-
         const finalImages = [...filterDeletedUrls(existingData.value?.images), ...imageUrls];
         const finalVideos = [...filterDeletedUrls(existingData.value?.videos), ...videoUrls];
         const finalAudios = [...filterDeletedUrls(existingData.value?.audios), ...audioUrls];
 
         await contextService.updateContextWithDeleted(currentId.value, {
+          content: content.value.filter(c => c.trim()),
           images: finalImages,
           videos: finalVideos,
           audios: finalAudios,
@@ -389,10 +306,11 @@ export const useInputLogic = () => {
 
         deletedUrls.value = [];
 
+        // Set progress to 100% to hide overlay
+        totalProgress.value = 100;
         try { await waitUntilProgressComplete(4000); } catch (_e) {}
 
-        const templateName = route.params.template as string || route.query.template as string || 'demo';
-        const topic = route.query.topic as string || '';
+        const { templateName, topic } = getTemplateInfo();
         await router.push({
           path: `/result/${currentId.value}`,
           query: { template: templateName, topic }
@@ -420,8 +338,7 @@ export const useInputLogic = () => {
           try {
             const email = userEmail.value || emailCookie.value;
             if (email) {
-              const templateName = route.params.template as string || route.query.template as string || 'demo';
-              const topic = route.query.topic as string || '';
+              const { templateName, topic } = getTemplateInfo();
               const resultUrl = `${window.location.origin}/result/${id}` + (templateName ? `?template=${templateName}${topic ? `&topic=${topic}` : ''}` : '');
               console.log('resultUrl:', resultUrl);
 
@@ -434,8 +351,7 @@ export const useInputLogic = () => {
             // Silent fail
           }
           try { await waitUntilProgressComplete(4000); } catch (_e) {}
-          const templateName = route.params.template as string || route.query.template as string || 'demo';
-          const topic = route.query.topic as string || '';
+          const { templateName, topic } = getTemplateInfo();
 
           // Increment template creation counter
           try {
@@ -483,15 +399,8 @@ export const useInputLogic = () => {
           newQuery.topic = route.query.topic as string;
         }
 
-        constraints.value.maxImages = config.maxImages;
-        constraints.value.maxVideos = config.maxVideos;
-        constraints.value.maxAudios = config.maxAudios;
-        constraints.value.maxContent = config.maxContent;
+        await applyTemplateConfig(config);
         constraints.value.template = templateNameToUse;
-
-        if (config.contentPlaceholders) {
-          constraints.value.contentPlaceholders = config.contentPlaceholders;
-        }
 
         await router.replace({
           path: '/input',
@@ -512,13 +421,7 @@ export const useInputLogic = () => {
         isLoadingTemplate.value = true;
         const config = await getTemplateConfig(constraints.value.template);
         if (config) {
-          constraints.value.maxImages = config.maxImages;
-          constraints.value.maxVideos = config.maxVideos;
-          constraints.value.maxAudios = config.maxAudios;
-          constraints.value.maxContent = config.maxContent;
-          if (config.contentPlaceholders) {
-            constraints.value.contentPlaceholders = config.contentPlaceholders;
-          }
+          await applyTemplateConfig(config);
         }
       } catch (_err) {
         // Silent fail
@@ -530,16 +433,8 @@ export const useInputLogic = () => {
       const emailFromQuery = route.query.email as string | undefined;
       const emailToCheck = emailFromQuery || userEmail.value;
       if (emailToCheck) {
-        try {
-          const { allowed } = await canCreate(emailToCheck, constraints.value.template);
-          if (!allowed) {
-            alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
-            router.push({ name: 'Home' });
-            return;
-          }
-        } catch (err) {
-          // Silent fail
-        }
+        const allowed = await checkEmailLimit(emailToCheck);
+        if (!allowed) return;
       }
     } else if (urlParamId && !queryDocId) {
       const defaultTemplate = 'demo';
@@ -561,13 +456,7 @@ export const useInputLogic = () => {
       try {
         const config = await getTemplateConfig(constraints.value.template);
         if (config) {
-          constraints.value.maxImages = config.maxImages;
-          constraints.value.maxVideos = config.maxVideos;
-          constraints.value.maxAudios = config.maxAudios;
-          constraints.value.maxContent = config.maxContent;
-          if (config.contentPlaceholders) {
-            constraints.value.contentPlaceholders = config.contentPlaceholders;
-          }
+          await applyTemplateConfig(config);
         }
       } catch (err) {
         // Silent fail
@@ -575,16 +464,8 @@ export const useInputLogic = () => {
       try { prefetchTemplateShell(route.query.topic as string | undefined, constraints.value.template); } catch (_e) { }
       const emailToCheck = (route.query.email as string) || userEmail.value;
       if (emailToCheck) {
-        try {
-          const { allowed } = await canCreate(emailToCheck, constraints.value.template);
-          if (!allowed) {
-            alert(`Bạn đã vượt quá số lượng thiệp cho phép (tối đa ${ECARD_LIMIT}).`);
-            router.push({ name: 'Home' });
-            return;
-          }
-        } catch (err) {
-          // Silent fail
-        }
+        const allowed = await checkEmailLimit(emailToCheck);
+        if (!allowed) return;
       }
     });
 
@@ -595,68 +476,16 @@ export const useInputLogic = () => {
       existingData.value = await fetchContext(docId);
 
       if (existingData.value?.expiresAt) {
-        if (existingData.value.expiresAt.toDate) {
-          expiresAt.value = existingData.value.expiresAt.toDate();
-        } else if (existingData.value.expiresAt instanceof Date) {
-          expiresAt.value = existingData.value.expiresAt;
-        } else if (typeof existingData.value.expiresAt === 'number') {
-          expiresAt.value = new Date(existingData.value.expiresAt);
-        }
-
+        expiresAt.value = parseFirestoreDate(existingData.value.expiresAt)
         if (expiresAt.value) {
-          startCountdown();
+          startCountdown()
         }
       }
     }
 
     if ((route.query.fromPreview === 'true' || route.query.confirmPreview === 'true') && previewStore.hasData) {
-      content.value = [...previewStore.content];
-      if (previewStore.imageFiles.length) imageManager.addFiles(previewStore.imageFiles);
-      if (previewStore.videoFiles.length) videoManager.addFiles(previewStore.videoFiles);
-      if (previewStore.audioFiles.length) audioManager.addFiles(previewStore.audioFiles);
-
-      if (previewStore.editId) {
-        isEditMode.value = true;
-        currentId.value = previewStore.editId;
-        deletedUrls.value = previewStore.deletedUrls || [];
-
-        if (!existingData.value && currentId.value) {
-          existingData.value = await fetchContext(currentId.value);
-        }
-
-        if (existingData.value && deletedUrls.value.length > 0) {
-          existingData.value.images = existingData.value.images.filter((url: string) => !deletedUrls.value.includes(url));
-          if (existingData.value.videos) {
-            existingData.value.videos = existingData.value.videos.filter((url: string) => !deletedUrls.value.includes(url));
-          }
-          if (existingData.value.audios) {
-            existingData.value.audios = existingData.value.audios.filter((url: string) => !deletedUrls.value.includes(url));
-          }
-        }
-      }
-
-      // bypassAudio removed - audio is optional by default
-
-      const needRestore = (previewStore.topic && !route.query.topic) || (previewStore.template && !route.params.template);
-      if (needRestore) {
-        const newQuery = { ...route.query };
-        if (previewStore.topic && !route.query.topic) {
-          newQuery.topic = previewStore.topic;
-        }
-        if (previewStore.template && !route.params.template) {
-          newQuery.template = previewStore.template;
-        }
-        await router.replace({
-          ...route,
-          query: newQuery
-        });
-      }
-
-      if (previewStore.template) {
-        constraints.value.template = previewStore.template;
-      }
-
-      if (route.query.confirmPreview === 'true') await handleSubmit();
+      await restorePreviewData()
+      if (route.query.confirmPreview === 'true') await handleSubmit()
     }
   });
 
