@@ -147,7 +147,7 @@ export default defineNuxtConfig({
     preset: 'vercel',
     compressPublicAssets: true,
     minify: true,
-    errorHandler: '~/error.ts'
+    errorHandler: '../server/error.ts'
   },
 
   routeRules: {
