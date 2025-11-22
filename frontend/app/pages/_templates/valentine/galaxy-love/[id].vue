@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useTemplateData } from '../../../../composables/useTemplateData';
 import TEMPLATE_CONFIG from './config';
-import { initGalaxyScene } from './galaxyScene';
+// `galaxyScene` imports `three` and DOM APIs; dynamically import on client only to avoid server-side errors
+// (keeps `three` out of SSR bundles). We'll import it inside onMounted or initScene.
 
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -30,6 +31,8 @@ const initScene = async () => {
   }
   
   await nextTick();
+  // dynamically import initGalaxyScene to prevent SSR/import-time DOM access and keep `three` client-only
+  const { initGalaxyScene } = await import('./galaxyScene');
   cleanupFn = initGalaxyScene(canvasRef.value, content, images);
   
   // Hide loading after scene is ready

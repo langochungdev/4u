@@ -1,4 +1,5 @@
 export function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
   const cookie = document.cookie || ''
   const pattern = new RegExp('(^| )' + name + '=([^;]+)')
   const match = cookie.match(pattern)
@@ -6,6 +7,7 @@ export function getCookie(name: string): string | null {
 }
 
 export function setCookie(name: string, value: string, days = 365) {
+  if (typeof document === 'undefined') return;
   const d = new Date()
   d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000)
   const expires = `expires=${d.toUTCString()}`
@@ -13,5 +15,6 @@ export function setCookie(name: string, value: string, days = 365) {
 }
 
 export function deleteCookie(name: string) {
+  if (typeof document === 'undefined') return;
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
 }

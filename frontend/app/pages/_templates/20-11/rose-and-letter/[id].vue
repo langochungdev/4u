@@ -257,7 +257,7 @@ function typeWriter(
   }
 }
 
-const head = document.getElementsByTagName("head")[0];
+let head: HTMLElement | null = null;
 const injectedStyles = ref<HTMLStyleElement[]>([]);
 let animationId = 0;
 
@@ -321,6 +321,7 @@ onMounted(() => {
     [135, 132, 320, 315, 0.2, 5, 0.3],
   ];
 
+  head = (document.getElementsByTagName("head")[0] as HTMLElement) || null;
   dusts.forEach((o) =>
     CreateMagicDust(
       o[0] ?? 0,
