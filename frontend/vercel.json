@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run build",
+  "buildCommand": "pnpm run sitemap && pnpm run build",
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "framework": "nuxtjs",
