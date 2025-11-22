@@ -301,18 +301,7 @@ onMounted(async () => {
 })
 
 function prefetchInputPage() {
-    if (typeof window === 'undefined') return
-    
-    if ('requestIdleCallback' in window) {
-        requestIdleCallback(async () => {
-            try {
-                // Prefetch input page components when browser is idle
-                await preloadRouteComponents('/input/demo1')
-            } catch (err) {
-                // Silent fail - prefetch is not critical
-            }
-        }, { timeout: 3000 })
-    }
+    // Prefetch logic removed as preloadRouteComponents is not defined
 }
 
 async function goToDemo(section: Section, card: TemplateCard) {
