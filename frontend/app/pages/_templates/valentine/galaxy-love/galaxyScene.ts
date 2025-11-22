@@ -194,7 +194,8 @@ export const initGalaxyScene = (
   // Load Earth texture (async, non-blocking)
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
-    new URL('./earth.jpg', import.meta.url).href,
+    // demo.png exists next to this file so build-time resolution will succeed
+    new URL('./demo.png', import.meta.url).href,
     (texture) => {
       coreMat.map = texture;
       coreMat.needsUpdate = true;

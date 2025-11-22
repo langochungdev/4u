@@ -16,30 +16,19 @@ export default defineNuxtPlugin((nuxtApp) => {
       measurementId: config.firebaseMeasurementId
     }
     
-    // Check if required config is present
-    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-      console.warn('Firebase config incomplete, skipping initialization')
-      return
+    const app = initializeApp(firebaseConfig)
+    const db = getFirestore(app)
+    
+    // Also set global for non-composable usage
+    if (typeof window !== 'undefined') {
+      (window as any).firebaseDb = db
     }
     
-    try {
-      const app = initializeApp(firebaseConfig)
-      const db = getFirestore(app)
-      
-      // Also set global for non-composable usage
-      if (typeof window !== 'undefined') {
-        (window as any).firebaseDb = db
-      }
-      
-      return { 
-        provide: { 
-          firebaseApp: app, 
-          firestore: db 
-        } 
-      }
-    } catch (error) {
-      console.error('Failed to initialize Firebase:', error)
-      return
+    return { 
+      provide: { 
+        firebaseApp: app, 
+        firestore: db 
+      } 
     }
   }
 })

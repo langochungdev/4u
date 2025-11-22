@@ -427,7 +427,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("imgs/phao.gif");
+  /* replaced missing gifs with an existing public asset to avoid build-time warnings */
+  background-image: url("/logo.webp");
   background-size: cover;
   background-position: center;
   z-index: 190;
@@ -446,7 +447,8 @@
   left: 25px;
   width: 150px;
   height: 130px;
-  background-image: url("imgs/teacher-cute.gif");
+  /* replaced missing gifs with an existing public asset to avoid build-time warnings */
+  background-image: url("/logo.webp");
   background-size: contain;
   background-repeat: no-repeat;
   z-index: 999;
@@ -466,7 +468,8 @@
   transform: translateX(-50%);
   width: 100%;
   height: 38vh;
-  background-image: url("imgs/fly.gif");
+  /* replaced missing gifs with an existing public asset to avoid build-time warnings */
+  background-image: url("/logo.webp");
   background-size: contain;
   background-position: center bottom;
   background-repeat: no-repeat;
