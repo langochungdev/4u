@@ -109,46 +109,52 @@ export default defineNuxtConfig({
               const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
               if (isMobile) return;
               
-              let devtools = {open: false};
-              const threshold = 160;
+              let devtoolsOpen = false;
+              let debuggerInterval = null;
               
               // Disable right click
               document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
               });
               
-              // Try to disable some shortcuts
+              // Disable F12 shortcut
               document.addEventListener('keydown', function(e) {
-                if (e.key === 'F12' || 
-                    (e.ctrlKey && e.shiftKey && e.key === 'I') || 
-                    (e.ctrlKey && e.key === 'u') ||
-                    (e.ctrlKey && e.shiftKey && e.key === 'J')) {
+                if (e.key === 'F12') {
                   e.preventDefault();
                   alert('Developer tools are disabled for security reasons.');
                   return false;
                 }
               });
               
+              // Function to detect if devtools is open
+              const detectDevtools = () => {
+                let start = performance.now();
+                debugger; // This will pause if devtools is open
+                let end = performance.now();
+                return end - start > 100; // If pause > 100ms, devtools is likely open
+              };
+              
+              // Check periodically
               setInterval(() => {
-                if (window.outerHeight - window.innerHeight > threshold || window.outerWidth - window.innerWidth > threshold) {
-                  if (!devtools.open) {
-                    devtools.open = true;
-                    alert('Mở trang khác rồi paste link vào à? non kkk');
-                    // More aggressive: break the page
-                    document.body.innerHTML = '<div style="text-align:center;padding:50px;font-size:24px;color:red;">Developer tools are disabled for security reasons.<br>This page will reload.</div>';
-                    setTimeout(() => {
-                      location.reload();
-                    }, 2000);
+                if (detectDevtools()) {
+                  if (!devtoolsOpen) {
+                    devtoolsOpen = true;
+                    alert('Developer tools detected. Page will be slowed down.');
+                    // Start continuous debugger to slow down the page
+                    debuggerInterval = setInterval(() => {
+                      debugger;
+                    }, 100); // Continuous debugger every 100ms
                   }
                 } else {
-                  devtools.open = false;
+                  if (devtoolsOpen) {
+                    devtoolsOpen = false;
+                    if (debuggerInterval) {
+                      clearInterval(debuggerInterval);
+                      debuggerInterval = null;
+                    }
+                  }
                 }
-              }, 500);
-              
-              // Clear console periodically
-              setInterval(() => {
-                console.clear();
-              }, 1000);
+              }, 1000); // Check every 1s
             })();
           `
         }] : [])
