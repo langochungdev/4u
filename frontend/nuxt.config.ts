@@ -105,6 +105,10 @@ export default defineNuxtConfig({
         ...(disableDevtools ? [{
           innerHTML: `
             (function() {
+              // Skip on mobile devices
+              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              if (isMobile) return;
+              
               let devtools = {open: false};
               const threshold = 160;
               
