@@ -1,106 +1,103 @@
-#!/usr/bin/env node
-import fs from 'fs';
-import path from 'path';
-import { SitemapStream, streamToPromise } from 'sitemap';
+import { writeFileSync, readdirSync, readFileSync } from 'fs'
+import { resolve, join } from 'path'
 
-// Config
-const frontendRoot = path.resolve(new URL(import.meta.url).pathname, '../../');
-const srcRoot = path.join(frontendRoot, 'src');
-const publicRoot = path.join(frontendRoot, 'public');
-const routerFile = path.join(srcRoot, 'router', 'index.ts');
-const templatesRoot = path.join(srcRoot, 'pages', 'templates');
+const DOMAIN = 'https://story4u.online'
+const OUTPUT_PATH = resolve(process.cwd(), 'public/sitemap.xml')
+const CONFIG_PATH = resolve(process.cwd(), 'app/pages/home/config')
 
-// Helper to traverse template directories and return {topic, id}
-async function collectTemplateRoutes() {
-  const templatePaths = [];
+// Define static routes
+const routes = [
+  { path: '/', priority: 1.0, changefreq: 'daily' },
+  { path: '/home', priority: 1.0, changefreq: 'daily' },
+  { path: '/input', priority: 0.9, changefreq: 'weekly' },
+]
+
+// Auto-scan template configs from config files
+function scanTemplateConfigs() {
+  const templateCategories = {}
+  
   try {
-    const topics = await fs.promises.readdir(templatesRoot);
-    for (const topic of topics) {
-      const topicDir = path.join(templatesRoot, topic);
-      const statTopic = await fs.promises.stat(topicDir).catch(() => null);
-      if (!statTopic || !statTopic.isDirectory()) continue;
-      const templates = await fs.promises.readdir(topicDir).catch(() => []);
-      for (const templateId of templates) {
-        const tDir = path.join(topicDir, templateId);
-        const stat = await fs.promises.stat(tDir).catch(() => null);
-        if (!stat || !stat.isDirectory()) continue;
-        const indexVue = path.join(tDir, 'index.vue');
-        const fileExists = await fs.promises.stat(indexVue).then(() => true).catch(() => false);
-        if (fileExists) templatePaths.push(`/${topic}/${templateId}`);
+    const configFiles = readdirSync(CONFIG_PATH).filter(file => 
+      file.endsWith('.ts') && file !== 'section.helper.ts'
+    )
+    
+    configFiles.forEach(file => {
+      const filePath = join(CONFIG_PATH, file)
+      const content = readFileSync(filePath, 'utf-8')
+      
+      // Extract section id from SECTION object
+      const sectionIdMatch = content.match(/id:\s*['"]([^'"]+)['"]/);
+      if (!sectionIdMatch) return
+      
+      const categoryId = sectionIdMatch[1]
+      
+      // Extract template keys from TEMPLATES_CONFIG object
+      // Match everything between the opening { and closing };
+      const configMatch = content.match(/TEMPLATES_CONFIG[^=]*=\s*\{([\s\S]*?)\};/);
+      if (!configMatch) return
+      
+      const configContent = configMatch[1]
+      // Match all template keys (strings before colon)
+      const templateMatches = [...configContent.matchAll(/['"]([^'"]+)['"]\s*:/g)]
+      
+      if (templateMatches.length > 0) {
+        templateCategories[categoryId] = templateMatches.map(m => m[1])
+        console.log(`📁 Found ${templateMatches.length} templates in "${categoryId}" category`)
       }
-    }
-  } catch (err) {
-    console.error('Error scanning templates directory:', err);
+    })
+    
+  } catch (error) {
+    console.error('⚠️  Error scanning config files:', error.message)
   }
-  return templatePaths;
+  
+  return templateCategories
 }
 
-// Extract route paths from router/index.ts
-async function collectStaticRoutes() {
-  const data = await fs.promises.readFile(routerFile, 'utf8');
-  const pathRegex = /path:\s*['\"]([^'\"]+)['\"]/g;
-  const routes = new Set();
-  let match;
-  while ((match = pathRegex.exec(data)) !== null) {
-    const p = match[1];
-    // Skip wildcard notFound or pathMatch
-    if (p.includes(':pathMatch') || p.includes('*')) continue;
-    // Skip API-like or internal catchall
-    if (p === '/:pathMatch(.*)*') continue;
-    // If route has param and is optional (has ?), strip param
-    if (p.includes(':') && p.includes('?')) {
-      const stripped = p.replace(/:\w+\?/, '');
-      // Remove trailing slash
-      routes.add(stripped.replace(/\/$/, ''));
-      continue;
-    }
-    // If route contains required params like :id (without ?), skip
-    if (p.includes(':')) continue;
-    routes.add(p);
-  }
-  return Array.from(routes);
+// Scan and generate template routes dynamically
+const templateCategories = scanTemplateConfigs()
+
+Object.entries(templateCategories).forEach(([category, templates]) => {
+  const isSeasonalCategory = ['christmas', 'valentine'].includes(category)
+  const changefreq = category === '20-11' ? 'monthly' : 'yearly'
+  const priority = isSeasonalCategory ? 0.7 : 0.8
+
+  templates.forEach(template => {
+    routes.push({
+      path: `/${category}/${template}`,
+      priority,
+      changefreq
+    })
+  })
+})
+
+// Generate XML
+function generateSitemap() {
+  const lastmod = new Date().toISOString().split('T')[0]
+  
+  const urls = routes.map(route => `  <url>
+    <loc>${DOMAIN}${route.path}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${route.changefreq}</changefreq>
+    <priority>${route.priority}</priority>
+  </url>`).join('\n')
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+${urls}
+  
+</urlset>`
+
+  writeFileSync(OUTPUT_PATH, xml, 'utf8')
+  console.log(`✅ Sitemap generated successfully at ${OUTPUT_PATH}`)
+  console.log(`📊 Total URLs: ${routes.length}`)
 }
 
-async function main() {
-  const hostname = process.env.SITE_URL || process.env.SITE_HOSTNAME || 'https://your-domain.com';
-  console.log('Using hostname:', hostname);
-  const urls = new Set();
-
-  // include root
-  urls.add('/');
-
-  // collect routes from router
-  const staticRoutes = await collectStaticRoutes();
-  for (const r of staticRoutes) { urls.add(r); }
-
-  // collect template routes
-  const templateRoutes = await collectTemplateRoutes();
-  for (const r of templateRoutes) { urls.add(r); }
-
-  const sitemapStream = new SitemapStream({ hostname });
-
-  // Convert set to array and add priorities
-  const urlArray = Array.from(urls).sort();
-
-  for (const url of urlArray) {
-    // basic priority rules
-    const priority = url === '/' ? 1.0 : 0.8;
-    sitemapStream.write({ url, changefreq: 'weekly', priority });
-  }
-
-  sitemapStream.end();
-
-  try {
-    const data = await streamToPromise(sitemapStream);
-    const xml = data.toString();
-    await fs.promises.mkdir(publicRoot, { recursive: true });
-    const sitemapPath = path.join(publicRoot, 'sitemap.xml');
-    await fs.promises.writeFile(sitemapPath, xml, 'utf8');
-    console.log('Sitemap written to', sitemapPath);
-  } catch (err) {
-    console.error('Failed to generate sitemap:', err);
-    process.exit(1);
-  }
+// Run
+try {
+  generateSitemap()
+} catch (error) {
+  console.error('❌ Error generating sitemap:', error)
+  process.exit(1)
 }
-
-main();

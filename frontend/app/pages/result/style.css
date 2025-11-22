@@ -1,0 +1,766 @@
+/* Windows 2K Theme Styles for Result Page */
+
+.text-foreground {
+    color: #f8f8f8;
+    /* light text */
+}
+
+.text-muted-foreground {
+    color: #a0a0a0;
+    /* muted text */
+}
+
+.border {
+    border-color: #2a2a2a;
+}
+
+.bg-card {
+    background-color: #1a1a1a;
+}
+
+/* Window styles */
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.result-container {
+    min-height: 100vh;
+    /* backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); */
+    position: relative;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-window {
+    max-width: 800px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.result-form {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: white;
+    border-top-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.result-content {
+    background-color: rgba(255, 255, 255, 0.98);
+    padding: 20px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 2px;
+}
+
+.window-border {
+    margin: 0;
+    width: 100%;
+    border: 1px solid #d0d0c8;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    overflow: hidden;
+}
+
+.window {
+    background-color: #d0d0c8;
+    padding: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: white;
+    border-top-color: white;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.text-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.status-bar {
+    flex-shrink: 0;
+}
+
+.title-bar {
+    background-color: #082468;
+    background: -moz-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: -webkit-linear-gradient(left, #082468 0%, #a0c8f0 100%);
+    background: linear-gradient(to right, #082468, #a0c8f0);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 1px;
+    overflow-y: hidden;
+    cursor: default;
+    min-height: 16px;
+}
+
+.title-bar-buttons {
+    float: right;
+    width: 50px;
+    height: 15px;
+    background-image: url('~/assets/win2kicon.png');
+    background-repeat: no-repeat;
+    background-position: -2px -33px;
+}
+
+.title-bar .icon {
+    width: 16px;
+    height: 16px;
+    background-image: url('~/assets/win2kicon.png');
+    background-repeat: no-repeat;
+    background-position: -96px 0;
+    float: left;
+    margin-right: 2px;
+}
+
+.text-area {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    background-color: white;
+    overflow: hidden;
+}
+
+.status-bar {
+    padding: 4px 2px;
+    margin-top: 2px;
+    border: 1px solid #d0d0c8;
+    border-left-color: #808080;
+    border-top-color: #808080;
+    border-right-color: white;
+    border-bottom-color: white;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.status-bar .win2k-button,
+.status-bar .file-input-button {
+    min-height: 40px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.win2k-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 14px;
+    padding: 12px 24px;
+    cursor: pointer;
+    min-width: 120px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    transition: none; /* immediate response */
+}
+
+.win2k-button:hover {
+    border: 1px solid #808080;
+    background-color: #f0f0f0;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+}
+
+.win2k-button:active {
+    border: 1px inset #d0d0c8;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.win2k-button:disabled {
+    border: 1px solid #d0d0c8;
+    background-color: #c0c0c0;
+    color: #808080;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.file-input-button {
+    border: 1px outset #d0d0c8;
+    background-color: #e0e0e0;
+    color: black;
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    transition: none; /* immediate response */
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.file-input-button:hover {
+    border: 1px solid #808080;
+    background-color: #f0f0f0;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+}
+
+.file-input-button:active {
+    border: 1px inset #d0d0c8;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.file-input-button:disabled {
+    border: 1px solid #d0d0c8;
+    background-color: #c0c0c0;
+    color: #808080;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Small download QR button in title bar */
+.download-qr-button {
+    border: 1px solid rgba(0,0,0,0.12);
+    background-color: #0066cc; /* unified blue background */
+    color: #ffffff; /* white icon */
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 2px 4px 8px rgba(0,0,0,0.18);
+    border-radius: 0; /* perfect square */
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.download-qr-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.section-title {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.section-description {
+    font-family: 'Noto Sans', sans-serif;
+    color: #ffffff;
+}
+
+.card-description {
+    font-family: 'Noto Sans', sans-serif;
+}
+
+/* Result specific styles */
+.result-header {
+    text-align: center;
+    border-bottom: 1px solid #d0d0c8;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.result-emoji {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.result-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.result-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.result-id {
+    font-size: 12px;
+    color: #999;
+}
+
+.result-section {
+    margin-bottom: 24px;
+}
+
+.result-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.link-card {
+    background-color: #f0f0f0;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.link-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.link-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #000;
+}
+
+.link-url {
+    color: #0066cc;
+    text-decoration: underline;
+    font-size: 12px;
+    word-break: break-all;
+    cursor: pointer;
+}
+
+.link-url:hover {
+    color: #004499;
+}
+
+.qr-section {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.qr-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.qr-container {
+    display: inline-block;
+    background-color: white;
+    padding: 20px;
+    border: 1px inset #d0d0c8;
+    border-left-color: #404040;
+    border-top-color: #404040;
+    border-right-color: white;
+    border-bottom-color: white;
+    border-radius: 4px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.qr-action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.qr-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.qr-button svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.qr-button span {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
+
+.copy-notice {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    color: #000;
+    border: 1px solid #d0d0c8;
+    padding: 8px 16px;
+    border-radius: 3px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.12);
+    font-size: 12px;
+    z-index: 10;
+}
+
+@media (max-width: 480px) {
+    .qr-action-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .qr-button {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+.qr-code {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 12px;
+}
+
+.qr-caption {
+    font-size: 11px;
+    color: #666;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #d0d0c8;
+}
+
+.action-button {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 40px;
+}
+
+.qr-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px; /* Match QR code height */
+}
+
+.loading-text {
+    color: #666;
+    font-size: 14px;
+}
+
+.error-container {
+    text-align: center;
+    padding: 40px;
+}
+
+.error-emoji {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.error-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.error-text {
+    color: #666;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.share-qr-form {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: #f0f0f0;
+    border: 2px inset #d0d0c8;
+    max-width: 400px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.share-label {
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.share-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    /* allow flex children to shrink properly */
+    flex-wrap: nowrap;
+    /* avoid wrapping children and keep button visible */
+}
+
+.share-email-input {
+    flex: 1;
+    padding: 5px 6px;
+    font-size: 13px;
+    border: 2px inset #d0d0c8;
+    background-color: white;
+    min-width: 0;
+    /* prevent overflow */
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    /* allow long emails to wrap */
+}
+
+.share-name-input {
+    flex: 0 0 160px;
+    /* fixed-ish width for sender name */
+    min-width: 0;
+    padding: 5px 6px;
+    font-size: 13px;
+    border: 2px inset #d0d0c8;
+    background-color: white;
+}
+
+.share-email-input,
+.share-name-input,
+.share-send-button {
+    box-sizing: border-box;
+}
+
+.share-email-input:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+.share-email-input:focus {
+    outline: none;
+    border: 1px solid #082468;
+    box-shadow: none;
+}
+
+.share-send-button {
+    padding: 5px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.share-error {
+    color: #cc0000;
+    background-color: #ffe0e0;
+    border: 1px solid #cc0000;
+    padding: 4px 6px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.share-success {
+    color: #008800;
+    background-color: #e0ffe0;
+    border: 1px solid #008800;
+    padding: 4px 6px;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* spinner inside button */
+.button-spinner {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: spin 1s linear infinite;
+}
+
+.button-text {
+    vertical-align: middle;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .share-input-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .share-email-input {
+        width: 100%;
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+    }
+
+    .share-send-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .share-qr-form {
+        padding: 12px;
+        margin-top: 16px;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .share-name-input {
+        flex: 1;
+        /* full width on mobile */
+    }
+}
+
+/* Wider layout for laptop / larger screens */
+@media (min-width: 769px) {
+    .share-qr-form {
+        max-width: 720px;
+        /* allow the inputs to be wider on laptop */
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .share-input-group {
+        gap: 12px;
+    }
+
+    .share-name-input {
+        flex: 0 0 180px;
+    }
+
+    .share-email-input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .share-send-button {
+        flex: 0 0 120px;
+    }
+
+    .share-email-input,
+    .share-name-input {
+        font-size: 15px;
+        padding: 8px 10px;
+    }
+
+    .share-send-button {
+        font-size: 15px;
+        padding: 8px 12px;
+    }
+}
+
+/* Use grid layout on wide screens to keep the send button visible and prevent overflow */
+@media (min-width: 1024px) {
+    .share-input-group {
+        display: grid;
+        /* allow columns to shrink gracefully on narrower desktop windows */
+        grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) minmax(80px, 120px);
+        /* name | email | button */
+        gap: 12px;
+        align-items: center;
+    }
+
+    .share-name-input {
+        width: 180px;
+        flex: none;
+    }
+
+    .share-email-input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .share-send-button {
+        width: 120px;
+        flex: none;
+    }
+}
+
+/* More narrow mobile handling to avoid overflow */
+@media (max-width: 420px) {
+    .share-qr-form {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .share-name-input {
+        flex-basis: 45%;
+    }
+
+    .share-email-input {
+        flex-basis: 55%;
+    }
+
+    .share-input-group {
+        gap: 6px;
+        align-items: stretch;
+    }
+
+    .share-send-button {
+        padding: 8px;
+    }
+
+    .share-send-button .button-text {
+        display: inline;
+    }
+
+    .share-send-button .button-icon {
+        display: inline-block;
+    }
+}
