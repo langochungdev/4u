@@ -151,8 +151,8 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { prerender: true },
-    '/home': { prerender: true },
+    '/': { ssr: true },
+    '/home': { ssr: true },
     '/input/**': { ssr: true },
     '/result/**': { ssr: true },
     '/**': { ssr: true }
