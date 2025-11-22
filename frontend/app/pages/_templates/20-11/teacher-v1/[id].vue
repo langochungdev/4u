@@ -200,7 +200,7 @@ function openByDoubleClick() { completeOpen(); } // fallback double-click
             </div>
 
             <!-- MODAL (giữ nguyên logic cũ) -->
-            <div v-if="open" class="fixed inset-0 z-100">
+            <div v-if="open" class="fixed inset-0 z-[999]">
                 <div class="absolute inset-0 modal-backdrop"></div>
                 <div class="relative h-full w-full flex items-center justify-center p-4">
                     <div class="modal-shell animate-pop">

@@ -1,6 +1,7 @@
 /* ---------- Fonts (cho modal + chữ ký) ---------- */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@700&family=Dancing+Script:wght@600&display=swap');
+
 .signature-font {
     font-family: "Dancing Script", cursive;
 }
@@ -17,10 +18,12 @@
         transform: scale(0);
         opacity: 0;
     }
+
     70% {
         transform: scale(1.2);
         opacity: 1;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -41,9 +44,11 @@
         stroke-dashoffset: 600;
         opacity: 0;
     }
+
     40% {
         opacity: 1;
     }
+
     100% {
         stroke-dashoffset: 0;
         opacity: 1;
@@ -61,10 +66,12 @@
         transform: scale(0);
         opacity: 0;
     }
+
     55% {
         transform: scale(1.18);
         opacity: 1;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -79,6 +86,7 @@
     from {
         transform: rotate(0);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -112,10 +120,12 @@
         transform: translate(-50%, 18px) scale(.96);
         opacity: 0;
     }
+
     70% {
         transform: translate(-50%, -6px) scale(1.05);
         opacity: 1;
     }
+
     100% {
         transform: translate(-50%, 0) scale(1);
         opacity: 1;
@@ -127,10 +137,12 @@
 }
 
 @keyframes envPulse {
+
     0%,
     100% {
         transform: translate(-50%, 0) scale(1);
     }
+
     40% {
         transform: translate(-50%, 0) scale(1.03);
     }
@@ -479,6 +491,7 @@
         transform: scale(.96);
         opacity: 0;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -497,13 +510,16 @@
         --w: 264px;
         --h: 168px;
     }
+
     .modal-frame {
         padding: 10px;
         border-radius: 18px;
     }
+
     .paper {
         padding: 16px 12px 12px;
     }
+
     .paper-photo img {
         max-height: 320px;
     }
