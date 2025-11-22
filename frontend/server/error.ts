@@ -4,6 +4,6 @@ export default defineNitroErrorHandler((error, event) => {
   return {
     statusCode: error.statusCode || 500,
     statusMessage: error.statusMessage || 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    message: error.message || 'Something went wrong'
   }
 })
