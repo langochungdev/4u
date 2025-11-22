@@ -1,4 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import 'dotenv/config'
+
+const disableDevtools = process.env.VITE_DISABLE_DEVTOOLS === 'true'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/image'],
@@ -97,7 +101,53 @@ export default defineNuxtConfig({
               }
             ]
           })
-        }
+        },
+        ...(disableDevtools ? [{
+          innerHTML: `
+            (function() {
+              let devtools = {open: false};
+              const threshold = 160;
+              
+              // Disable right click
+              document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+              });
+              
+              // Try to disable some shortcuts
+              document.addEventListener('keydown', function(e) {
+                if (e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                    (e.ctrlKey && e.key === 'u') ||
+                    (e.ctrlKey && e.shiftKey && e.key === 'J')) {
+                  e.preventDefault();
+                  alert('Developer tools are disabled for security reasons.');
+                  return false;
+                }
+              });
+              
+              setInterval(() => {
+                if (window.outerHeight - window.innerHeight > threshold || window.outerWidth - window.innerWidth > threshold) {
+                  if (!devtools.open) {
+                    devtools.open = true;
+                    alert('Mở trang khác rồi paste link vào à? non kkk');
+                    // More aggressive: break the page
+                    document.body.innerHTML = '<div style="text-align:center;padding:50px;font-size:24px;color:red;">Developer tools are disabled for security reasons.<br>This page will reload.</div>';
+                    setTimeout(() => {
+                      location.reload();
+                    }, 2000);
+                  }
+                } else {
+                  devtools.open = false;
+                }
+              }, 500);
+              
+              // Clear console periodically
+              setInterval(() => {
+                console.clear();
+              }, 1000);
+            })();
+          `
+        }] : [])
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
