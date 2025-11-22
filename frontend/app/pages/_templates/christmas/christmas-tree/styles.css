@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Pacifico&family=Great+Vibes&family=Dancing+Script:wght@600&family=Mountains+of+Christmas:wght@700&display=swap');
+
+/* --- CẤU TRÚC CHUNG --- */
+.christmas-container {
+  position: relative; width: 100%; height: 100vh; overflow: hidden;
+  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+  font-family: 'Nunito', sans-serif; user-select: none; color: #333;
+}
+
+/* --- BACKGROUND & DECOR --- */
+.moon { position: absolute; top: 50px; right: 100px; width: 80px; height: 80px; background: #fffce6; border-radius: 50%; box-shadow: 0 0 60px #fffce6; opacity: 0.95; z-index: 1; }
+.star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle infinite alternate; }
+@keyframes twinkle { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+
+.cloud-container { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0.4; }
+.cloud { position: absolute; background-image: url('https://cdn-icons-png.flaticon.com/512/414/414927.png'); background-size: contain; background-repeat: no-repeat; filter: brightness(1.2); }
+.c1 { top: 15%; left: -150px; width: 200px; height: 120px; animation: floatCloud 45s linear infinite; }
+.c2 { top: 25%; right: -180px; width: 160px; height: 100px; animation: floatCloudReverse 50s linear infinite; }
+.c3 { top: 5%; right: 20%; width: 120px; height: 80px; animation: floatCloudReverse 60s linear infinite; }
+@keyframes floatCloud { from { transform: translateX(-300px); } to { transform: translateX(120vw); } }
+@keyframes floatCloudReverse { from { transform: translateX(300px); } to { transform: translateX(-120vw); } }
+
+/* --- TUYẾT RƠI --- */
+.snow-container { position: absolute; height: 100%; width: 100%; top: 0; left: 0; pointer-events: none; z-index: 3; overflow: hidden; }
+.snow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; animation: snowAnim linear infinite; background-repeat: repeat; }
+.snow-1 { background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 40% 70%, #fff, transparent), radial-gradient(2px 2px at 60% 20%, #fff, transparent); background-size: 200px 200px; animation-duration: 20s; opacity: 0.7; }
+.snow-2 { background-image: radial-gradient(3px 3px at 15% 15%, #fff, transparent), radial-gradient(3px 3px at 35% 55%, #fff, transparent), radial-gradient(3px 3px at 75% 35%, #fff, transparent); background-size: 300px 300px; animation-duration: 15s; opacity: 0.8; }
+.snow-3 { background-image: radial-gradient(4px 4px at 50% 50%, #fff, transparent), radial-gradient(4px 4px at 90% 10%, #fff, transparent); background-size: 400px 400px; animation-duration: 10s; opacity: 1; }
+@keyframes snowAnim { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
+
+/* --- SANTA (ĐÃ KHÔI PHỤC) --- */
+.santa-wrapper { position: absolute; top: 8%; left: -250px; width: 160px; z-index: 4; pointer-events: none; animation: flyAcross 30s linear infinite; }
+.santa-img { width: 100%; filter: drop-shadow(0 8px 8px rgba(0,0,0,0.3)); }
+@keyframes flyAcross { 0% { left: -250px; transform: scaleX(1); } 48% { left: 110vw; transform: scaleX(1); } 50% { left: 110vw; transform: scaleX(-1); } 98% { left: -250px; transform: scaleX(-1); } 100% { left: -250px; transform: scaleX(1); } }
+
+/* --- TREE --- */
+.main-scene { position: absolute; bottom: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+.tree-area { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: auto; height: auto; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.tree-wrapper { position: relative; transition: transform 0.1s; }
+.tree-img { width: auto; height: auto; max-width: 650px; max-height: 80vh; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.7)); }
+.shaking { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake { 10%, 90% { transform: translate3d(-5px, 0, 0); } 20%, 80% { transform: translate3d(8px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-12px, 0, 0); } 40%, 60% { transform: translate3d(12px, 0, 0); } }
+.tree-snowflake { position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%; pointer-events: none; animation: dropSnow 1s ease-in forwards; }
+@keyframes dropSnow { to { transform: translateY(250px); opacity: 0; } }
+.tap-hint { color: #fff; font-size: 1.2rem; margin-top: 15px; opacity: 0.9; text-shadow: 2px 2px 4px black; font-weight: bold; animation: pulseText 2s infinite; }
+@keyframes pulseText { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; transform: scale(1.05); } }
+
+/* --- QUÀ RƠI (EMOJI) --- */
+.falling-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.gift-item {
+    position: absolute; width: 80px; height: 80px; pointer-events: auto; cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+}
+.gift-emoji {
+    font-size: 4rem; 
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+    transition: transform 0.2s;
+}
+.gift-item:active .gift-emoji { transform: scale(0.8); }
+
+/* --- MODAL OVERLAY --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; justify-content: center; align-items: center; padding: 20px; perspective: 1000px; }
+.close-btn { position: absolute; top: -15px; right: -15px; width: 40px; height: 40px; background: #c62828; color: white; border: 3px solid #fff; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; z-index: 20; }
+.close-btn:hover { transform: scale(1.1) rotate(90deg); }
+
+/* MODAL ẢNH */
+.modal-content.image-type { position: relative; background: #fff; padding: 15px; border-radius: 15px; display: inline-block; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.3s; }
+.modal-img { display: block; max-width: 100%; max-height: 75vh; object-fit: contain; border-radius: 8px; }
+
+/* === PHONG BÌ & THƯ (ĐÃ KHÔI PHỤC HIỆU ỨNG CŨ) === */
+.envelope-wrapper { 
+    position: relative; width: 320px; height: 220px; 
+    display: flex; justify-content: center; align-items: center; 
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+    /* Khi mở, phong bì di chuyển xuống một chút */
+    transform: translateY(0);
+}
+.envelope-wrapper.open { transform: translateY(50px); }
+
+.envelope { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+.envelope-back { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #7b1113, #a61e22); border-radius: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); z-index: 1; border: 2px solid #5a0c0d; }
+.envelope-front { position: absolute; bottom: 0; left: 0; width: 0; height: 0; z-index: 10; border-style: solid; border-width: 0 160px 130px 160px; border-color: transparent transparent #c0392b transparent; filter: drop-shadow(0 -3px 10px rgba(0,0,0,0.3)); pointer-events: none; }
+.envelope-flap { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 12; border-style: solid; border-width: 110px 160px 0 160px; border-color: #922b21 transparent transparent transparent; transform-origin: top; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.2s; filter: drop-shadow(0 -2px 1px rgba(212, 175, 55, 0.8)); pointer-events: none; }
+.envelope-wrapper.open .envelope-flap { transform: rotateX(180deg); z-index: 1; transition-delay: 0s; }
+.seal { position: absolute; top: 110px; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: radial-gradient(circle, #e6c75d 0%, #d4af37 80%, #b39024 100%); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; z-index: 15; box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.3); border: 2px solid #9e7c1c; transition: transform 0.3s, opacity 0.3s 0.1s; }
+.envelope-wrapper.open .seal { transform: translate(-50%, -50%) scale(0); opacity: 0; transition-delay: 0s; }
+
+/* === TẤM THIỆP (TRƯỢT TỪ TRONG PHONG BÌ RA) === */
+.letter-card { 
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); 
+    width: 280px; height: 180px; background: #fffdf0; border-radius: 5px; 
+    /* Ban đầu nằm sau mặt trước phong bì */
+    z-index: 5; 
+    overflow: hidden; 
+    display: flex; justify-content: center; align-items: center;
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Hiệu ứng trượt nảy */
+}
+
+/* Khi thư mở hoàn toàn: Trượt lên và phóng to ra giữa */
+.letter-card.full-view { 
+    /* Trượt lên trên phong bì */
+    bottom: 100%; 
+    /* Phóng to và căn giữa */
+    transform: translateX(-50%) translateY(-20px) scale(1.5); 
+    height: auto; min-height: 250px; /* Chiều cao tự động để chứa nội dung */
+    z-index: 15; /* Hiện lên trên cùng */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border-radius: 10px;
+}
+
+.card-inner { 
+    width: 100%; height: 100%; padding: 20px; 
+    display: flex; flex-direction: column; 
+    /* Chỉ hiện nội dung khi thư đã trượt ra */
+    opacity: 0; transition: opacity 0.5s 0.3s; 
+    border: 4px double #d42426; border-radius: 10px; 
+    background-color: #fffaf0;
+    background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+    overflow: hidden; position: relative;
+}
+/* Nơ trang trí */
+.card-inner::before { content: '🎄'; position: absolute; top: 5px; left: 5px; font-size: 1.5rem; }
+.card-inner::after { content: '🎄'; position: absolute; top: 5px; right: 5px; font-size: 1.5rem; }
+.letter-card.full-view .card-inner { opacity: 1; height: auto; flex-grow: 1; }
+
+.card-header { text-align: center; flex-shrink: 0; margin-bottom: 15px; margin-top: 5px; }
+.card-header h2 { 
+    font-family: 'Mountains of Christmas', cursive; font-size: 2.2rem; color: #b30000; margin: 0; line-height: 1.1;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+.decoration-line { width: 60%; height: 3px; background: #d4af37; margin: 8px auto 15px auto; }
+
+.card-body { flex-grow: 1; overflow-y: auto; padding-right: 5px; margin-bottom: 10px; text-align: justify; max-height: 40vh; }
+.card-body p { 
+    font-family: 'Dancing Script', cursive; font-size: 1.4rem; color: #2c3e50; line-height: 1.6; 
+    white-space: pre-wrap; word-break: break-word;
+}
+
+/* Nút đóng (ẩn khi chưa mở thư) */
+.close-card-btn { 
+    position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); 
+    padding: 10px 30px; background: #c62828; color: #fff; border: 2px solid #fff; 
+    border-radius: 50px; font-weight: bold; cursor: pointer; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4); 
+    opacity: 0; pointer-events: none; transition: opacity 0.5s 0.5s;
+}
+.letter-card.full-view .close-card-btn { opacity: 1; pointer-events: auto; }
+@keyframes popIn { from { transform: scale(0.7) translateY(50px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+  .tree-img { max-width: 95vw; max-height: 60vh; }
+  .tree-area { bottom: 60px; }
+  
+  /* Quà nhỏ lại trên mobile */
+  .gift-item { width: 50px; height: 50px; }
+  .gift-emoji { font-size: 2.5rem; } 
+  .santa-wrapper { width: 120px; top: 10%; }
+
+  /* Điều chỉnh thiệp trên mobile */
+  .envelope-wrapper { width: 280px; height: 190px; }
+  .letter-card { width: 250px; height: 160px; }
+  .letter-card.full-view {
+      /* Phóng to ít hơn trên mobile để không tràn */
+      transform: translateX(-50%) translateY(-20px) scale(1.3);
+      width: 90vw; max-width: 350px;
+  }
+  .card-header h2 { font-size: 1.8rem; }
+  .card-body p { font-size: 1.2rem; }
+  .card-inner::before, .card-inner::after { font-size: 1.2rem; }
+}
