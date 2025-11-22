@@ -140,6 +140,12 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ['vue', 'pinia']
     }
+    // Ensure `vue` is bundled for SSR (no external left as ESM import),
+    // this prevents runtime errors like "The requested module 'vue' does not provide an export named 'default'"
+    ,
+    ssr: {
+      noExternal: ['vue', 'pinia', 'vue-router']
+    }
   },
   
   // Nitro optimizations
@@ -147,7 +153,12 @@ export default defineNuxtConfig({
     preset: 'vercel',
     compressPublicAssets: true,
     minify: true,
-    errorHandler: '../server/error.ts'
+    errorHandler: 'server/error.ts'
+    ,
+    // Inline certain dependencies to avoid platform-specific ESM mismatch
+    externals: {
+      inline: ['vue', 'pinia', 'vue-router']
+    }
   },
 
   routeRules: {

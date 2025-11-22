@@ -3,7 +3,7 @@
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "framework": "nuxtjs",
-  "outputDirectory": ".output/public",
+  "outputDirectory": ".vercel/output",
   "env": {
     "NODE_VERSION": "18"
   }
