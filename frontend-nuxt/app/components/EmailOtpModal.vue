@@ -48,7 +48,7 @@
                 </div>
                 <div class="flex justify-center gap-2">
                     <button @click="onClose" class="win2k-button">Đóng</button>
-                    <button :disabled="verifying || otpDigits.filter(d => d).length < 4" @click="verifyOtp"
+                    <button :disabled="verifying || otpDigits.filter((d: string) => d).length < 4" @click="verifyOtp"
                         class="win2k-button">
                         <span v-if="verifying" class="loading-spinner"></span>
                         <span v-else>Xác thực</span>

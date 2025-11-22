@@ -120,7 +120,7 @@ export default defineNuxtConfig({
         output: {
           manualChunks: {
             'firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-            'vendor': ['vue', '@vue/runtime-dom'],
+            'vendor': ['vue', 'vue-router'],
           }
         }
       },
@@ -144,12 +144,9 @@ export default defineNuxtConfig({
   
   // Nitro optimizations
   nitro: {
-    preset: 'vercel',
+    // preset: 'vercel',
     compressPublicAssets: true,
-    minify: true,
-    prerender: {
-      routes: ['/home']
-    }
+    minify: true
   },
   
   // Experimental features for better performance
