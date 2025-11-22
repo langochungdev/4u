@@ -1,0 +1,34 @@
+{
+  "name": "frontend-nuxt",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "pnpm run sitemap && nuxt build",
+    "dev": "nuxt dev",
+    "generate": "pnpm run sitemap && nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "sitemap": "node scripts/generate-sitemap.js"
+  },
+  "dependencies": {
+    "@nuxt/image": "^2.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.3",
+    "browser-image-compression": "^2.0.2",
+    "firebase": "^12.6.0",
+    "gsap": "^3.13.0",
+    "nuxt": "^4.2.1",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "qrcode": "^1.5.4",
+    "three": "^0.181.2",
+    "typeit": "^8.8.7",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.3",
+    "wavesurfer.js": "^7.11.1"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6",
+    "@types/three": "^0.181.0",
+    "sass": "^1.94.2"
+  }
+}

@@ -1,0 +1,15 @@
+
+# robots.txt for story4u.online
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /templates/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_nuxt/
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://story4u.online/sitemap.xml

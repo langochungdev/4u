@@ -18,36 +18,36 @@ public class ECardController {
         this.eCardService = eCardService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addEcard(@RequestBody ECardAddRequestDto req) {
-        if (req == null || req.getEmail() == null || req.getEmail().isEmpty() || req.getResultUrl() == null || req.getResultUrl().isEmpty()) {
-            return ResponseEntity.badRequest().body("email and resultUrl required");
-        }
-        try {
-            eCardService.addEcardToUser(req.getEmail(), req.getResultUrl());
-            return ResponseEntity.ok("ok");
-        } catch (ExecutionException | InterruptedException e) {
-            return ResponseEntity.status(500).body("failed_to_save_ecard");
-        } catch (java.io.IOException e) {
-            return ResponseEntity.status(502).body("failed_to_send_confirmation_email");
-        }
-    }
+    // @PostMapping("/add")
+    // public ResponseEntity<?> addEcard(@RequestBody ECardAddRequestDto req) {
+    //     if (req == null || req.getEmail() == null || req.getEmail().isEmpty() || req.getResultUrl() == null || req.getResultUrl().isEmpty()) {
+    //         return ResponseEntity.badRequest().body("email and resultUrl required");
+    //     }
+    //     try {
+    //         eCardService.addEcardToUser(req.getEmail(), req.getResultUrl());
+    //         return ResponseEntity.ok("ok");
+    //     } catch (ExecutionException | InterruptedException e) {
+    //         return ResponseEntity.status(500).body("failed_to_save_ecard");
+    //     } catch (java.io.IOException e) {
+    //         return ResponseEntity.status(502).body("failed_to_send_confirmation_email");
+    //     }
+    // }
 
     @PostMapping("/delete")
     public ResponseEntity<?> deleteEcard(@RequestBody ECardAddRequestDto req) {
-        if (req == null || req.getEmail() == null || req.getEmail().isEmpty() || req.getEcardId() == null || req.getEcardId().isEmpty()) {
-            return ResponseEntity.badRequest().body("email and ecardId required");
+        if (req == null || req.getEmail() == null || req.getEmail().isEmpty() || req.getMediaIds() == null || req.getMediaIds().isEmpty()) {
+            return ResponseEntity.badRequest().body("email and mediaIds required");
         }
         try {
-            eCardService.deleteEcardFromUser(req.getEmail(), req.getEcardId());
+            eCardService.deleteMediaAssets(req.getEmail(), req.getMediaIds(), req.getResourceTypes());
             return ResponseEntity.ok("ok");
         } catch (ExecutionException e) {
-            return ResponseEntity.status(500).body("failed_to_delete_ecard");
+            return ResponseEntity.status(500).body("failed_to_delete_media");
         } catch (java.io.IOException e) {
             return ResponseEntity.status(502).body("failed_to_send_notification_email");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return ResponseEntity.status(500).body("failed_to_delete_ecard");
+            return ResponseEntity.status(500).body("failed_to_delete_media");
         }
     }
 }

@@ -3,8 +3,6 @@ package com.foryou.backend.user.service;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.cloud.firestore.SetOptions;
-import com.google.cloud.firestore.FieldValue;
-import com.google.cloud.firestore.DocumentSnapshot;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.foryou.backend.util.MailRepository;
@@ -15,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-import java.util.ArrayList;
 import java.net.URI;
 
 @Service
@@ -109,88 +106,10 @@ public class ECardServiceImpl implements ECardService {
     }
 
     @Override
-    public void deleteEcardFromUser(String email, String ecardId) throws ExecutionException, InterruptedException, IOException {
-        if (email == null || email.trim().isEmpty() || ecardId == null || ecardId.trim().isEmpty()) {
+    public void deleteMediaAssets(String email, List<String> mediaIds, List<String> resourceTypes) throws ExecutionException, InterruptedException, IOException {
+        if (email == null || email.trim().isEmpty() || mediaIds == null || mediaIds.isEmpty()) {
             return;
         }
-        String normalized = email.trim().toLowerCase();
-        Firestore db = FirestoreClient.getFirestore();
-
-        List<String> allAssets = new ArrayList<>();
-        
-        try {
-            DocumentSnapshot contextDoc;
-            if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
-                contextDoc = db.collection(firestoreRootCollection)
-                        .document(firestoreRootDocument)
-                        .collection("context")
-                        .document(ecardId)
-                        .get()
-                        .get();
-            } else {
-                contextDoc = db.collection(firestoreRootCollection)
-                        .document(ecardId)
-                        .get()
-                        .get();
-            }
-
-            if (contextDoc.exists()) {
-                List<?> images = (List<?>) contextDoc.get("images");
-                List<?> audios = (List<?>) contextDoc.get("audios");
-                List<?> videos = (List<?>) contextDoc.get("videos");
-
-                if (images != null) {
-                    images.forEach(img -> {
-                        if (img instanceof String) allAssets.add((String) img);
-                    });
-                }
-                if (audios != null) {
-                    audios.forEach(audio -> {
-                        if (audio instanceof String) allAssets.add((String) audio);
-                    });
-                }
-                if (videos != null) {
-                    videos.forEach(video -> {
-                        if (video instanceof String) allAssets.add((String) video);
-                    });
-                }
-            }
-        } catch (Exception e) {
-            // Log nếu cần
-        }
-
-        if (!allAssets.isEmpty()) {
-            cloudinaryService.deleteAssets(allAssets);
-        }
-
-        if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
-            db.collection(firestoreRootCollection)
-                    .document(firestoreRootDocument)
-                    .collection("context")
-                    .document(ecardId)
-                    .delete()
-                    .get();
-        } else {
-            db.collection(firestoreRootCollection)
-                    .document(ecardId)
-                    .delete()
-                    .get();
-        }
-
-        if (firestoreRootDocument != null && !firestoreRootDocument.isEmpty()) {
-            var userDocRef = db.collection(firestoreRootCollection)
-                    .document(firestoreRootDocument)
-                    .collection("user")
-                    .document(normalized);
-            Map<String, Object> map = new HashMap<>();
-            map.put("ecards." + ecardId, FieldValue.delete());
-            userDocRef.update(map).get();
-        } else {
-            var userDocRef = db.collection(firestoreRootCollection)
-                    .document(normalized);
-            Map<String, Object> map = new HashMap<>();
-            map.put("ecards." + ecardId, FieldValue.delete());
-            userDocRef.update(map).get();
-        }
+        cloudinaryService.deleteAssetsByPublicIdsAndTypes(mediaIds, resourceTypes);
     }
 }
