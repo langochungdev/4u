@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2024-11-01',
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/image'],
   css: ['~/assets/style.css'],
   runtimeConfig: {
