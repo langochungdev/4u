@@ -153,7 +153,7 @@ export default defineNuxtConfig({
     preset: 'vercel',
     compressPublicAssets: true,
     minify: true,
-    errorHandler: '../server/error.ts'
+    errorHandler: 'server/error.ts'
     ,
     // Inline certain dependencies to avoid platform-specific ESM mismatch
     externals: {
