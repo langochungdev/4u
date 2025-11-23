@@ -2,9 +2,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import config from './config';
 import { useTemplateData } from "@/composables/useTemplateData";
-
 import treeImg from './tree.webp'; 
 import noelImg from './santa.webp'; 
+
 
 const { contextData: data } = useTemplateData(config);
 
@@ -13,9 +13,11 @@ const validImages = computed(() => {
   return (Array.from({ length: config.maxImages }).map((_, i) => userImages[i] || null)).filter(img => img !== null);
 });
 
+// Nội dung thư
 const greetingContent = computed(() => data.value?.content?.[1] || "Gửi người thương,\n\nGiáng sinh này chúc bạn thật nhiều niềm vui, hạnh phúc và bình an. Mong rằng mọi điều ước của bạn sẽ thành hiện thực.\n\nMerry Christmas!");
 const letterTitle = computed(() => data.value?.content?.[0] || "Merry Christmas");
 
+// --- 3. STATE ---
 const showModal = ref(false);
 const modalType = ref<'image' | 'letter'>('image');
 const currentItem = ref<string>('');
@@ -23,7 +25,56 @@ const isTreeShaking = ref(false);
 const treeSnow = ref<{id: number, left: number, top: number}[]>([]);
 const treeClickCount = ref(0); 
 
-// Quà rơi
+// --- 4. XỬ LÝ NHẠC (AUDIO) ---
+const audioSrc = "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
+const bgMusic = ref<HTMLAudioElement | null>(null);
+const isMusicPlaying = ref(false);
+
+const initAudio = () => {
+    bgMusic.value = new Audio(audioSrc);
+    bgMusic.value.loop = true; // Lặp lại liên tục
+    bgMusic.value.volume = 0.5; // Âm lượng vừa phải
+
+    // Cố gắng phát ngay
+    attemptPlayMusic();
+
+    // Nếu trình duyệt chặn, chờ click đầu tiên để phát
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+};
+
+const attemptPlayMusic = () => {
+    if (bgMusic.value) {
+        bgMusic.value.play()
+            .then(() => {
+                isMusicPlaying.value = true;
+            })
+            .catch(() => {
+                console.log("Autoplay blocked by browser, waiting for interaction.");
+                isMusicPlaying.value = false;
+            });
+    }
+};
+
+const handleFirstInteraction = () => {
+    if (!isMusicPlaying.value && bgMusic.value) {
+        bgMusic.value.play();
+        isMusicPlaying.value = true;
+    }
+};
+
+const toggleMusic = () => {
+    if (!bgMusic.value) return;
+    if (isMusicPlaying.value) {
+        bgMusic.value.pause();
+        isMusicPlaying.value = false;
+    } else {
+        bgMusic.value.play();
+        isMusicPlaying.value = true;
+    }
+};
+
+// --- 5. LOGIC GAME ---
 interface FallingGift {
   id: number;
   left: number;
@@ -38,17 +89,15 @@ let giftInterval: any = null;
 let animationFrameId: number | null = null;
 
 // State hiệu ứng lá thư
-const isLetterOpen = ref(false);   // Mở nắp phong bì
-const isCardVisible = ref(false);  // Hiển thị lá thư (và ẩn phong bì)
+const isLetterOpen = ref(false);   
+const isCardVisible = ref(false); 
 
-// --- 4. LOGIC ---
 const getImageUrl = (img: string | File | null) => {
   if (!img) return '';
   if (typeof img === 'string') return img;
   return URL.createObjectURL(img);
 };
 
-// --- CHỈNH SỬA: TỐC ĐỘ RƠI CHẬM TRÊN MOBILE ---
 const createFallingGift = () => {
   const images = validImages.value;
   let randomContent = null;
@@ -57,12 +106,9 @@ const createFallingGift = () => {
   }
 
   const id = Date.now() + Math.random();
-  const isMobile = window.innerWidth < 768; // Kiểm tra nếu là điện thoại
-
-  // Điều chỉnh tốc độ
-  const speed = isMobile 
-      ? Math.random() * 0.6 + 0.4  // Mobile: Rất chậm (0.4 - 1.0 px/frame)
-      : Math.random() * 1.5 + 0.8; // Desktop: Bình thường
+  // Giảm tốc độ rơi trên điện thoại
+  const isMobile = window.innerWidth < 768;
+  const speed = isMobile ? Math.random() * 0.6 + 0.4 : Math.random() * 1.5 + 0.8;
 
   fallingGifts.value.push({ 
       id, 
@@ -91,20 +137,16 @@ const openGift = (giftContent: string | null) => {
   showModal.value = true;
 };
 
-// --- LOGIC MỞ THƯ MỚI ---
 const openLetter = () => {
   modalType.value = 'letter';
   showModal.value = true;
-  
-  // Reset trạng thái
   isLetterOpen.value = false;
   isCardVisible.value = false;
 
-  // Animation sequence
   setTimeout(() => {
-      isLetterOpen.value = true; // 1. Mở nắp phong bì
+      isLetterOpen.value = true; 
       setTimeout(() => {
-          isCardVisible.value = true; // 2. Phong bì biến mất, thư hiện ra
+          isCardVisible.value = true; 
       }, 800);
   }, 300);
 };
@@ -138,11 +180,16 @@ const stars = Array.from({ length: 50 }).map((_, i) => ({
 }));
 
 onMounted(() => {
+  initAudio(); // Khởi tạo nhạc
   giftInterval = setInterval(createFallingGift, 1500);
   updateFallingGifts();
 });
 
 onUnmounted(() => {
+  if (bgMusic.value) {
+      bgMusic.value.pause();
+      bgMusic.value = null;
+  }
   if (giftInterval) clearInterval(giftInterval);
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 });
@@ -151,6 +198,11 @@ onUnmounted(() => {
 <template>
   <div class="christmas-container aurora-bg">
     
+    <button class="music-toggle-btn" @click.stop="toggleMusic" :class="{ 'playing': isMusicPlaying }">
+        <span v-if="isMusicPlaying">🎵</span>
+        <span v-else>🔇</span>
+    </button>
+
     <div class="moon"></div>
     <div v-for="star in stars" :key="star.id" class="star" :style="{ top: star.top + '%', left: star.left + '%', animationDelay: star.delay + 's', width: star.size + 'px', height: star.size + 'px' }"></div>
     <div class="cloud-container"><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
