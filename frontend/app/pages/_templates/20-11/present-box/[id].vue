@@ -29,6 +29,7 @@ const clickStep = ref(0);
 let clickHandler: ((e: Event) => void) | null = null;
 
 function setupPresent() {
+  if (typeof document === "undefined") return;
   const gift_image_url = giftImage.value;
   const templateRoot = document.getElementById("template-root");
 
