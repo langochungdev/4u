@@ -2,13 +2,13 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.webp';
 
 const config: TemplateConfig = {
-    title: 'demo update',
-    description: 'mô tả template',
+    title: 'Thông báo',
+    description: 'Merry christmas',
     createdBy: 'Langochungdev',
-    maxImages: 2,
+    maxImages: 10,
     maxVideos: 0,
     maxAudios: 1,
-    maxContent: 1,
+    maxContent: 10,
     contentPlaceholders: [
         'gợi ý 1',
     ],
