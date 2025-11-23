@@ -1,4 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import 'dotenv/config'
+
+const disableDevtools = process.env.VITE_DISABLE_DEVTOOLS === 'true'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/image'],
@@ -9,12 +13,12 @@ export default defineNuxtConfig({
       firestore: process.env.VITE_FIRESTORE || '',
       cloudinaryCloudName: process.env.VITE_CLOUDINARY_CLOUD_NAME || '',
       cloudinaryUploadPreset: process.env.VITE_CLOUDINARY_UPLOAD_PRESET || '',
-      disableDevtools: process.env.VITE_DISABLE_DEVTOOLS === '',
-      ecardLimit: parseInt(process.env.VITE_ECARD_LIMIT || ''),
+      disableDevtools: process.env.VITE_DISABLE_DEVTOOLS === 'true',
+      ecardLimit: parseInt(process.env.VITE_ECARD_LIMIT || '15'),
       otpBypass: process.env.VITE_OTP_BYPASS === 'true',
-      maxImages: parseInt(process.env.VITE_MAX_IMAGES || ''),
-      maxVideos: parseInt(process.env.VITE_MAX_VIDEOS || ''),
-      maxAudios: parseInt(process.env.VITE_MAX_AUDIOS || ''),
+      maxImages: parseInt(process.env.VITE_MAX_IMAGES || '10'),
+      maxVideos: parseInt(process.env.VITE_MAX_VIDEOS || '1'),
+      maxAudios: parseInt(process.env.VITE_MAX_AUDIOS || '1'),
       firebaseApiKey: process.env.VITE_FIREBASE_API_KEY || '',
       firebaseAuthDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
       firebaseDatabaseUrl: process.env.VITE_FIREBASE_DATABASE_URL || '',
@@ -97,7 +101,63 @@ export default defineNuxtConfig({
               }
             ]
           })
-        }
+        },
+        ...(disableDevtools ? [{
+          innerHTML: `
+            (function() {
+              // Skip on mobile devices
+              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              if (isMobile) return;
+              
+              let devtoolsOpen = false;
+              let debuggerInterval = null;
+              
+              // Disable right click
+              document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+              });
+              
+              // Disable F12 shortcut
+              document.addEventListener('keydown', function(e) {
+                if (e.key === 'F12') {
+                  e.preventDefault();
+                  alert('Developer tools are disabled for security reasons.');
+                  return false;
+                }
+              });
+              
+              // Function to detect if devtools is open
+              const detectDevtools = () => {
+                let start = performance.now();
+                debugger; // This will pause if devtools is open
+                let end = performance.now();
+                return end - start > 100; // If pause > 100ms, devtools is likely open
+              };
+              
+              // Check periodically
+              setInterval(() => {
+                if (detectDevtools()) {
+                  if (!devtoolsOpen) {
+                    devtoolsOpen = true;
+                    alert('Developer tools detected. Page will be slowed down.');
+                    // Start continuous debugger to slow down the page
+                    debuggerInterval = setInterval(() => {
+                      debugger;
+                    }, 100); // Continuous debugger every 100ms
+                  }
+                } else {
+                  if (devtoolsOpen) {
+                    devtoolsOpen = false;
+                    if (debuggerInterval) {
+                      clearInterval(debuggerInterval);
+                      debuggerInterval = null;
+                    }
+                  }
+                }
+              }, 1000); // Check every 1s
+            })();
+          `
+        }] : [])
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -140,13 +200,33 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ['vue', 'pinia']
     }
+    // Ensure `vue` is bundled for SSR (no external left as ESM import),
+    // this prevents runtime errors like "The requested module 'vue' does not provide an export named 'default'"
+    ,
+    ssr: {
+      noExternal: ['vue', 'pinia', 'vue-router']
+    }
   },
   
   // Nitro optimizations
   nitro: {
-    // preset: 'vercel',
+    preset: 'vercel',
     compressPublicAssets: true,
-    minify: true
+    minify: true,
+    errorHandler: 'server/error.ts'
+    ,
+    // Inline certain dependencies to avoid platform-specific ESM mismatch
+    externals: {
+      inline: ['vue', 'pinia', 'vue-router']
+    }
+  },
+
+  routeRules: {
+    '/': { ssr: true },
+    '/home': { ssr: true },
+    '/input/**': { ssr: true },
+    '/result/**': { ssr: true },
+    '/**': { ssr: true }
   },
   
   // Experimental features for better performance

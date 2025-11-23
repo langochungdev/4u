@@ -140,7 +140,7 @@
 import { ref, onUnmounted, nextTick, onMounted } from "vue";
 import { useTemplateData } from "../../../../composables/useTemplateData";
 import config from "./config";
-import TypeIt from "typeit";
+// `typeit` manipulates DOM - load dynamically on client to prevent SSR issues
 
 const { contextData } = useTemplateData(config);
 const currentStage = ref(1);
@@ -225,7 +225,9 @@ function startStage3Interaction() {
       contextData.value?.content?.[3] || "<b>I love u</b> more darling 🫶";
 
     if (teksAwalan.value) {
-      new TypeIt(teksAwalan.value, {
+      import("typeit").then((mod) => {
+        const TypeItCtor: any = mod.default || mod;
+        new TypeItCtor(teksAwalan.value as any, {
         strings: txt1,
         speed: 30,
         lifeLike: true,
@@ -256,7 +258,8 @@ function startStage3Interaction() {
             }
           }, 500);
         },
-      }).go();
+        }).go();
+      }).catch(() => {});
     }
   });
 }
@@ -290,14 +293,18 @@ function goToFinalReveal() {
       contextData.value?.content?.[5] ||
       "Because I love you in every universe...<br>I love you more than I can say. ❤️";
     if (teksCinta.value) {
-      new TypeIt(teksCinta.value, {
+      import("typeit").then((mod) => {
+        const TypeItCtor: any = mod.default || mod;
+        new TypeItCtor(teksCinta.value as any, {
         strings: txtTitle,
         speed: 40,
         afterComplete: (inst: any) => {
           inst.element.querySelector(".ti-cursor")?.remove();
           startAutoScroll();
           if (pesanAkhir.value) {
-            new TypeIt(pesanAkhir.value, {
+            import("typeit").then((mod2) => {
+              const TypeItCtor2: any = mod2.default || mod2;
+              new TypeItCtor2(pesanAkhir.value as any, {
               strings: txtBody,
               speed: 35,
               startDelay: 500,
@@ -305,10 +312,12 @@ function goToFinalReveal() {
                 inst2.element.querySelector(".ti-cursor")?.remove();
                 finishAnimation();
               },
-            }).go();
+              }).go();
+            }).catch(() => {});
           }
         },
       }).go();
+      }).catch(() => {});
     }
   }, 400);
 }
