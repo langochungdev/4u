@@ -2,10 +2,12 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import config from './config';
 import { useTemplateData } from "@/composables/useTemplateData";
+
+// --- IMPORT ẢNH ---
 import treeImg from './tree.webp'; 
 import noelImg from './santa.webp'; 
 
-
+// --- XỬ LÝ DỮ LIỆU ---
 const { contextData: data } = useTemplateData(config);
 
 const validImages = computed(() => {
@@ -17,42 +19,35 @@ const validImages = computed(() => {
 const greetingContent = computed(() => data.value?.content?.[1] || "Gửi người thương,\n\nGiáng sinh này chúc bạn thật nhiều niềm vui, hạnh phúc và bình an. Mong rằng mọi điều ước của bạn sẽ thành hiện thực.\n\nMerry Christmas!");
 const letterTitle = computed(() => data.value?.content?.[0] || "Merry Christmas");
 
-// --- 3. STATE ---
-const showModal = ref(false);
-const modalType = ref<'image' | 'letter'>('image');
-const currentItem = ref<string>('');
-const isTreeShaking = ref(false);
-const treeSnow = ref<{id: number, left: number, top: number}[]>([]);
-const treeClickCount = ref(0); 
+// --- XỬ LÝ NHẠC (AUDIO) ---
+// Lấy nhạc từ user upload (audios[0]), nếu không có thì dùng link fallback
+const audioSource = computed(() => {
+    if (data.value?.audios && data.value.audios.length > 0) {
+        return data.value.audios[0];
+    }
+    return "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
+});
 
-// --- 4. XỬ LÝ NHẠC (AUDIO) ---
-const audioSrc = "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
 const bgMusic = ref<HTMLAudioElement | null>(null);
 const isMusicPlaying = ref(false);
 
 const initAudio = () => {
-    bgMusic.value = new Audio(audioSrc);
-    bgMusic.value.loop = true; // Lặp lại liên tục
-    bgMusic.value.volume = 0.5; // Âm lượng vừa phải
+    if (audioSource.value) {
+        bgMusic.value = new Audio(audioSource.value);
+        bgMusic.value.loop = true; 
+        bgMusic.value.volume = 0.5; 
+        attemptPlayMusic();
 
-    // Cố gắng phát ngay
-    attemptPlayMusic();
-
-    // Nếu trình duyệt chặn, chờ click đầu tiên để phát
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+        document.addEventListener('click', handleFirstInteraction, { once: true });
+        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    }
 };
 
 const attemptPlayMusic = () => {
     if (bgMusic.value) {
         bgMusic.value.play()
-            .then(() => {
-                isMusicPlaying.value = true;
-            })
-            .catch(() => {
-                console.log("Autoplay blocked by browser, waiting for interaction.");
-                isMusicPlaying.value = false;
-            });
+            .then(() => { isMusicPlaying.value = true; })
+            .catch(() => { isMusicPlaying.value = false; });
     }
 };
 
@@ -74,7 +69,16 @@ const toggleMusic = () => {
     }
 };
 
-// --- 5. LOGIC GAME ---
+// --- LOGIC GAME ---
+const showModal = ref(false);
+const modalType = ref<'image' | 'letter'>('image');
+const currentItem = ref<string>('');
+const isTreeShaking = ref(false);
+const treeSnow = ref<{id: number, left: number, top: number}[]>([]);
+const treeClickCount = ref(0); 
+const isLetterOpen = ref(false);   
+const isCardVisible = ref(false); 
+
 interface FallingGift {
   id: number;
   left: number;
@@ -87,10 +91,6 @@ interface FallingGift {
 const fallingGifts = ref<FallingGift[]>([]);
 let giftInterval: any = null;
 let animationFrameId: number | null = null;
-
-// State hiệu ứng lá thư
-const isLetterOpen = ref(false);   
-const isCardVisible = ref(false); 
 
 const getImageUrl = (img: string | File | null) => {
   if (!img) return '';
@@ -106,7 +106,6 @@ const createFallingGift = () => {
   }
 
   const id = Date.now() + Math.random();
-  // Giảm tốc độ rơi trên điện thoại
   const isMobile = window.innerWidth < 768;
   const speed = isMobile ? Math.random() * 0.6 + 0.4 : Math.random() * 1.5 + 0.8;
 
@@ -180,7 +179,7 @@ const stars = Array.from({ length: 50 }).map((_, i) => ({
 }));
 
 onMounted(() => {
-  initAudio(); // Khởi tạo nhạc
+  initAudio(); 
   giftInterval = setInterval(createFallingGift, 1500);
   updateFallingGifts();
 });
