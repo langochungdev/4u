@@ -8,7 +8,7 @@ import { contextService } from "../input/service/context.service"
 import { userService } from "../input/service/user.service"
 
 const route = useRoute()
-const emailCookie = useCookie('email')
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const config = useRuntimeConfig().public
 const qrDataUrl = ref<string>("");
 const viewLink = ref<string>("");
