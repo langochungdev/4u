@@ -15,6 +15,15 @@ import giftBox3 from "./img/anh-3.webp?url";
 
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 const bgAudio = computed(() => contextData.value?.audios?.[0] || "");
+
+const showHint = ref(true);
+onMounted(() => {
+  // Ẩn hint sau 7 giây cho đỡ rối
+  setTimeout(() => {
+    showHint.value = false;
+  }, 7000);
+});
+
 /* Dữ liệu tuyết rơi */
 type SnowDot = {
   id: number;
@@ -206,7 +215,16 @@ const message = computed(() => {
     <!--  SANTA BAY VÒNG TRÒN -->
     <button class="santa-wrap" @click="dropGift">
       <img :src="santaUrl" class="santa-img" />
+      <div v-if="showHint" class="santa-hint">
+        <div class="santa-hint-text">
+          Chạm vào ông già Noel để nhận quà 🎁
+        </div>
+      </div>
     </button>
+    <!-- GỢI Ý: BẤM VÀO SANTA ĐỂ NHẬN QUÀ -->
+      
+
+    
 
     <!--  CÂY THÔNG -->
     <div class="tree-wrap">

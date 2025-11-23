@@ -472,3 +472,84 @@
         top: 80px;
     }
 }
+
+
+/* ===== GỢI Ý TƯƠNG TÁC SANTA ===== */
+
+.santa-hint {
+    position: absolute;
+    top: 130px;
+    /* nếu hơi che gì đó thì chỉnh thành 110px, 120px... */
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 999;
+    pointer-events: none;
+    animation: santaHintFloat 3s ease-in-out infinite;
+}
+
+.santa-hint-arrow {
+    font-size: 18px;
+    animation: santaHintArrow 1.1s ease-in-out infinite;
+}
+
+.santa-hint-text {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    border: 1px solid rgba(248, 250, 252, 0.65);
+    color: #e5e7eb;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
+}
+
+
+/* nổi nhẹ lên xuống */
+
+@keyframes santaHintFloat {
+    0% {
+        transform: translate(-50%, -6px);
+    }
+    50% {
+        transform: translate(-50%, 0);
+    }
+    100% {
+        transform: translate(-50%, -6px);
+    }
+}
+
+
+/* mũi tên nhún nhẹ */
+
+@keyframes santaHintArrow {
+    0% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+}
+
+
+/* mobile: kéo xuống chút cho đỡ trùng thanh trên */
+
+@media (max-width: 768px) {
+    .santa-hint {
+        top: 140px;
+    }
+    .santa-hint-text {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+}
