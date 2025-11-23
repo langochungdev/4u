@@ -145,7 +145,7 @@
 const showEmailModal = ref(false)
 const showCreatedModal = ref(false)
 
-const emailCookie = useCookie('email')
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const userEmail = computed(() => emailCookie.value || null)
 
 // Debug: watch userEmail changes
