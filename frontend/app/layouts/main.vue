@@ -16,8 +16,14 @@
                         <!-- <p>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p> -->
                     </div>
                     <div class="flex items-center gap-1 md:gap-2 justify-end shrink-0">
-                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button">Đã tạo</button>
-                        <button v-else @click="showEmailModal = true" class="win2k-button header-button">Đăng nhập</button>
+                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button new-button">
+                            <img class="button-hat" src="./santa-hat.webp" alt="">
+                            Đã tạo
+                        </button>
+                        <button v-else @click="showEmailModal = true" class="win2k-button header-button new-button">
+                            <img class="button-hat" src="./santa-hat.webp" alt="">
+                            Đăng nhập
+                        </button>
                         <button v-if="userEmail" @click="logout" class="win2k-button header-button">Đăng xuất</button>
                     </div>
                 </div>
@@ -93,6 +99,45 @@
                 </div>
             </div>
         </footer>
+
+        <div class="snowflakes" aria-hidden="true">
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+            <div class="snowflake">
+                <div class="inner">❅</div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -232,7 +277,7 @@ function handleVerified(email: string) {
     background-size: 300px auto;
     background-position: top left;
     background-repeat: repeat;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     will-change: transform;
 }
@@ -252,11 +297,42 @@ function handleVerified(email: string) {
     white-space: nowrap;
 }
 
+.new-button {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 6px 12px;
+    min-width: 7em;
+    text-align: center;
+    color: #fff;
+    background-image: linear-gradient(to bottom, #f12828, #a00332, #9f0f31), linear-gradient(to bottom, #ae0034, #6f094c);
+    background-clip: padding-box, border-box;
+    background-origin: padding-box, border-box;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.25), inset 0 -1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+.button-hat {
+    position: absolute;
+    top: -26px;
+    left: -24px;
+    height: 62px;
+    filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+}
+
 @media (min-width: 768px) {
     .win2k-button {
         font-size: 14px;
         padding: 12px 24px;
         min-width: 120px;
+    }
+    .new-button {
+        font-size: 14px;
+        padding: 10px 20px;
+        min-width: 100px;
     }
 }
 
@@ -271,5 +347,38 @@ function handleVerified(email: string) {
 html, body, .main-layout {
     touch-action: manipulation;
     -ms-touch-action: manipulation;
+}
+
+/* customizable snowflake styling */
+.snowflake {
+  color: #fff;
+  font-size: 1em;
+  font-family: Arial, sans-serif;
+  text-shadow: 0 0 5px #000;
+}
+
+.snowflake,.snowflake .inner{animation-iteration-count:infinite;animation-play-state:running}@keyframes snowflakes-fall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(110vh) rotate(360deg)}}@keyframes snowflakes-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(80px)}}.snowflake{position:fixed;top:-10%;z-index:-1;-webkit-user-select:none;user-select:none;cursor:default;pointer-events:none;animation-name:snowflakes-shake;animation-duration:20s;animation-timing-function:ease-in-out}.snowflake .inner{animation:snowflakes-fall 10s linear infinite}.snowflake:nth-of-type(0){left:1%;animation-delay:0s; font-size: 0.8em;}
+.snowflake:nth-of-type(0) .inner{animation-delay:0s; animation-duration: 9s;}
+.snowflake:first-of-type{left:10%;animation-delay:1s; font-size: 1.2em;}
+.snowflake:first-of-type .inner,.snowflake:nth-of-type(8) .inner{animation-delay:1s; animation-duration: 11s;}
+.snowflake:nth-of-type(2){left:20%;animation-delay:.5s; font-size: 0.9em;}
+.snowflake:nth-of-type(2) .inner,.snowflake:nth-of-type(6) .inner{animation-delay:6s; animation-duration: 8s;}
+.snowflake:nth-of-type(3){left:30%;animation-delay:2s; font-size: 1.1em;}
+.snowflake:nth-of-type(11) .inner,.snowflake:nth-of-type(3) .inner{animation-delay:4s; animation-duration: 12s;}
+.snowflake:nth-of-type(4){left:40%;animation-delay:2s; font-size: 0.7em;}
+.snowflake:nth-of-type(10) .inner,.snowflake:nth-of-type(4) .inner{animation-delay:2s; animation-duration: 10s;}
+.snowflake:nth-of-type(5){left:50%;animation-delay:3s; font-size: 1.3em;}
+.snowflake:nth-of-type(5) .inner{animation-delay:8s; animation-duration: 9.5s;}
+.snowflake:nth-of-type(6){left:60%;animation-delay:2s; font-size: 0.6em;}
+.snowflake:nth-of-type(7){left:70%;animation-delay:1s; font-size: 1.4em;}
+.snowflake:nth-of-type(7) .inner{animation-delay:2.5s; animation-duration: 11.5s;}
+.snowflake:nth-of-type(8){left:80%;animation-delay:0s; font-size: 1.4em;}
+.snowflake:nth-of-type(9){left:90%;animation-delay:1.5s; font-size: 1.6em;}
+.snowflake:nth-of-type(9) .inner{animation-delay:3s; animation-duration: 8.5s;}
+.snowflake:nth-of-type(10){left:25%;animation-delay:0s; font-size: 1.3em;}
+.snowflake:nth-of-type(11){left:65%;animation-delay:2.5s; font-size: 1.5em;}
+
+.snowflake:nth-of-type(n+9) {
+  z-index: 9999;
 }
 </style>
