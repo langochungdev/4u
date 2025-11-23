@@ -137,13 +137,13 @@ onUnmounted(() => {
     >
       <button
         @click="handleCloseCard"
-        class="absolute top-4 right-4 text-white text-4xl font-bold hover:text-red-500 z-60"
+        class="absolute top-4 right-4 text-white text-4xl font-bold hover:text-red-500 z-[60]"
       >
         &times;
       </button>
 
       <div
-        class="card-wrapper relative w-[90vw] h-[60vh] md:w-[350px] md:h-[450px] cursor-pointer"
+        class="card-wrapper relative w-[90vw] h-[65vh] md:w-[350px] md:h-[450px] cursor-pointer"
         @click="toggleCard"
         :class="{ open: isCardOpen }"
       >
@@ -158,41 +158,48 @@ onUnmounted(() => {
             :style="{ backgroundColor: '#fffdf7' }"
           >
             <div
-              class="w-full mt-2 md:mt-4 mb-2 px-1 transform -rotate-2 hover:rotate-0 transition-transform duration-500"
+              class="w-full mt-2 md:mt-4 mb-5 px-1 transform -rotate-2 hover:rotate-0 transition-transform duration-500 shrink-0"
             >
               <div
-                class="bg-white p-2 pb-8 shadow-md border border-gray-200 mx-auto max-w-[90%]"
+                class="bg-white p-2 pb-6 shadow-md border border-gray-200 mx-auto max-w-[90%]"
               >
                 <img
                   :src="cardImage"
-                  class="w-full max-h-[130px] md:max-h-[180px] object-cover filter sepia-[0.1]"
+                  class="w-full max-h-[160px] md:max-h-[220px] object-cover filter sepia-[0.1]"
                 />
               </div>
             </div>
 
             <h4
-              class="font-handwriting text-3xl md:text-4xl text-[#c0392b] text-center mb-2 mt-1 font-bold tracking-wide"
+              class="font-handwriting text-[clamp(20px,5vw,28px)] text-[#c0392b] text-center mb-1 mt-0 font-bold tracking-wide break-words line-clamp-2 px-2 w-full leading-tight shrink-0"
               style="text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1)"
             >
               {{ cardTitle }}
             </h4>
 
             <div
-              class="font-content w-full px-3 text-center grow overflow-y-auto custom-scrollbar"
+              class="font-content w-full px-3 text-center grow overflow-y-auto custom-scrollbar flex flex-col justify-center"
             >
               <p
-                class="text-[#2c3e50] text-[clamp(13px,3.5vw,16px)] md:text-[18px] leading-relaxed whitespace-pre-line"
+                class="text-[#2c3e50] text-[clamp(14px,3.5vw,16px)] md:text-[18px] leading-snug whitespace-pre-line"
               >
                 {{ cardMessage }}
               </p>
             </div>
 
-            <div class="w-full mt-1 pb-4 pr-6 shrink-0">
+            <div
+              class="w-full mt-0 pb-3 pr-6 shrink-0 flex items-center justify-end gap-1"
+            >
               <p
-                class="text-right text-[#c0392b] font-bold font-handwriting text-xl transform -rotate-3"
+                class="text-[#c0392b] font-bold font-handwriting text-xl transform -rotate-3 whitespace-nowrap"
               >
-                {{ cardSender }} <span class="text-sm">✎</span>
+                {{
+                  cardSender.length > 20
+                    ? cardSender.slice(0, 20) + "..."
+                    : cardSender
+                }}
               </p>
+              <span class="text-sm transform -rotate-3 text-[#c0392b]">✎</span>
             </div>
 
             <div
