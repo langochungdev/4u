@@ -177,7 +177,7 @@ const EmailOtpModal = defineAsyncComponent(() =>
   import('@/components/EmailOtpModal.vue')
 )
 
-const emailCookie = useCookie('email')
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const loadingDemo = ref<string | null>(null)
 
 // Debounce function to prevent multiple rapid calls
