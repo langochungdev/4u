@@ -317,15 +317,30 @@ function prefetchInputPage() {
     }
 }
 
-async function goToDemo(section: Section, card: TemplateCard) {
+function goToDemo(section: Section, card: TemplateCard) {
     const key = getCardKey(section, card)
     loadingDemo.value = key
     try {
-        await navigateTo(`/${section.id}/${card.id}/${card.demoId}`)
+        // Open demo in a new tab instead of navigating in the current one
+        const router = useRouter()
+        const resolved = router.resolve({ path: `/${section.id}/${card.id}/${card.demoId}` })
+        const url = resolved.href ?? `/${section.id}/${card.id}/${card.demoId}`
+        
+        // Use anchor click to avoid popup blockers
+        const a = document.createElement('a')
+        a.href = /^https?:\/\//.test(url) ? url : `${window.location.origin}${url}`
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
     } catch (err) {
         console.warn('Navigation failed:', err)
     } finally {
-        loadingDemo.value = null
+        // small delay so the overlay is visible for a short feedback moment and then removed
+        setTimeout(() => {
+            loadingDemo.value = null
+        }, 200)
     }
 }
 
