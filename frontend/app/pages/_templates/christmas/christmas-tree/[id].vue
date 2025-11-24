@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'; // <-- 1. Thêm watch vào đây
 import config from './config';
 import { useTemplateData } from "@/composables/useTemplateData";
 
@@ -21,22 +21,60 @@ const letterTitle = computed(() => data.value?.content?.[0] || "Merry Christmas"
 
 // --- XỬ LÝ NHẠC ---
 const audioSource = computed(() => {
-    if (data.value?.audios && data.value.audios.length > 0) return data.value.audios[0];
+    // Ưu tiên nhạc user
+    if (data.value?.audios && data.value.audios.length > 0) {
+        const userAudio = data.value.audios[0];
+        // Nếu là URL string thì trả về luôn
+        if (typeof userAudio === 'string') return userAudio;
+        // Nếu là File object thì tạo URL tạm để player có thể đọc được
+        if (typeof userAudio === 'object' && userAudio) {
+            return URL.createObjectURL(userAudio);
+        }
+    }
+    // Fallback nhạc mặc định
     return "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
 });
+
 const bgMusic = ref<HTMLAudioElement | null>(null);
 const isMusicPlaying = ref(false);
 
-const initAudio = () => {
-    if (audioSource.value) {
-        bgMusic.value = new Audio(audioSource.value);
+// Hàm thiết lập hoặc cập nhật nguồn nhạc
+const setupAudioPlayer = (src: string) => {
+    if (!bgMusic.value) {
+        // Nếu chưa có player thì tạo mới
+        bgMusic.value = new Audio(src);
         bgMusic.value.loop = true; 
         bgMusic.value.volume = 0.5; 
-        attemptPlayMusic();
-        document.addEventListener('click', handleFirstInteraction, { once: true });
-        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    } else {
+        // Nếu đã có player thì chỉ thay đổi đường dẫn
+        const wasPlaying = !bgMusic.value.paused; // Kiểm tra xem đang chạy hay dừng
+        bgMusic.value.src = src;
+        // Nếu đang chạy thì phát tiếp bài mới
+        if (wasPlaying || isMusicPlaying.value) {
+            bgMusic.value.play().catch(() => isMusicPlaying.value = false);
+        }
     }
 };
+
+const initAudio = () => {
+    const src = audioSource.value || ""; 
+
+    if (src) {
+        setupAudioPlayer(src); // Khởi tạo lần đầu
+    }
+    
+    attemptPlayMusic();
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+};
+
+watch(audioSource, (newSrc) => {
+    if (newSrc) {
+        console.log("Cập nhật nhạc mới:", newSrc);
+        setupAudioPlayer(newSrc);
+    }
+});
+
 const attemptPlayMusic = () => {
     if (bgMusic.value) {
         bgMusic.value.play().then(() => { isMusicPlaying.value = true; }).catch(() => { isMusicPlaying.value = false; });
@@ -63,14 +101,12 @@ const treeClickCount = ref(0);
 const isLetterOpen = ref(false);   
 const isCardVisible = ref(false); 
 
-// --- TỐI ƯU HÓA QUÀ RƠI (OBJECT POOLING) ---
-// Thay vì tạo vô hạn, ta chỉ tạo 15 phần tử và để CSS lặp lại
+// --- TỐI ƯU HÓA QUÀ RƠI (REACTIVE COMPUTED PROPERTY) ---
 interface FallingGift {
   id: number;
   style: any;
   contentImage: string | null;
 }
-const fallingGifts = ref<FallingGift[]>([]);
 
 const getImageUrl = (img: string | File | null) => {
   if (!img) return '';
@@ -78,7 +114,8 @@ const getImageUrl = (img: string | File | null) => {
   return URL.createObjectURL(img);
 };
 
-const initFallingGifts = () => {
+const fallingGifts = computed<FallingGift[]>(() => {
+    const gifts: FallingGift[] = [];
     const MAX_GIFTS = 15; 
     const images = validImages.value;
     
@@ -86,7 +123,6 @@ const initFallingGifts = () => {
         let randomContent: string | File | null = null;
         
         if (images.length > 0) {
-            // Fix lỗi type: Thêm || null để ép kiểu undefined về null
             randomContent = images[Math.floor(Math.random() * images.length)] || null;
         }
         
@@ -94,7 +130,7 @@ const initFallingGifts = () => {
         const duration = Math.random() * 5 + 5; 
         const delay = Math.random() * 10 * -1; 
 
-        fallingGifts.value.push({
+        gifts.push({
             id: i,
             contentImage: getImageUrl(randomContent),
             style: {
@@ -104,7 +140,8 @@ const initFallingGifts = () => {
             }
         });
     }
-};
+    return gifts;
+});
 
 const openGift = (giftContent: string | null) => {
   if (!giftContent) return; 
@@ -142,10 +179,8 @@ const shakeTree = () => {
 const stars = Array.from({ length: 50 }).map((_, i) => ({
   id: i, top: Math.random() * 100, left: Math.random() * 100, delay: Math.random() * 4, size: Math.random() * 2 + 1
 }));
-
 onMounted(() => {
   initAudio(); 
-  initFallingGifts(); // Khởi tạo quà rơi 1 lần duy nhất
 });
 
 onUnmounted(() => {
