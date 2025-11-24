@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useTemplateData } from '../../../../composables/useTemplateData';
 import TEMPLATE_CONFIG from './config';
 // `galaxyScene` imports `three` and DOM APIs; dynamically import on client only to avoid server-side errors
@@ -10,9 +10,12 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const isLoading = ref(true);
 let cleanupFn: (() => void) | null = null;
 
-// Detect iOS devices (iPhone, iPad, iPod)
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// Detect iOS devices (iPhone, iPad, iPod) - only on client
+const isIOS = computed(() => {
+  if (!process.client) return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+});
 
 const initScene = async () => {
   if (!canvasRef.value) return;
@@ -36,7 +39,7 @@ const initScene = async () => {
   cleanupFn = initGalaxyScene(canvasRef.value, content, images);
   
   // Hide loading after scene is ready
-  if (isIOS) {
+  if (isIOS.value) {
     isLoading.value = false;
   } else {
     requestAnimationFrame(() => {
