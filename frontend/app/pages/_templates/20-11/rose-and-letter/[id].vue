@@ -193,7 +193,7 @@ function typeWriter(
     }
 }
 
-const head = document.getElementsByTagName("head")[0];
+const head = ref<HTMLElement | null>(null);
 const injectedStyles = ref<HTMLStyleElement[]>([]);
 let animationId = 0;
 
@@ -206,7 +206,7 @@ function CreateMagicDust(
     fallingTime: number,
     delay: number
 ) {
-    if (!castleContainer.value) return;
+    if (!castleContainer.value || !head.value) return;
     let dust = document.createElement("span");
     let style = document.createElement("style");
     let animName = `dustAnim${animationId++}`;
@@ -218,8 +218,8 @@ function CreateMagicDust(
       100% { top: ${y2}px; left: ${x2}px; width: 0; height: 0; opacity: 0 }
     }
   `;
-    if (head) {
-        head.appendChild(style);
+    if (head.value) {
+        head.value.appendChild(style);
         injectedStyles.value.push(style);
     }
     dust.style.position = "absolute";
@@ -234,6 +234,10 @@ function CreateMagicDust(
 }
 
 onMounted(() => {
+    if (process.client) {
+        head.value = document.getElementsByTagName("head")[0];
+    }
+
     const dusts = [
         [130, 132, 150, 152, 0.15, 2.5, 0.1],
         [65, 63, 300, 299, 0.5, 2, 0.2],
