@@ -189,10 +189,15 @@
 /* Input specific styles */
 .input-container {
     min-height: 100vh;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
     position: relative;
     padding: 20px;
+}
+
+@media (min-width: 769px) {
+    .input-container {
+        padding-bottom: 40px; /* Reduce bottom padding on desktop to bring form closer to footer */
+        min-height: auto; /* Allow container to shrink on desktop instead of taking full viewport height */
+    }
 }
 
 .input-container::before {
@@ -276,8 +281,6 @@
     border-bottom-color: #808080;
     border-radius: 4px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .input-content {

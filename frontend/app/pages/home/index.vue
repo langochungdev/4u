@@ -25,7 +25,7 @@
                         @click.prevent="selectedTag = 'all'"
                         :class="['win2k-tag-button', selectedTag === 'all' ? 'selected' : '']"
                         :aria-current="selectedTag === 'all' ? 'page' : undefined">
-                        Tất cả mẫu thiệp
+                        Tất cả
                     </a>
                     <a
                         v-for="section in sections"
@@ -92,14 +92,16 @@
                                             @mouseenter="prefetchPreview(section, card)" 
                                             class="win2k-button"
                                             :aria-label="`Xem demo thiệp ${card.title}`">
-                                            Demo
+                                            Xem thử
                                         </button>
+                                        <!-- START: Custom class for snow cap effect - to remove, ask agent to change back to 'win2k-button' -->
                                         <button 
                                             @click="buyCard(section, card)" 
-                                            class="win2k-button"
+                                            class="win2k-button create-button"
                                             :aria-label="`Tạo thiệp ${card.title}`">
                                             Tạo thiệp
                                         </button>
+                                        <!-- END: Custom class -->
                                     </div>
                             </div>
                         </div>
@@ -175,7 +177,7 @@ const EmailOtpModal = defineAsyncComponent(() =>
   import('@/components/EmailOtpModal.vue')
 )
 
-const emailCookie = useCookie('email')
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const loadingDemo = ref<string | null>(null)
 
 // Debounce function to prevent multiple rapid calls
@@ -315,15 +317,30 @@ function prefetchInputPage() {
     }
 }
 
-async function goToDemo(section: Section, card: TemplateCard) {
+function goToDemo(section: Section, card: TemplateCard) {
     const key = getCardKey(section, card)
     loadingDemo.value = key
     try {
-        await navigateTo(`/${section.id}/${card.id}/${card.demoId}`)
+        // Open demo in a new tab instead of navigating in the current one
+        const router = useRouter()
+        const resolved = router.resolve({ path: `/${section.id}/${card.id}/${card.demoId}` })
+        const url = resolved.href ?? `/${section.id}/${card.id}/${card.demoId}`
+        
+        // Use anchor click to avoid popup blockers
+        const a = document.createElement('a')
+        a.href = /^https?:\/\//.test(url) ? url : `${window.location.origin}${url}`
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
     } catch (err) {
         console.warn('Navigation failed:', err)
     } finally {
-        loadingDemo.value = null
+        // small delay so the overlay is visible for a short feedback moment and then removed
+        setTimeout(() => {
+            loadingDemo.value = null
+        }, 200)
     }
 }
 
@@ -376,3 +393,72 @@ function onVerified(email: string) {
 
 <style scoped src="./style.css">
 </style>
+
+<!-- START: Custom snow cap effect for create button - to remove all related to this effect and restore original, ask agent to delete from here to END -->
+<style scoped>
+.create-button {
+  position: relative;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  width: 100%;
+  min-width: 8em;
+  text-align: center;
+  color: #fff;
+  background-image: linear-gradient(to bottom, #f12828, #a00332, #9f0f31), linear-gradient(to bottom, #ae0034, #6f094c);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.25), inset 0 -1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition-property: transform, filter;
+  transition-duration: 0.2s;
+  will-change: transform;
+  resize: both;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Open Sans", system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+.create-button:active {
+  transform: scale(0.92);
+  filter: brightness(0.8);
+}
+
+.create-button::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: calc(100% + 8px);
+  height: 24px;
+  background: white;
+  mask-image: url("./snow-cap.png");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url("./snow-cap.png");
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+  opacity: 1;
+  z-index: 10;
+}
+
+@-webkit-keyframes fade-in {
+  0%, 50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  0%, 50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>
+<!-- END: Custom snow cap effect -->
+<!-- Xóa từ START đến END trong index.vue và thay đổi class của button Tạo thiệp từ 'win2k-button create-button' thành
+'win2k-button'" -->

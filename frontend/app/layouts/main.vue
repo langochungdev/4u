@@ -16,8 +16,14 @@
                         <!-- <p>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p> -->
                     </div>
                     <div class="flex items-center gap-1 md:gap-2 justify-end shrink-0">
-                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button">Đã tạo</button>
-                        <button v-else @click="showEmailModal = true" class="win2k-button header-button">Đăng nhập</button>
+                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button new-button">
+                            <img class="button-hat" src="./santa-hat.webp" alt="">
+                            Đã tạo
+                        </button>
+                        <button v-else @click="showEmailModal = true" class="win2k-button header-button new-button">
+                            <img class="button-hat" src="./santa-hat.webp" alt="">
+                            Đăng nhập
+                        </button>
                         <button v-if="userEmail" @click="logout" class="win2k-button header-button">Đăng xuất</button>
                     </div>
                 </div>
@@ -93,14 +99,22 @@
                 </div>
             </div>
         </footer>
+
+            <component v-if="showSnow" :is="Snowflakes" />
     </div>
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+
 const showEmailModal = ref(false)
 const showCreatedModal = ref(false)
 
-const emailCookie = useCookie('email')
+// Lazy load the Snowflakes component after home has fully loaded to improve initial performance
+const Snowflakes = defineAsyncComponent(() => import('@/components/Snowflakes.vue'))
+const showSnow = ref(false)
+
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const userEmail = computed(() => emailCookie.value || null)
 
 // Debug: watch userEmail changes
@@ -158,6 +172,28 @@ onMounted(() => {
     _metaState.appleCapableCreated = cap.created
 })
 
+// Listen for a custom event emitted from the home page once it finishes loading
+function handleHomeLoaded() {
+    // only show snow when on home page
+    const route = useRoute()
+    if (route.path === '/home' || route.path === '/') {
+        showSnow.value = true
+    }
+}
+
+onMounted(() => {
+    if (process.client) {
+        window.addEventListener('home:loaded', handleHomeLoaded)
+        // fallback: if the user already navigated to home and no event arrives, show after a small delay
+        const r = useRoute()
+        if (r.path === '/home' || r.path === '/') {
+            setTimeout(() => {
+                showSnow.value = true
+            }, 2000)
+        }
+    }
+})
+
 onUnmounted(() => {
     // revert theme-color
     const themeEl = document.head.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
@@ -185,6 +221,9 @@ onUnmounted(() => {
         } else if (_metaState.appleCapable !== undefined) {
             appleCapEl.content = _metaState.appleCapable ?? ''
         }
+    }
+    if (process.client) {
+        window.removeEventListener('home:loaded', handleHomeLoaded)
     }
 })
 
@@ -232,7 +271,7 @@ function handleVerified(email: string) {
     background-size: 300px auto;
     background-position: top left;
     background-repeat: repeat;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     will-change: transform;
 }
@@ -252,11 +291,42 @@ function handleVerified(email: string) {
     white-space: nowrap;
 }
 
+.new-button {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 6px 12px;
+    min-width: 7em;
+    text-align: center;
+    color: #fff;
+    background-image: linear-gradient(to bottom, #f12828, #a00332, #9f0f31), linear-gradient(to bottom, #ae0034, #6f094c);
+    background-clip: padding-box, border-box;
+    background-origin: padding-box, border-box;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.25), inset 0 -1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+.button-hat {
+    position: absolute;
+    top: -26px;
+    left: -24px;
+    height: 62px;
+    filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+}
+
 @media (min-width: 768px) {
     .win2k-button {
         font-size: 14px;
         padding: 12px 24px;
         min-width: 120px;
+    }
+    .new-button {
+        font-size: 14px;
+        padding: 10px 20px;
+        min-width: 100px;
     }
 }
 
@@ -272,4 +342,6 @@ html, body, .main-layout {
     touch-action: manipulation;
     -ms-touch-action: manipulation;
 }
+
+/* snowflake styles are provided by a lazy-loaded component */
 </style>
