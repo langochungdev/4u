@@ -162,12 +162,10 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'canonical', href: 'https://story4u.online/' },
-        { rel: 'preload', href: '/background.webp', as: 'image' },
-        { rel: 'preload', href: '/logo.webp', as: 'image' },
         { rel: 'preconnect', href: 'https://res.cloudinary.com' },
         { rel: 'dns-prefetch', href: 'https://res.cloudinary.com' },
         { rel: 'preconnect', href: 'https://cdnjs.cloudflare.com' },
-        { rel: 'preconnect', href: 'https://cdn.jsdelivr.net' }
+        { rel: 'preconnect', href: 'https://cdn.jsdelivr.net' },
       ]
     }
   },
