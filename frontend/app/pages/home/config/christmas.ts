@@ -8,10 +8,10 @@ export const CHRISTMAS_SECTION = createSection({
 });
 
 export const  CHRISTMAS_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
-    'demo-christmas': { visible: true },
-    'christmas-tree': { visible: false },
-    'christmas-box': { visible: false },
-    'card-noel': { visible: false },
+    'demo-christmas': { visible: false },
+    'christmas-tree': { visible: true },
+    'christmas-box': { visible: true },
+    'card-noel': { visible: true },
 };
 
 
