@@ -23,6 +23,22 @@ const showHint = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
 const santaRef = ref<HTMLElement | null>(null);
 
+const audioRef = ref<HTMLAudioElement | null>(null);
+const audioStarted = ref(false);
+
+function playBgAudio() {
+  if (!bgAudio.value) return;
+  if (!audioRef.value) return;
+
+  audioRef.value
+    .play()
+    .then(() => {
+      audioStarted.value = true;
+    })
+    .catch((err) => {
+      console.debug("Audio play blocked:", err);
+    });
+}
 /* ===== Tuyết ===== */
 type SnowDot = {
   id: number;
@@ -46,13 +62,12 @@ const midDots = ref<SnowDot[]>([]);
 const nearDots = ref<SnowDot[]>([]);
 const snowImgs = ref<SnowImg[]>([]);
 
-/* ===== Quà ===== */
 type Gift = {
   id: number;
-  boxImg: string;      // ảnh hộp ngoài
-  contentImg: string;  // ảnh popup bên trong
-  left: number;        // % ngang
-  top: number;         // % dọc
+  boxImg: string;      
+  contentImg: string;  
+  left: number;        
+  top: number;         
 };
 
 const gifts = ref<Gift[]>([]);
@@ -114,9 +129,12 @@ onMounted(() => {
   }, 7000);
 });
 
-/* ===== Drop quà từ vị trí Santa ===== */
 function dropGift() {
   if (!santaRef.value || !containerRef.value) return;
+  if (!audioStarted.value) {
+    playBgAudio();
+  }
+
   const santaRect = santaRef.value.getBoundingClientRect();
   const containerRect = containerRef.value.getBoundingClientRect();
   const centerX = santaRect.left + santaRect.width / 2;
@@ -128,9 +146,11 @@ function dropGift() {
     ((centerY - containerRect.top) / containerRect.height) * 100;
   leftPercent = Math.min(95, Math.max(5, leftPercent));
   topPercent = Math.min(35, Math.max(5, topPercent));
+
   const id = giftIdCounter.value++;
   const imgList = contextData.value?.images ?? [];
   const hasContentImgs = imgList.length > 0;
+
   const boxImg =
     giftBoxList[giftBoxIndex.value % giftBoxList.length] || giftBox1;
   const contentImg = hasContentImgs
@@ -146,6 +166,7 @@ function dropGift() {
     top: topPercent,
   });
 }
+
 /* mở / đóng popup quà */
 function openGift(g: Gift) {
   activeGift.value = g;
@@ -281,11 +302,11 @@ function closeModal() {
     </template>
   </div>
   <audio
-    v-if="bgAudio"
-    :src="bgAudio"
-    autoplay
-    loop
-    class="audio-hidden"
-  />
+  v-if="bgAudio"
+  ref="audioRef"
+  :src="bgAudio"
+  loop
+  class="audio-hidden"
+/>
 </template>
 <style scoped src="./style.css"></style>
