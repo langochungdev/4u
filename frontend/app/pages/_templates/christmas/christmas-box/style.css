@@ -1,456 +1,60 @@
-/* ===== NỀN ĐÊM MÙA ĐÔNG ===== */
+/* RESET CƠ BẢN */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 .winter-bg {
     position: relative;
     min-height: 100vh;
     width: 100%;
-    background: linear-gradient(#020617, #020617, #030712);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
     overflow: hidden;
-    padding-bottom: 32px;
+    background: radial-gradient(circle at top, #0f172a, #020617 60%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 
-/* Noise texture */
-
-.winter-ground::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1' fill='rgba(255,255,255,0.4)'/%3E%3Ccircle cx='20' cy='40' r='1' fill='rgba(255,255,255,0.25)'/%3E%3Ccircle cx='70' cy='80' r='1' fill='rgba(255,255,255,0.3)'/%3E%3Ccircle cx='90' cy='50' r='1' fill='rgba(255,255,255,0.2)'/%3E%3C/svg%3E");
-    opacity: 0.2;
-    pointer-events: none;
-}
-
-
-/* ánh sáng hắt lên từ mặt đất */
-
-.winter-ground::after {
-    content: "";
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 110%;
-    height: 60px;
-    background: radial-gradient( ellipse at center, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 70%);
-    filter: blur(18px);
-    pointer-events: none;
-}
-
-
-/* ===== MẶT ĐẤT TUYẾT THẬT HƠN ===== */
+/* Mặt đất */
 
 .winter-ground {
     position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    /* kích thước thực hơn */
-    width: 180%;
-    height: 140px;
-    /* bo cong nhẹ hơn, đỡ cartoon */
-    border-radius: 60% 60% 0 0;
-    /* màu tuyết + shading thật */
-    background: linear-gradient( to top, rgba(255, 255, 255, 1) 0%, rgba(240, 246, 255, 1) 25%, rgba(225, 235, 255, 1) 45%, rgba(215, 225, 245, 1) 62%, rgba(200, 210, 235, 1) 100%);
-    /* hiệu ứng texture snow nhẹ */
-    overflow: hidden;
-}
-
-
-/* ===== CÁC LỚP TUYẾT ===== */
-
-.snow-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-
-/* z-index khác nhau để tạo chiều sâu */
-
-.snow-layer--far {
+    bottom: -40px;
+    left: -10%;
+    width: 120%;
+    height: 160px;
+    background: radial-gradient(circle at top, #ffffff, #e5f0ff);
+    box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.8);
+    border-radius: 50% 50% 0 0;
     z-index: 5;
-    /* xa nhất */
-}
-
-.snow-layer--mid {
-    z-index: 10;
-    /* giữa */
-}
-
-.snow-layer--near {
-    z-index: 20;
-    /* gần nhất, phía trước nhưng vẫn dưới cây */
 }
 
 
-/* ===== TUYẾT DOT CƠ BẢN ===== */
-
-.snow-dot {
-    position: absolute;
-    top: -10px;
-    border-radius: 50%;
-    animation: snowFall linear infinite;
-}
-
-
-/* Tuyết xa: rất nhỏ, rất mờ, lạnh hơn */
-
-.snow-dot--far {
-    background: rgba(226, 232, 255, 0.35);
-    box-shadow: 0 0 3px rgba(148, 163, 184, 0.4), 0 0 6px rgba(96, 165, 250, 0.35);
-    filter: blur(0.4px);
-}
-
-
-/* Tuyết trung: vừa, trong hơn */
-
-.snow-dot--mid {
-    background: rgba(248, 250, 252, 0.5);
-    box-shadow: 0 0 4px rgba(191, 219, 254, 0.6), 0 0 8px rgba(129, 140, 248, 0.4);
-}
-
-
-/* Tuyết gần: to hơn, sáng hơn nhưng vẫn không trắng xoá */
-
-.snow-dot--near {
-    background: rgba(255, 255, 255, 0.7);
-    box-shadow: 0 0 5px rgba(248, 250, 252, 0.8), 0 0 10px rgba(191, 219, 254, 0.7);
-}
-
-
-/* ===== TUYẾT ẢNH LỚN (snow.webp) Ở LỚP GẦN ===== */
-
-.snow-img {
-    position: absolute;
-    top: -60px;
-    height: auto;
-    opacity: 0.55;
-    filter: drop-shadow(0 4px 8px rgba(10, 20, 40, 0.45));
-    animation: snowFloatDown linear infinite;
-}
-
-
-/* ===== ANIMATION RƠI ===== */
-
-@keyframes snowFall {
-    0% {
-        transform: translate3d(0, 0, 0);
-    }
-    60% {
-        transform: translate3d(-8px, 55vh, 0);
-    }
-    100% {
-        transform: translate3d(10px, 105vh, 0);
-    }
-}
-
-@keyframes snowFloatDown {
-    0% {
-        opacity: 0.65;
-        transform: translate3d(0, 0, 0) rotate(0deg);
-    }
-    70% {
-        opacity: 0.45;
-    }
-    100% {
-        opacity: 0;
-        transform: translate3d(18px, 110vh, 0) rotate(15deg);
-    }
-}
-
-
-/* ===== CÂY THÔNG ===== */
-
-.tree-wrap {
-    position: relative;
-    z-index: 30;
-    /* cao hơn tuyết gần */
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-
-/* Ánh sáng trên mặt đất, ngay dưới gốc cây */
-
-.tree-wrap::before {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 260px;
-    height: 85px;
-    background: radial-gradient( ellipse at center, rgba(255, 240, 180, 0.9) 0%, rgba(255, 240, 180, 0.45) 35%, rgba(255, 240, 180, 0.15) 65%, rgba(255, 240, 180, 0) 100%);
-    filter: blur(26px);
-    z-index: 5;
-    pointer-events: none;
-}
-
-.tree-img {
-    width: 80vw;
-    max-width: 360px;
-    transform: translateY(-50px);
-    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.9));
-    position: relative;
-    /* mạnh hơn nhưng vẫn mượt */
-    animation: treeSwing 3.8s ease-in-out infinite;
-    transform-origin: bottom center;
-}
-
-
-/* Ánh sáng chiếu từ dưới lên thân cây */
-
-.tree-img::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient( ellipse at bottom, rgba(255, 240, 200, 0.55), rgba(255, 240, 200, 0) 70%);
-    mix-blend-mode: screen;
-    pointer-events: none;
-    z-index: 50;
-}
-
-@keyframes treeSwing {
-    0% {
-        transform: translateY(-50px) rotate(0deg);
-    }
-    20% {
-        transform: translateY(-50px) rotate(1.4deg);
-    }
-    50% {
-        transform: translateY(-50px) rotate(-1.4deg);
-    }
-    80% {
-        transform: translateY(-50px) rotate(1.4deg);
-    }
-    100% {
-        transform: translateY(-50px) rotate(0deg);
-    }
-}
-
-
-/* ========== ÔNG GIÀ NOEL BAY ========== */
-
-
-/* Santa bay vòng tròn */
-
-.santa-wrap {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 180px;
-    height: 180px;
-    transform: translate(-50%, -50%);
-    animation: santaCircle 14s linear infinite;
-    z-index: 40;
-    cursor: pointer;
-}
-
-.santa-img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.8));
-}
-
-@keyframes santaCircle {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg);
-    }
-}
-
-
-/* ========== VÙNG QUÀ DƯỚI GỐC CÂY ========== */
-
-.gift-zone {
-    position: absolute;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(420px, 100%);
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
-    z-index: 35;
-    pointer-events: none;
-}
-
-
-/* Mobile: kéo quà lên cao hơn để tránh thanh nav */
-
-@media (max-width: 768px) {
-    .gift-zone {
-        bottom: 60px;
-    }
-}
-
-.gift-slot {
-    width: 70px;
-    height: 70px;
-    opacity: 0;
-    transform: translateY(-160px) scale(0.7);
-    pointer-events: auto;
-    cursor: pointer;
-    transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-
-/* Khi quà đã được thả */
-
-.gift-slot--dropped {
-    opacity: 1;
-    animation: giftDrop 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-}
-
-
-/* animation rơi quà xuống đất */
-
-@keyframes giftDrop {
-    0% {
-        transform: translateY(-180px) scale(0.7);
-    }
-    70% {
-        transform: translateY(10px) scale(1.05);
-    }
-    100% {
-        transform: translateY(0) scale(1);
-    }
-}
-
-.gift-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.8));
-}
-
-
-/* hộp placeholder nếu chưa có ảnh */
-
-.gift-placeholder {
-    width: 100%;
-    height: 100%;
-    border-radius: 14px;
-    background: linear-gradient(145deg, #e5e7eb, #cbd5f5);
-    box-shadow: 0 8px 14px rgba(15, 23, 42, 0.85), inset 0 0 6px rgba(255, 255, 255, 0.7);
-}
-
-
-/* ========== MODAL THÔNG ĐIỆP QUÀ ========== */
-
-.gift-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.94));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 40;
-}
-
-.gift-modal {
-    position: relative;
-    width: min(360px, 90vw);
-    background: radial-gradient(circle at top, #1e293b, #020617);
-    border-radius: 24px;
-    border: 1px solid rgba(148, 163, 184, 0.8);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.9), 0 0 40px rgba(56, 189, 248, 0.45);
-    padding: 16px 16px 18px;
-    color: #e5e7eb;
-}
-
-.gift-modal-close {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    border: none;
-    background: transparent;
-    color: #e5e7eb;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.gift-modal-body {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-}
-
-.gift-modal-img {
-    width: 220px;
-    height: auto;
-    max-width: 80vw;
-    max-height: 60vh;
-    object-fit: contain;
-    border-radius: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.6), 0 0 50px rgba(255, 120, 120, 0.45), 0 0 80px rgba(255, 0, 80, 0.25);
-    animation: giftPop 0.45s cubic-bezier(.25, 1.1, .5, 1.1);
-}
-
-.gift-modal-text {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    text-align: center;
-    white-space: pre-line;
-}
-
-
-/* Player audio */
-
-.audio-player {
-    margin-top: 16px;
-    width: 100%;
-    max-width: 320px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.9);
-}
-
-.audio-hidden {
-    position: absolute;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    pointer-events: none;
-}
-
-
-/* ===== Marquee ===== */
+/* ============ Marquee Merry Christmas ============ */
 
 .marquee-wrap {
     position: absolute;
-    top: 120px;
-    /* chỉnh vị trí cao/thấp tại đây */
+    top: 90px;
     width: 100%;
     overflow: hidden;
     pointer-events: none;
-    z-index: 999;
+    z-index: 30;
 }
 
 .marquee-text {
     white-space: nowrap;
     font-size: 24px;
     font-weight: 700;
-    color: #ffdede;
-    text-shadow: 0 0 10px rgba(255, 100, 100, 0.7), 0 0 20px rgba(255, 0, 0, 0.6);
+    color: #ffe4e6;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.9), 0 0 26px rgba(220, 38, 38, 0.8);
     animation: marqueeScroll 12s linear infinite;
 }
-
-
-/* hiệu ứng chạy ngang */
 
 @keyframes marqueeScroll {
     0% {
@@ -461,95 +65,314 @@
     }
 }
 
-
-/* mobile chữ nhỏ hơn */
-
 @media (max-width: 768px) {
+    .marquee-wrap {
+        top: 70px;
+    }
     .marquee-text {
         font-size: 18px;
     }
-    .marquee-wrap {
-        top: 80px;
+}
+
+
+/* ============ Tuyết rơi nhiều lớp ============ */
+
+.snow-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.snow-dot {
+    position: absolute;
+    top: -10px;
+    border-radius: 999px;
+    background: #e5f0ff;
+}
+
+.snow-dot--far {
+    animation: snowFall 22s linear infinite;
+}
+
+.snow-dot--mid {
+    animation: snowFall 16s linear infinite;
+}
+
+.snow-dot--near {
+    animation: snowFall 11s linear infinite;
+}
+
+.snow-img {
+    position: absolute;
+    top: -80px;
+    opacity: 0.7;
+    animation: snowFall 14s linear infinite;
+}
+
+@keyframes snowFall {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(0, 110vh, 0);
     }
 }
 
 
-/* ===== GỢI Ý TƯƠNG TÁC SANTA ===== */
+/* ============ Santa bay vòng tròn ============ */
+
+.santa-wrap {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 180px;
+    height: 180px;
+    transform: translate(-50%, -50%);
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    z-index: 40;
+    animation: santaCircle 14s linear infinite;
+}
+
+.santa-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.9));
+}
+
+
+/* quay vòng quanh tâm */
+
+@keyframes santaCircle {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(150px) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(150px) rotate(-360deg);
+    }
+}
+
+
+/* Hint Santa */
 
 .santa-hint {
     position: absolute;
-    top: 130px;
-    /* nếu hơi che gì đó thì chỉnh thành 110px, 120px... */
+    bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
-    z-index: 999;
-    pointer-events: none;
-    animation: santaHintFloat 3s ease-in-out infinite;
-}
-
-.santa-hint-arrow {
-    font-size: 18px;
-    animation: santaHintArrow 1.1s ease-in-out infinite;
-}
-
-.santa-hint-text {
-    padding: 6px 12px;
+    justify-content: center;
+    padding: 5px 12px;
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.82);
-    border: 1px solid rgba(248, 250, 252, 0.65);
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(248, 250, 252, 0.7);
     color: #e5e7eb;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
-    text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
+    pointer-events: none;
+    animation: hintFloat 2.8s ease-in-out infinite;
 }
 
-
-/* nổi nhẹ lên xuống */
-
-@keyframes santaHintFloat {
+@keyframes hintFloat {
     0% {
-        transform: translate(-50%, -6px);
+        transform: translate(-50%, -4px);
     }
     50% {
         transform: translate(-50%, 0);
     }
     100% {
-        transform: translate(-50%, -6px);
+        transform: translate(-50%, -4px);
     }
 }
 
 
-/* mũi tên nhún nhẹ */
+/* ============ Cây thông ============ */
 
-@keyframes santaHintArrow {
-    0% {
-        transform: translateY(0);
-        opacity: 0.6;
+.tree-wrap {
+    position: absolute;
+    bottom: 80px;
+    left: 58%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.tree-img {
+    width: min(360px, 80vw);
+    filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
+    animation: treeIdle 3.2s ease-in-out infinite;
+}
+
+@keyframes treeIdle {
+    0%,
+    100% {
+        transform: translateX(-50%) rotate(0deg);
     }
-    50% {
-        transform: translateY(-4px);
+    25% {
+        transform: translateX(-50%) rotate(-1.1deg);
+    }
+    75% {
+        transform: translateX(-50%) rotate(1.1deg);
+    }
+}
+
+
+/* ============ Quà rơi từ Santa ============ */
+
+.gift-zone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 35;
+}
+
+.gift-slot {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.gift-slot--dropped {
+    animation: giftFall 15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.gift-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.9));
+}
+
+
+/* Quà rơi từ vị trí Santa xuống đất rồi biến mất */
+
+@keyframes giftFall {
+    0% {
+        transform: translateY(0) scale(0.9);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    60% {
+        /* ĐÃ chạm tuyết ở đây */
+        transform: translateY(55vh) scale(1.05);
         opacity: 1;
     }
     100% {
-        transform: translateY(0);
-        opacity: 0.6;
+        /* Đứng yên trên tuyết ~8s */
+        transform: translateY(55vh) scale(1);
+        opacity: 1;
     }
 }
 
 
-/* mobile: kéo xuống chút cho đỡ trùng thanh trên */
+/* ============ Popup quà ============ */
+
+.gift-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+}
+
+.gift-modal {
+    position: relative;
+    width: min(360px, 90vw);
+    background: radial-gradient(circle at top, #1e293b, #020617);
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.9), 0 0 40px rgba(56, 189, 248, 0.45);
+    padding: 18px 18px 20px;
+    color: #e5e7eb;
+    animation: popupZoom 0.45s cubic-bezier(0.25, 1.1, 0.5, 1.1);
+}
+
+@keyframes popupZoom {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.gift-modal-close {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    color: #e5e7eb;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.gift-modal-body {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    text-align: center;
+}
+
+.gift-modal-img {
+    width: 220px;
+    max-width: 80vw;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 16px;
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.6), 0 0 60px rgba(248, 113, 113, 0.6), 0 0 90px rgba(239, 68, 68, 0.4);
+}
+
+.gift-modal-text {
+    font-size: 0.96rem;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+
+/* Audio ẩn */
+
+.audio-hidden {
+    display: none;
+}
+
+
+/* Mobile tối ưu thêm */
 
 @media (max-width: 768px) {
-    .santa-hint {
-        top: 140px;
+    .santa-wrap {
+        width: 150px;
+        height: 150px;
     }
-    .santa-hint-text {
-        font-size: 12px;
-        padding: 5px 10px;
+    .tree-wrap {
+        bottom: 100px;
+        left: 65%;
+        transform: translateX(-50%);
+    }
+    .tree-img {
+        width: min(320px, 80vw);
+    }
+    .gift-modal-img {
+        width: 190px;
+        max-width: 90vw;
     }
 }
