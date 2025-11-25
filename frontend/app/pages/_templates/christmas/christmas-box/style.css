@@ -205,19 +205,18 @@
     width: min(360px, 80vw);
     filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
     animation: treeIdle 3.2s ease-in-out infinite;
-    display: block;
 }
 
 @keyframes treeIdle {
     0%,
     100% {
-        transform: rotate(0deg);
+        transform: translateX(-50%) rotate(0deg);
     }
     25% {
-        transform: rotate(-1.1deg);
+        transform: translateX(-50%) rotate(-1.1deg);
     }
     75% {
-        transform: rotate(1.1deg);
+        transform: translateX(-50%) rotate(1.1deg);
     }
 }
 
@@ -242,7 +241,7 @@
 }
 
 .gift-slot--dropped {
-    animation: giftFall 9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    animation: giftFall 15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
 .gift-img {
@@ -263,17 +262,15 @@
     20% {
         opacity: 1;
     }
-    70% {
+    60% {
+        /* ĐÃ chạm tuyết ở đây */
         transform: translateY(55vh) scale(1.05);
         opacity: 1;
     }
-    90% {
-        transform: translateY(65vh) scale(1);
-        opacity: 0.9;
-    }
     100% {
-        transform: translateY(75vh) scale(0.95);
-        opacity: 0;
+        /* Đứng yên trên tuyết ~8s */
+        transform: translateY(55vh) scale(1);
+        opacity: 1;
     }
 }
 
@@ -367,12 +364,12 @@
         height: 150px;
     }
     .tree-wrap {
-        bottom: 90px;
-        left: 50%;
+        bottom: 100px;
+        left: 65%;
         transform: translateX(-50%);
     }
     .tree-img {
-        width: 90vw !important;
+        width: min(320px, 80vw);
     }
     .gift-modal-img {
         width: 190px;
