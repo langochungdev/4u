@@ -114,9 +114,14 @@ const getImageUrl = (img: string | File | null) => {
   return URL.createObjectURL(img);
 };
 
+// --- TỐI ƯU HÓA QUÀ RƠI ---
 const fallingGifts = computed<FallingGift[]>(() => {
     const gifts: FallingGift[] = [];
-    const MAX_GIFTS = 15; 
+    
+    // GIẢM SỐ LƯỢNG QUÀ TẠI ĐÂY
+    // Giảm từ 15 xuống 6 để đỡ lag trên mobile
+    const MAX_GIFTS = 6; 
+    
     const images = validImages.value;
     
     for (let i = 0; i < MAX_GIFTS; i++) {
