@@ -288,4 +288,4 @@ function closeModal() {
     class="audio-hidden"
   />
 </template>
-<style src="./style.css"></style>
+<style scoped src="./style.css"></style>
