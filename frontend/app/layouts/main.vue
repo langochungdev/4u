@@ -131,8 +131,8 @@ const _metaState: {
     themeColorCreated?: boolean
     appleStatus?: string | null
     appleStatusCreated?: boolean
-    appleCapable?: string | null
-    appleCapableCreated?: boolean
+    mobileCapable?: string | null
+    mobileCapableCreated?: boolean
 } = {}
 
 const DESIRED_THEME_COLOR = 'rgba(22,16,12,0)'
@@ -166,10 +166,10 @@ onMounted(() => {
     const a = setOrCreateMeta('apple-mobile-web-app-status-bar-style', DESIRED_APPLE_STATUS)
     _metaState.appleStatus = a.previous
     _metaState.appleStatusCreated = a.created
-    // apple-mobile-web-app-capable (for PWA translucent status bar to work)
-    const cap = setOrCreateMeta('apple-mobile-web-app-capable', 'yes')
-    _metaState.appleCapable = cap.previous
-    _metaState.appleCapableCreated = cap.created
+    // mobile-web-app-capable (for PWA translucent status bar to work)
+    const cap = setOrCreateMeta('mobile-web-app-capable', 'yes')
+    _metaState.mobileCapable = cap.previous
+    _metaState.mobileCapableCreated = cap.created
 })
 
 // Listen for a custom event emitted from the home page once it finishes loading
@@ -213,13 +213,13 @@ onUnmounted(() => {
             appleEl.content = _metaState.appleStatus ?? ''
         }
     }
-    // revert apple-mobile-web-app-capable
-    const appleCapEl = document.head.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement | null
-    if (appleCapEl) {
-        if (_metaState.appleCapableCreated) {
-            appleCapEl.remove()
-        } else if (_metaState.appleCapable !== undefined) {
-            appleCapEl.content = _metaState.appleCapable ?? ''
+    // revert mobile-web-app-capable
+    const mobileCapEl = document.head.querySelector('meta[name="mobile-web-app-capable"]') as HTMLMetaElement | null
+    if (mobileCapEl) {
+        if (_metaState.mobileCapableCreated) {
+            mobileCapEl.remove()
+        } else if (_metaState.mobileCapable !== undefined) {
+            mobileCapEl.content = _metaState.mobileCapable ?? ''
         }
     }
     if (process.client) {
