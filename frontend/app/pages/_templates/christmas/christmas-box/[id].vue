@@ -36,7 +36,6 @@ function playBgAudio() {
       audioStarted.value = true;
     })
     .catch((err) => {
-      // bị chặn vẫn bỏ qua, lần sau click lại vẫn thử
       console.debug("Audio play blocked:", err);
     });
 }
@@ -63,13 +62,12 @@ const midDots = ref<SnowDot[]>([]);
 const nearDots = ref<SnowDot[]>([]);
 const snowImgs = ref<SnowImg[]>([]);
 
-/* ===== Quà ===== */
 type Gift = {
   id: number;
-  boxImg: string;      // ảnh hộp ngoài
-  contentImg: string;  // ảnh popup bên trong
-  left: number;        // % ngang
-  top: number;         // % dọc
+  boxImg: string;      
+  contentImg: string;  
+  left: number;        
+  top: number;         
 };
 
 const gifts = ref<Gift[]>([]);
@@ -131,12 +129,8 @@ onMounted(() => {
   }, 7000);
 });
 
-/* ===== Drop quà từ vị trí Santa ===== */
-/* ===== Drop quà từ vị trí Santa ===== */
 function dropGift() {
   if (!santaRef.value || !containerRef.value) return;
-
-  // ✅ THÊM: lần đầu click Santa thì cố gắng bật nhạc
   if (!audioStarted.value) {
     playBgAudio();
   }
