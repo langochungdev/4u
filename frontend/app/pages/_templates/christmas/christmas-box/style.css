@@ -205,18 +205,19 @@
     width: min(360px, 80vw);
     filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.9));
     animation: treeIdle 3.2s ease-in-out infinite;
+    display: block;
 }
 
 @keyframes treeIdle {
     0%,
     100% {
-        transform: translateX(-50%) rotate(0deg);
+        transform: rotate(0deg);
     }
     25% {
-        transform: translateX(-50%) rotate(-1.1deg);
+        transform: rotate(-1.1deg);
     }
     75% {
-        transform: translateX(-50%) rotate(1.1deg);
+        transform: rotate(1.1deg);
     }
 }
 
@@ -366,12 +367,12 @@
         height: 150px;
     }
     .tree-wrap {
-        bottom: 100px;
-        left: 65%;
+        bottom: 90px;
+        left: 50%;
         transform: translateX(-50%);
     }
     .tree-img {
-        width: 90vw;
+        width: 90vw !important;
     }
     .gift-modal-img {
         width: 190px;
