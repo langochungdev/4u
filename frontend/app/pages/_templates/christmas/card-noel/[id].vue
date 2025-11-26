@@ -79,7 +79,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed inset-0 w-full h-dvh overflow-hidden flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat font-sans z-0"
+    class="fixed inset-0 w-full h-dvh overflow-hidden flex flex-col items-center justify-center md:justify-between bg-cover bg-center bg-no-repeat font-sans z-0"
     :style="{ backgroundImage: `url(${bgMerry})` }"
   >
     <audio ref="audioRef" :src="cardAudio" loop></audio>
@@ -90,42 +90,46 @@ onUnmounted(() => {
 
     <div
       v-show="!showCardModal"
-      class="fixed top-[5%] md:top-[8%] left-1/2 -translate-x-1/2 z-20 w-full max-w-[1000px] flex justify-center items-center px-0"
+      class="fixed top-[5%] md:static md:top-auto left-1/2 -translate-x-1/2 md:translate-x-0 z-20 w-full max-w-[1200px] flex justify-center items-center px-2 md:px-0 md:h-[20vh] md:mt-4 md:flex-none"
     >
       <img
         :src="decorationImg"
         alt="decoration left"
-        class="w-[20%] md:w-[180px] object-contain shrink-0 -mr-2 md:-mr-6 transform translate-y-2"
+        class="w-[12%] md:w-auto md:h-[80%] object-contain shrink-0 -mr-1 md:-mr-10 transform translate-y-2"
       />
       <img
         :src="textMerryImg"
         alt="Merry Christmas Text"
-        class="christmas-text-img w-[60%] md:w-[450px] h-auto object-contain z-10 relative"
+        class="christmas-text-img w-[76%] md:w-auto md:h-full object-contain z-10 relative"
       />
       <img
         :src="decorationImg"
         alt="decoration right"
-        class="w-[20%] md:w-[180px] object-contain shrink-0 -ml-2 md:-ml-6 transform scale-x-[-1] translate-y-2"
+        class="w-[12%] md:w-auto md:h-[80%] object-contain shrink-0 -ml-1 md:-ml-10 transform scale-x-[-1] translate-y-2"
       />
     </div>
 
-    <div class="relative z-10 mt-16 md:mt-24 flex flex-col items-center">
-      <div class="tree-container relative cursor-pointer group">
+    <div
+      class="relative z-10 flex flex-col justify-center items-center mt-14 md:mt-0 md:flex-grow md:h-0 md:w-full"
+    >
+      <div
+        class="tree-container relative cursor-pointer group h-full flex items-center justify-center"
+      >
         <img
           :src="treeGif"
           alt="Christmas Tree"
-          class="tree-icon w-[85vw] md:w-[35vw] max-w-[500px] max-h-[45vh] md:max-h-[60vh] object-contain mx-auto transition-transform duration-300"
+          class="tree-icon w-[85vw] md:w-auto max-w-[450px] md:max-w-none max-h-[50vh] md:max-h-[90%] object-contain mx-auto transition-transform duration-300"
         />
       </div>
     </div>
 
     <div
-      class="absolute bottom-[12%] md:bottom-[10%] w-full flex justify-center z-30"
+      class="absolute bottom-[10%] md:static md:bottom-auto md:mb-[5vh] md:flex-none w-full flex justify-center z-30"
     >
       <button
         @click="handleOpenCard"
         v-show="!showCardModal"
-        class="show-button bg-[#f56060] text-white font-serif text-lg px-8 py-3 md:py-4 rounded-xl shadow-lg hover:bg-[#e2475c] transition-all transform active:scale-95"
+        class="show-button bg-[#f56060] text-white font-serif text-lg md:text-xl px-8 md:px-12 py-3 md:py-4 rounded-xl shadow-lg hover:bg-[#e2475c] transition-all transform active:scale-95 border-2 border-white/20"
       >
         Thiệp nè 💌
       </button>
@@ -133,17 +137,17 @@ onUnmounted(() => {
 
     <div
       v-if="showCardModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-500"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-all duration-500 p-4"
     >
       <button
         @click="handleCloseCard"
-        class="absolute top-4 right-4 text-white text-4xl font-bold hover:text-red-500 z-[60]"
+        class="absolute top-6 right-6 text-white text-4xl font-bold hover:text-red-500 z-[60] drop-shadow-md"
       >
         &times;
       </button>
 
       <div
-        class="card-wrapper relative w-[90vw] h-[65vh] md:w-[350px] md:h-[450px] cursor-pointer"
+        class="card-wrapper relative w-[85vw] aspect-[5/7] max-h-[75vh] md:h-[85vh] md:w-auto md:max-w-none md:aspect-[5/7] cursor-pointer"
         @click="toggleCard"
         :class="{ open: isCardOpen }"
       >
@@ -154,44 +158,49 @@ onUnmounted(() => {
           </div>
 
           <div
-            class="details font-serif overflow-y-auto custom-scrollbar flex flex-col items-center"
+            class="details font-serif flex flex-col items-center justify-between"
             :style="{ backgroundColor: '#fffdf7' }"
           >
             <div
-              class="w-full mt-2 md:mt-4 mb-5 px-1 transform -rotate-2 hover:rotate-0 transition-transform duration-500 shrink-0"
+              class="w-full mt-3 md:mt-5 mb-2 px-1 transform -rotate-2 hover:rotate-0 transition-transform duration-500 shrink-0"
             >
               <div
-                class="bg-white p-2 pb-6 shadow-md border border-gray-200 mx-auto max-w-[90%]"
+                class="bg-white p-1.5 pb-4 md:p-3 md:pb-6 shadow-md border border-gray-200 mx-auto max-w-[85%]"
               >
                 <img
                   :src="cardImage"
-                  class="w-full max-h-[160px] md:max-h-[220px] object-cover filter sepia-[0.1]"
+                  class="w-full h-[120px] md:h-[20vh] object-cover filter sepia-[0.1]"
                 />
               </div>
             </div>
 
             <h4
-              class="font-handwriting text-[clamp(20px,5vw,28px)] text-[#c0392b] text-center mb-1 mt-0 font-bold tracking-wide break-words line-clamp-2 px-2 w-full leading-tight shrink-0"
-              style="text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1)"
+              class="font-handwriting text-[#c0392b] text-center my-1 font-bold tracking-wide break-words line-clamp-1 px-2 w-full leading-tight shrink-0"
+              style="
+                text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
+                font-size: clamp(24px, 3.5vh, 40px);
+              "
             >
               {{ cardTitle }}
             </h4>
 
             <div
-              class="font-content w-full px-3 text-center grow overflow-y-auto custom-scrollbar flex flex-col justify-center"
+              class="font-content w-full px-4 text-center grow overflow-y-auto no-scrollbar flex flex-col justify-start md:justify-center items-center"
             >
               <p
-                class="text-[#2c3e50] text-[clamp(14px,3.5vw,16px)] md:text-[18px] leading-snug whitespace-pre-line"
+                class="text-[#2c3e50] leading-relaxed whitespace-pre-line"
+                style="font-size: clamp(13px, 2.2vh, 18px)"
               >
                 {{ cardMessage }}
               </p>
             </div>
 
             <div
-              class="w-full mt-0 pb-3 pr-6 shrink-0 flex items-center justify-end gap-1"
+              class="w-full pb-3 md:pb-4 pr-6 shrink-0 flex items-center justify-end gap-1 mt-2"
             >
               <p
-                class="text-[#c0392b] font-bold font-handwriting text-xl transform -rotate-3 whitespace-nowrap"
+                class="text-[#c0392b] font-bold font-handwriting transform -rotate-3 whitespace-nowrap"
+                style="font-size: clamp(18px, 3vh, 26px)"
               >
                 {{
                   cardSender.length > 20
@@ -203,12 +212,12 @@ onUnmounted(() => {
             </div>
 
             <div
-              class="absolute bottom-2 left-2 text-2xl opacity-30 rotate-12 grayscale pointer-events-none"
+              class="absolute bottom-2 left-2 text-xl md:text-3xl opacity-30 rotate-12 grayscale pointer-events-none"
             >
               🎄
             </div>
             <div
-              class="absolute top-2 right-2 text-2xl opacity-30 -rotate-12 grayscale pointer-events-none"
+              class="absolute top-2 right-2 text-xl md:text-3xl opacity-30 -rotate-12 grayscale pointer-events-none"
             >
               ❄️
             </div>
@@ -217,7 +226,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        class="absolute bottom-20 text-white/50 text-sm animate-pulse md:hidden pointer-events-none"
+        class="absolute bottom-10 text-white/70 text-sm animate-pulse md:hidden pointer-events-none bg-black/30 px-3 py-1 rounded-full"
       >
         (Chạm vào thiệp để mở)
       </div>
