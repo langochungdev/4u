@@ -114,6 +114,7 @@
   transition: 1s;
   z-index: 20;
   background-color: transparent;
+  transform-style: preserve-3d;
 }
 
 .bark {
@@ -141,12 +142,17 @@
 .card-wrapper:hover .imgBox,
 .card-wrapper.open .imgBox {
   transform: rotateY(-135deg) !important;
+  z-index: 0;
 }
 
 .card-wrapper:hover .bark,
 .card-wrapper.open .bark {
   opacity: 1;
   box-shadow: 300px 200px 100px rgba(0, 0, 0, 0.4) inset;
+}
+
+.card-wrapper.open .details {
+  z-index: 20;
 }
 
 .details {
@@ -165,6 +171,8 @@
   align-items: center;
   box-shadow: inset 10px 0 30px rgba(0, 0, 0, 0.1);
   padding-bottom: 10px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 :deep(.snowflake) {
