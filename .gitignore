@@ -2,3 +2,11 @@
 **/copilot-instructions.md
 **/AGENTS.md
 **/vercel.log
+
+# Ignore environment files (do not commit secrets)
+.env
+backend/.env
+frontend/.env
+.env.local
+*.env.local
+*.env.*.local

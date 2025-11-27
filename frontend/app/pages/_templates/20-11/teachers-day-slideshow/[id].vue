@@ -46,9 +46,9 @@
                         </Transition>
                     </div>
 
-                    <p class="mt-4 text-xs text-center text-gray-400 italic">
+                    <!-- <p class="mt-4 text-xs text-center text-gray-400 italic">
                         Thiết kế đầy yêu thương dành tặng Thầy Cô
-                    </p>
+                    </p> -->
                 </div>
             </div>
         </Transition>
