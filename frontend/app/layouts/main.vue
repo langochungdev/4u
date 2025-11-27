@@ -1,7 +1,6 @@
 <template>
     <div class="main-layout min-h-screen flex flex-col">
-        <header
-            class="sticky top-0 z-50 border-b border-gray-700 bg-transparent backdrop-blur-sm"
+        <header class="sticky top-0 z-50 border-b border-gray-700 bg-transparent backdrop-blur-sm"
             style="-webkit-backdrop-filter: blur(4px);">
             <div class="container mx-auto px-2 py-1">
                 <div class="flex items-center justify-between gap-2 md:grid md:grid-cols-3 md:gap-4">
@@ -11,12 +10,14 @@
                         </NuxtLink>
                     </div>
                     <div class="text-center text-white text-xs max-w-[50ch] md:max-w-[80ch] px-2 hidden md:block">
-                        <p>mail góp ý: langochungdev@gmail.com</p>
-                        <p>mỗi tuần sẽ xuất bản 8 template chủ đề theo sự kiện gần nhất</p>
-                        <!-- <p>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p> -->
+                        <p>MERRY CHRISTMAS</p>
+                        <p>Đóng góp: langochungdev, TAN, khadev, DuongDinhTrac</p>
+                        <!-- <p>Mail góp ý: langochungdev@gmail.com</p> -->
+
                     </div>
                     <div class="flex items-center gap-1 md:gap-2 justify-end shrink-0">
-                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button new-button">
+                        <button v-if="userEmail" @click="showCreatedModal = true"
+                            class="win2k-button header-button new-button">
                             <img class="button-hat" src="./santa-hat.webp" alt="">
                             Đã tạo
                         </button>
@@ -34,8 +35,8 @@
             <slot />
         </main>
 
-    <EmailOtpModal v-model="showEmailModal" :defaultEmail="userEmail || ''" @verified="handleVerified" />
-    <CreatedEcardsModal v-model="showCreatedModal" :email="userEmail || ''" />
+        <EmailOtpModal v-model="showEmailModal" :defaultEmail="userEmail || ''" @verified="handleVerified" />
+        <CreatedEcardsModal v-model="showCreatedModal" :email="userEmail || ''" />
 
         <footer class="border-t border-gray-700 bg-gray-900 py-6 text-center text-white">
             <div class="container mx-auto px-4">
@@ -100,7 +101,7 @@
             </div>
         </footer>
 
-            <component v-if="showSnow" :is="Snowflakes" />
+        <component v-if="showSnow" :is="Snowflakes" />
     </div>
 </template>
 

@@ -1,7 +1,7 @@
 import { writeFileSync, readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'
 
-const DOMAIN = 'https://story4u.online'
+const DOMAIN = process.env.SITEMAP_DOMAIN || process.env.BASE_URL || 'https://story4u.online'
 const OUTPUT_PATH = resolve(process.cwd(), 'public/sitemap.xml')
 const CONFIG_PATH = resolve(process.cwd(), 'app/pages/home/config')
 
@@ -39,17 +39,25 @@ function scanTemplateConfigs() {
       
       const categoryId = sectionIdMatch[1]
       
+      // Extract section-level demoId if present
+      const sectionDemoIdMatch = content.match(/demoId:\s*['"]([^'"]+)['"]/);
+      const sectionDemoId = sectionDemoIdMatch ? sectionDemoIdMatch[1] : '';
+
       // Extract template keys from TEMPLATES_CONFIG object
       // Match everything between the opening { and closing };
       const configMatch = content.match(/TEMPLATES_CONFIG[^=]*=\s*\{([\s\S]*?)\};/);
       if (!configMatch) return
       
       const configContent = configMatch[1]
-      // Match all template keys (strings before colon)
-      const templateMatches = [...configContent.matchAll(/['"]([^'"]+)['"]\s*:/g)]
+      // Match all template keys (strings before colon) and optionally a demoId inside the object
+      const templateMatches = [...configContent.matchAll(/['"]([^'"]+)['"]\s*:\s*\{([\s\S]*?)\}/g)]
       
       if (templateMatches.length > 0) {
-        templateCategories[categoryId] = templateMatches.map(m => m[1])
+        templateCategories[categoryId] = templateMatches.map(([_, key, body]) => {
+          // attempt to capture demoId for each template if provided in the object literal
+          const demoMatch = body.match(/demoId:\s*['"]([^'\"]+)['"]/);
+          return { template: key, demoId: demoMatch ? demoMatch[1] : sectionDemoId };
+        })
         console.log(`📁 Found ${templateMatches.length} templates in "${categoryId}" category`)
       }
     })
@@ -69,12 +77,19 @@ Object.entries(templateCategories).forEach(([category, templates]) => {
   const changefreq = category === '20-11' ? 'monthly' : 'yearly'
   const priority = isSeasonalCategory ? 0.7 : 0.8
 
-  templates.forEach(template => {
-    routes.push({
-      path: `/${category}/${template}`,
-      priority,
-      changefreq
-    })
+  // templates is array of { template, demoId }
+  templates.forEach(({ template, demoId }) => {
+    if (demoId) {
+      // Generate link to the demo instance for the template
+      routes.push({
+        path: `/${category}/${template}/${demoId}`,
+        priority,
+        changefreq
+      })
+    } else {
+      // If there's no demo ID, skip adding this template (would 404 if added without id)
+      console.warn(`⚠️  Skipping sitemap entry for /${category}/${template} because no demoId was found`)
+    }
   })
 })
 
