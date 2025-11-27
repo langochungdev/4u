@@ -130,12 +130,12 @@ useSeoMeta({
   description: 'Tạo thiệp điện tử độc đáo và miễn phí với hàng trăm mẫu thiệp đẹp: sinh nhật, Valentine, Giáng sinh, 20/11. Dễ dàng tùy chỉnh với ảnh, video, nhạc. Chia sẻ ngay!',
   ogTitle: 'Tạo Thiệp Điện Tử Miễn Phí - Story4U',
   ogDescription: 'Hàng trăm mẫu thiệp điện tử đẹp cho mọi dịp. Tùy chỉnh dễ dàng với ảnh, video, nhạc. Tạo và chia sẻ ngay!',
-  ogImage: '/meta-img.webp',
+  ogImage: 'https://story4u.online/meta-img.webp',
   ogUrl: 'https://story4u.online/home',
   twitterCard: 'summary_large_image',
   twitterTitle: 'Tạo Thiệp Điện Tử Miễn Phí - Story4U',
   twitterDescription: 'Hàng trăm mẫu thiệp điện tử đẹp cho mọi dịp. Tạo ngay!',
-  twitterImage: '/meta-img.webp'
+  twitterImage: 'https://story4u.online/meta-img.webp'
 })
 
 useHead({
