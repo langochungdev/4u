@@ -1,5 +1,5 @@
 import type { TemplateConfig } from '@/config/templates';
-import demo from './demo.png';
+import demo from './demo.webp';
 
 const config: TemplateConfig = {
     title: 'christmas-blingbling - Cây thông noel',
