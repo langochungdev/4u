@@ -11,8 +11,6 @@ import triggerImg from "./img/oip.webp";
 import santaImgPath from "./img/santa.webp";   
 import giftImgPath from "./img/gift.webp";     
 
-
-
 useHead({
   script: [
     { src: 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js', tagPosition: 'bodyClose' },
