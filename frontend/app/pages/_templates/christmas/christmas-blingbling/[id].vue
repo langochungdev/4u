@@ -14,7 +14,6 @@ const validImages = computed(() => {
 const letterTitle = computed(() => data.value?.content?.[0] || "Merry Christmas");
 const letterBody = computed(() => data.value?.content?.[1] || "Giáng sinh an lành! Chúc bạn luôn hạnh phúc và tỏa sáng như ngôi sao trên đỉnh cây thông nhé!");
 
-// Xử lý ảnh
 const getSrc = (source: any) => {
     if (!source) return '';
     try {
@@ -24,42 +23,67 @@ const getSrc = (source: any) => {
     return '';
 };
 
-// Xử lý nhạc
+const bgMusic = ref<HTMLAudioElement | null>(null);
+
 const audioSource = computed(() => {
     try {
         const audio = data.value?.audios?.[0];
-        if (audio && (audio as any) instanceof File) return URL.createObjectURL(audio as any);
-        return (audio as string) || "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
-    } catch (e) { return "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3"; }
+        
+        // FIX LỖI: Thêm "(audio as any)" vào trước instanceof
+        if (audio && ((audio as any) instanceof File || (audio as any) instanceof Blob)) {
+            return URL.createObjectURL(audio as any);
+        }
+        
+        // Nếu là link online
+        if (typeof audio === 'string' && audio.length > 5) {
+            return audio; 
+        }
+    } catch (e) { 
+        console.error("Lỗi parse nhạc:", e); 
+    }
+    
+    // Nhạc mặc định
+    return "https://storage.googleapis.com/webai-54992.appspot.com/WeWishYouAMerryChristmas.mp3";
 });
-
-const bgMusic = ref<HTMLAudioElement | null>(null);
-const isPlaying = ref(false);
-
+// Hàm khởi tạo Player
 const initAudio = () => {
+    if (bgMusic.value) return; // Đã tạo rồi thì thôi
+
     const src = audioSource.value;
-    if(!src) return;
     bgMusic.value = new Audio(src);
-    bgMusic.value.loop = true; bgMusic.value.volume = 0.5;
+    bgMusic.value.loop = true; 
+    bgMusic.value.volume = 0.5;
+
+    // Sự kiện: Chạm vào màn hình là phát
+    const attemptPlay = () => {
+        if (bgMusic.value && bgMusic.value.paused) {
+            bgMusic.value.play().catch(() => {});
+        }
+    };
+
+    document.addEventListener('click', attemptPlay);
+    document.addEventListener('touchstart', attemptPlay);
 };
 
-const toggleMusic = () => {
-    if(!bgMusic.value) return;
-    if(isPlaying.value) { 
-        bgMusic.value.pause(); 
-        isPlaying.value = false; 
-    } else { 
-        bgMusic.value.play()
-            .then(() => isPlaying.value = true)
-            .catch(e => console.error("Lỗi phát nhạc:", e)); 
-    }
-}
 
-// --- VISUALS TỐI ƯU ---
+watch(audioSource, (newSrc) => {
+    if (newSrc && bgMusic.value) {
+        console.log("Cập nhật nhạc người dùng:", newSrc);
+        const wasPlaying = !bgMusic.value.paused; // Kiểm tra xem đang hát hay đang tắt
+        
+        bgMusic.value.src = newSrc; // Thay đĩa nhạc mới
+        
+        // Nếu trước đó đang hát (hoặc chưa hát), thì thử phát ngay
+        bgMusic.value.play().catch(e => console.log("Chờ tương tác để phát nhạc mới"));
+    } else if (newSrc && !bgMusic.value) {
+        initAudio(); 
+    }
+});
+
 const stars = ref<any[]>([]); 
 const bgStars = ref<any[]>([]); 
 const snowflakes = ref<any[]>([]);
-const TOTAL_STARS = 180; // Số lượng vừa đủ để mượt
+const TOTAL_STARS = 180; 
 
 const generateVisuals = () => {
     // 1. Cây thông
@@ -78,7 +102,7 @@ const generateVisuals = () => {
     }
     stars.value = treeArr;
 
-    // 2. Sao nền (Giảm số lượng cho nhẹ)
+    // 2. Sao nền
     const bgArr = [];
     for(let i = 0; i < 40; i++) { 
         bgArr.push({
@@ -118,8 +142,16 @@ const previewImage = ref<string | null>(null);
 const zoomImage = (src: string) => { previewImage.value = src; }
 const closeZoom = () => { previewImage.value = null; }
 
-onMounted(() => { generateVisuals(); initAudio(); });
-onUnmounted(() => { bgMusic.value?.pause(); });
+onMounted(() => { 
+    generateVisuals(); 
+    initAudio(); 
+});
+onUnmounted(() => { 
+    if (bgMusic.value) {
+        bgMusic.value.pause();
+        bgMusic.value = null;
+    }
+});
 </script>
 
 <template>
@@ -131,10 +163,6 @@ onUnmounted(() => { bgMusic.value?.pause(); });
     <div class="falling-snow-layer">
         <div v-for="flake in snowflakes" :key="flake.id" class="snowflake" :style="flake.style"></div>
     </div>
-
-    <button @click.stop="toggleMusic" class="music-btn" :class="{'spinning': isPlaying}">
-        {{ isPlaying ? '🎵' : '🔇' }}
-    </button>
 
     <div class="scene-3d">
         <div class="spiral-tree">
@@ -186,5 +214,5 @@ onUnmounted(() => { bgMusic.value?.pause(); });
 </template>
 
 <style scoped>
-    @import './styles.css';
+@import './styles.css';
 </style>
