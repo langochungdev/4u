@@ -1,185 +1,297 @@
-@import url("https://fonts.googleapis.com/css?family=Cookie");
+/* style.css */
 
-/* ===== ROOT NOEL ===== */
 
-.noel-love-root {
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #81b894;
-    /* nền xanh như hình */
+/* --- 1. FULLSCREEN & BACKGROUND --- */
+
+.fullscreen-fix {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 999999;
+    /* Nền mặc định (Phase 1 - Xanh) */
+    background: radial-gradient(circle at top, #fef9c3 0, #bbf7d0 40%, #059669 100%);
+    /* Cấu hình để hiển thị ảnh nền đẹp ở Phase 2 */
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     overflow: hidden;
-    font-family: "Cookie", cursive;
-}
-
-
-/* ===== SLIDER SVG ===== */
-
-.noel-love-root #loveSliderSVG {
-    width: 90%;
-    height: 100%;
-    visibility: visible;
-}
-
-.noel-love-root .trackBg {
-    stroke: #fffcf9;
-    stroke-linecap: round;
-    stroke-width: 15;
-}
-
-.noel-love-root .trackMiddle {
-    stroke: green;
-    stroke-linecap: round;
-    stroke-width: 6;
-    opacity: 1;
-}
-
-.noel-love-root .track {
-    stroke: #ff595e;
-    stroke-linecap: round;
-    stroke-width: 6;
-}
-
-.noel-love-root .heartChat {
-    transform-origin: 50% 105%;
-}
-
-.noel-love-root .heartFill {
-    transform-origin: 50% 0%;
-}
-
-.noel-love-root .follower,
-.noel-love-root .liquidFollower {
-    fill: #62b6cb;
-    stroke: #fffcf9;
-}
-
-
-/* ===== DRAGGER ===== */
-
-.noel-love-root .dragger {
-    cursor: pointer;
-}
-
-
-/* ===== SCENE / CÂY ===== */
-
-
-/* nếu giữ class="container" thì scope dưới root để không đụng chỗ khác */
-
-.noel-love-root .container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    font-family: 'Cookie', cursive, sans-serif;
+    touch-action: none;
+    transition: background-image 1s ease-in-out;
+    /* Hiệu ứng chuyển nền */
+}
+
+
+/* Lớp phủ màu tối nhẹ khi sang Phase 2 để text/nút dễ nhìn hơn (Tùy chọn) */
+
+.fullscreen-fix.phase-two::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    /* Làm tối nền 20% */
+    z-index: 1;
+    pointer-events: none;
+}
+
+
+/* --- 2. SLIDER --- */
+
+.slider-container {
+    width: 95%;
+    max-width: 800px;
+    text-align: center;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
 }
 
-.noel-love-root #days {
-    font-size: 50px;
-    color: #fff;
-    letter-spacing: 3px;
-    margin: 50px 0 0 0;
+.guide-text {
+    color: #064e3b;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
-.noel-love-root .mainSVG {
-    width: 800px;
-    height: 600px;
-    visibility: hidden;
-    /* GSAP sẽ set visible */
+#loveSliderSVG {
+    width: 100%;
+    height: auto;
     overflow: visible;
 }
 
+.trackBg {
+    stroke: #fff;
+    stroke-width: 15;
+    stroke-linecap: round;
+}
 
-/* ===== PARTICLE ===== */
+.trackMiddle {
+    stroke: #16a34a;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
 
-.noel-love-root .particle {
-    transform-origin: 50% 50%;
+.track {
+    stroke: #ef4444;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.heartChat,
+.dragger {
+    cursor: grab;
 }
 
 
-/* ===== TREE STAR ===== */
+/* --- 3. SCENE CÁC NÚT BẤM --- */
 
-.noel-love-root .treeStar {
-    transform-origin: 50% 50%;
+.scene-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    /* Nằm trên lớp phủ tối */
 }
 
-.noel-love-root .treeStarOutline {
+.christmas-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
 }
 
 
-/* ===== SPARKLE ===== */
+/* Ông già Noel (Trái) */
 
-.noel-love-root .sparkle {
-    fill: url(#dotGrad);
-    opacity: 1;
-}
-
-
-/* ===== TUYẾT ===== */
-
-.noel-love-root .drop {
+.decor-santa {
     position: absolute;
-    top: 0;
-    z-index: -1;
-    opacity: 0;
-}
-
-.noel-love-root .snow {
-    height: 8px;
-    width: 8px;
-    border-radius: 100%;
-    background-color: #fff;
-    box-shadow: 0 0 10px #fff;
+    bottom: 12%;
+    left: 5%;
+    width: 120px;
+    max-width: 30vw;
+    z-index: 6;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    transform: rotate(-5deg);
 }
 
 
-/* class .animate dễ trùng, nên cũng scope theo root */
+/* Hộp quà (Phải) */
 
-.noel-love-root .animate {
-    animation: falling 8.5s infinite ease-in;
+.decor-gift {
+    position: absolute;
+    bottom: 12%;
+    right: 5%;
+    width: 90px;
+    max-width: 25vw;
+    z-index: 6;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    transform: rotate(10deg);
+}
+
+
+/* Nút Mở Thư (Giữa) */
+
+.letter-trigger {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    z-index: 20;
+    animation: floatBtn 3s ease-in-out infinite;
+}
+
+.letter-img {
+    width: 90px;
+    /* To hơn chút cho dễ bấm */
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    /* Phát sáng mạnh hơn */
+    transition: transform 0.2s;
+}
+
+.letter-trigger:hover .letter-img {
+    transform: scale(1.1);
+}
+
+.letter-label {
+    background: #fff;
+    color: #d32f2f;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+}
+
+@keyframes floatBtn {
+    0%,
+    100% {
+        transform: translate(-50%, 0);
+    }
+    50% {
+        transform: translate(-50%, -10px);
+    }
+}
+
+
+/* Tuyết rơi */
+
+.drop {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.drop.animate {
+    animation: falling 5s linear infinite;
 }
 
 @keyframes falling {
-    0% {
-        top: 0;
-        opacity: 1;
-    }
-    100% {
-        top: 1500px;
+    to {
+        transform: translateY(100vh);
         opacity: 0;
     }
 }
 
 
-/* ===== EFFECT ===== */
+/* Modal */
 
-@keyframes twinkle {
-    0%,
-    100% {
-        opacity: 0.7;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.7);
-    }
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    padding: 20px;
 }
 
-@keyframes pop {
-    0% {
-        transform: scale(0.5);
+.modal-card {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    from {
+        transform: scale(0.8);
         opacity: 0;
     }
-    100% {
+    to {
         transform: scale(1);
         opacity: 1;
     }
 }
 
-.noel-love-root .sparkle.twinkle {
-    animation: twinkle 3s infinite ease-in-out;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #065f46;
+}
+
+.modal-img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-msg {
+    color: #333;
+    line-height: 1.5;
+    white-space: pre-line;
+    font-family: sans-serif;
+}
+
+@media (max-width: 600px) {
+    .decor-santa {
+        width: 90px;
+        bottom: 18%;
+    }
+    .decor-gift {
+        width: 70px;
+        bottom: 18%;
+    }
+    .letter-img {
+        width: 80px;
+    }
+    .letter-label {
+        font-size: 1rem;
+    }
 }
