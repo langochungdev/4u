@@ -8,7 +8,16 @@ declare const Physics2DPlugin: any;
 declare const Draggable: any;
 
 type Point = { x: number; y: number };
-
+declare global {
+  interface Window {
+    gsap: any;
+    Draggable: any;
+    MorphSVGPlugin: any;
+    MotionPathPlugin: any;
+    DrawSVGPlugin: any;
+    Physics2DPlugin: any;
+  }
+}
 /**
  * Khởi tạo Noel Love:
  * - rootEl: element bọc toàn bộ template (có loveSliderSVG + mainSVG)

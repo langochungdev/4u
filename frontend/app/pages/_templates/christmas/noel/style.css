@@ -1,63 +1,58 @@
 @import url("https://fonts.googleapis.com/css?family=Cookie");
 
-/* ===== NỀN / BODY ===== */
+/* ===== ROOT NOEL ===== */
 
-body,
-html {
-    height: 100%;
+.noel-love-root {
+    position: relative;
     width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background-color: darkseagreen;
-    overflow: hidden;
-    text-align: center;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #81b894;
+    /* nền xanh như hình */
+    overflow: hidden;
     font-family: "Cookie", cursive;
 }
 
 
 /* ===== SLIDER SVG ===== */
 
-#loveSliderSVG {
+.noel-love-root #loveSliderSVG {
     width: 90%;
     height: 100%;
     visibility: visible;
 }
 
-.trackBg {
+.noel-love-root .trackBg {
     stroke: #fffcf9;
     stroke-linecap: round;
     stroke-width: 15;
 }
 
-.trackMiddle {
+.noel-love-root .trackMiddle {
     stroke: green;
     stroke-linecap: round;
     stroke-width: 6;
     opacity: 1;
 }
 
-.track {
+.noel-love-root .track {
     stroke: #ff595e;
     stroke-linecap: round;
     stroke-width: 6;
 }
 
-.heartChat {
+.noel-love-root .heartChat {
     transform-origin: 50% 105%;
 }
 
-.heartFill {
+.noel-love-root .heartFill {
     transform-origin: 50% 0%;
 }
 
-.follower,
-.liquidFollower {
+.noel-love-root .follower,
+.noel-love-root .liquidFollower {
     fill: #62b6cb;
     stroke: #fffcf9;
 }
@@ -65,64 +60,60 @@ body {
 
 /* ===== DRAGGER ===== */
 
-.dragger {
+.noel-love-root .dragger {
     cursor: pointer;
 }
 
 
 /* ===== SCENE / CÂY ===== */
 
-.container {
+
+/* nếu giữ class="container" thì scope dưới root để không đụng chỗ khác */
+
+.noel-love-root .container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
 }
 
-#days {
+.noel-love-root #days {
     font-size: 50px;
     color: #fff;
     letter-spacing: 3px;
     margin: 50px 0 0 0;
 }
 
-.mainSVG {
+.noel-love-root .mainSVG {
     width: 800px;
     height: 600px;
     visibility: hidden;
+    /* GSAP sẽ set visible */
     overflow: visible;
 }
 
 
 /* ===== PARTICLE ===== */
 
-.particle {
+.noel-love-root .particle {
     transform-origin: 50% 50%;
-}
-
-.noel-love-root {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 
 /* ===== TREE STAR ===== */
 
-.treeStar {
+.noel-love-root .treeStar {
     transform-origin: 50% 50%;
 }
 
-.treeStarOutline {
+.noel-love-root .treeStarOutline {
     opacity: 0;
 }
 
 
 /* ===== SPARKLE ===== */
 
-.sparkle {
+.noel-love-root .sparkle {
     fill: url(#dotGrad);
     opacity: 1;
 }
@@ -130,14 +121,14 @@ body {
 
 /* ===== TUYẾT ===== */
 
-.drop {
+.noel-love-root .drop {
     position: absolute;
     top: 0;
     z-index: -1;
     opacity: 0;
 }
 
-.snow {
+.noel-love-root .snow {
     height: 8px;
     width: 8px;
     border-radius: 100%;
@@ -145,7 +136,10 @@ body {
     box-shadow: 0 0 10px #fff;
 }
 
-.animate {
+
+/* class .animate dễ trùng, nên cũng scope theo root */
+
+.noel-love-root .animate {
     animation: falling 8.5s infinite ease-in;
 }
 
@@ -166,7 +160,7 @@ body {
 @keyframes twinkle {
     0%,
     100% {
-        opacity: .7;
+        opacity: 0.7;
         transform: scale(1);
     }
     50% {
@@ -177,15 +171,15 @@ body {
 
 @keyframes pop {
     0% {
-        transform: scale(.5);
-        opacity: 0
+        transform: scale(0.5);
+        opacity: 0;
     }
     100% {
         transform: scale(1);
-        opacity: 1
+        opacity: 1;
     }
 }
 
-.sparkle.twinkle {
+.noel-love-root .sparkle.twinkle {
     animation: twinkle 3s infinite ease-in-out;
 }

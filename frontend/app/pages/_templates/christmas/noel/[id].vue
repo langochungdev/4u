@@ -2,11 +2,18 @@
 import { ref, onMounted } from "vue";
 import { initNoelLove } from "./noelLove";
 import TREE_SVG from "./treeSvg";
+import { useTemplateData } from "@/composables/useTemplateData";
+import TEMPLATE_CONFIG from "./config";
+
 
 const rootRef = ref<HTMLElement | null>(null);
 const showSlider = ref(true);
 const showScene = ref(false);
 const treeSvg = TREE_SVG;
+
+const { contextData } = useTemplateData(TEMPLATE_CONFIG);
+const safeContent = computed(() => contextData.value?.content ?? []);
+const safeImages = computed(() => contextData.value?.images ?? []);
 
 function handleSliderDone() {
   showSlider.value = false;
@@ -14,13 +21,41 @@ function handleSliderDone() {
 }
 
 onMounted(() => {
-  // Dùng setTimeout nhỏ để đảm bảo DOM đã render xong hoàn toàn trước khi GSAP can thiệp
   setTimeout(() => {
     if (rootRef.value) {
       initNoelLove(rootRef.value, handleSliderDone);
     }
-  }, 100);
+  }, 200); // 200–300ms để CDN load vào window
 });
+if (process.client) {
+  const urls = [
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MorphSVGPlugin.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/DrawSVGPlugin.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Physics2DPlugin.min.js"
+  ];
+  urls.forEach(src => {
+    const s = document.createElement("script");
+    s.src = src;
+    document.head.appendChild(s);
+  });
+}
+function waitForGSAP(cb: Function) {
+  const check = () => {
+    if (window.gsap && window.Draggable) cb();
+    else setTimeout(check, 50);
+  };
+  check();
+}
+
+onMounted(() => {
+  waitForGSAP(() => {
+    initNoelLove(rootRef.value!, handleSliderDone);
+  });
+});
+
 </script>
 
 <template>
@@ -217,6 +252,26 @@ onMounted(() => {
     <circle class="sparkle" fill="url(#dotGrad)" cx="0" cy="0" r="50" />
   </g>
 </svg>
+<!-- 🔹 OVERLAY NỘI DUNG TEMPLATE -->
+        <div class="noel-overlay">
+          <!-- Ảnh từ builder -->
+          <img
+            v-if="safeImages[0]"
+            :src="safeImages[0]"
+            alt="Ảnh Noel"
+            class="noel-img"
+          />
+
+          <!-- Tên / lời chúc -->
+          <div class="noel-text-block">
+            <p class="noel-to" v-if="safeContent[1]">
+              Gửi: {{ safeContent[1] }}
+            </p>
+            <p class="noel-message" v-if="safeContent[0]">
+              {{ safeContent[0] }}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </ClientOnly>
