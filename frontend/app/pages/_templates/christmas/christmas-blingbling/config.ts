@@ -2,9 +2,8 @@ import type { TemplateConfig } from '@/config/templates';
 import demo from './demo.webp';
 
 const config: TemplateConfig = {
-    title: 'christmas-blingbling - Cây thông noel',
-    description: 'Gửi những ảnh giáng sinh đáng yêu kèm lời chúc ấm áp đến người thân và bạn bè của bạn trong dịp lễ hội này!',
-    createdBy: 'DuongDinhTrac',
+    title: 'Giáng Sinh Lung Linh - christmas-blingbling',    
+    description: 'Đắm mình vào không gian đêm đông huyền ảo với cây thông 3D lấp lánh. Gửi gắm những lời chúc ấm áp và lưu giữ kỷ niệm qua tấm thiệp Scrapbook phong cách Polaroid cổ điển.',    createdBy: 'DuongDinhTrac',
     maxImages: 5,
     maxVideos: 0,
     maxAudios: 1,

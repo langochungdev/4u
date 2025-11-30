@@ -1,11 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Dancing+Script:wght@700&family=Nunito:wght@400;600&display=swap');
 
-/* --- BACKGROUND XANH DƯƠNG (GALAXY BLUE) --- */
+/* --- BACKGROUND --- */
 .fixed-fullscreen { 
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: 10; 
 }
 .bg-shimmer-night { 
-    /* ĐÃ ĐỔI LẠI MÀU XANH SÁNG HƠN NHƯ BẠN THÍCH */
     background: radial-gradient(circle at center bottom, #2b32b2 0%, #141e30 100%); 
     font-family: 'Nunito', sans-serif; color: white; 
 }
@@ -57,9 +56,6 @@
 @keyframes starPulse { from { transform: scale(0.9); } to { transform: scale(1.1); } }
 
 .footer-hint { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem; text-shadow: 0 2px 4px black; pointer-events: none; z-index: 20; }
-.music-btn { position: absolute; top: 20px; right: 20px; z-index: 100; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid gold; color: gold; display: grid; place-items: center; cursor: pointer; }
-.spinning { animation: spin 4s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* --- MODAL --- */
 .modal-overlay { 
