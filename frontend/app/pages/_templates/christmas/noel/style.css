@@ -11,11 +11,12 @@
     height: 100vh;
     height: 100dvh;
     z-index: 999999;
-    /* Nền mặc định (Phase 1 - Xanh) */
+    /* Nền mặc định Phase 1 (Xanh) */
     background: radial-gradient(circle at top, #fef9c3 0, #bbf7d0 40%, #059669 100%);
-    /* Cấu hình để hiển thị ảnh nền đẹp ở Phase 2 */
+    /* Cấu hình hiển thị ảnh nền cho Phase 2 */
     background-position: center;
     background-size: cover;
+    /* Ảnh phủ kín màn hình */
     background-repeat: no-repeat;
     overflow: hidden;
     display: flex;
@@ -24,25 +25,25 @@
     justify-content: center;
     font-family: 'Cookie', cursive, sans-serif;
     touch-action: none;
+    /* Hiệu ứng chuyển nền mượt mà */
     transition: background-image 1s ease-in-out;
-    /* Hiệu ứng chuyển nền */
 }
 
 
-/* Lớp phủ màu tối nhẹ khi sang Phase 2 để text/nút dễ nhìn hơn (Tùy chọn) */
+/* Thêm lớp phủ tối khi sang Phase 2 để cây thông và chữ nổi bật hơn trên nền ảnh */
 
 .fullscreen-fix.phase-two::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.2);
-    /* Làm tối nền 20% */
+    background: rgba(0, 0, 0, 0.3);
+    /* Tối đi 30% */
     z-index: 1;
     pointer-events: none;
 }
 
 
-/* --- 2. SLIDER --- */
+/* --- 2. SLIDER (Giữ nguyên) --- */
 
 .slider-container {
     width: 95%;
@@ -94,7 +95,7 @@
 }
 
 
-/* --- 3. SCENE CÁC NÚT BẤM --- */
+/* --- 3. SCENE CÂY THÔNG --- */
 
 .scene-container {
     width: 100%;
@@ -103,7 +104,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
+    z-index: 5;
     /* Nằm trên lớp phủ tối */
 }
 
@@ -115,39 +116,56 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    opacity: 0;
 }
 
 
-/* Ông già Noel (Trái) */
+/* CÂY THÔNG CHÍNH (thong.webp) */
+
+.main-illu {
+    height: 85vh;
+    /* Cao gần hết màn hình */
+    width: auto;
+    max-width: 95vw;
+    object-fit: contain;
+    /* Căn giữa tuyệt đối */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+
+/* Ông già Noel */
 
 .decor-santa {
     position: absolute;
     bottom: 12%;
-    left: 5%;
-    width: 120px;
-    max-width: 30vw;
+    left: 2%;
+    width: 100px;
+    max-width: 25vw;
     z-index: 6;
     filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
     transform: rotate(-5deg);
 }
 
 
-/* Hộp quà (Phải) */
+/* Hộp quà */
 
 .decor-gift {
     position: absolute;
     bottom: 12%;
-    right: 5%;
-    width: 90px;
-    max-width: 25vw;
+    right: 2%;
+    width: 80px;
+    max-width: 20vw;
     z-index: 6;
     filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
     transform: rotate(10deg);
 }
 
 
-/* Nút Mở Thư (Giữa) */
+/* Nút Mở Thư */
 
 .letter-trigger {
     position: absolute;
@@ -159,14 +177,13 @@
     align-items: center;
     cursor: pointer;
     z-index: 20;
+    /* Nổi lên cao nhất */
     animation: floatBtn 3s ease-in-out infinite;
 }
 
 .letter-img {
     width: 90px;
-    /* To hơn chút cho dễ bấm */
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
-    /* Phát sáng mạnh hơn */
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
     transition: transform 0.2s;
 }
 
@@ -204,7 +221,7 @@
     background: white;
     border-radius: 50%;
     pointer-events: none;
-    z-index: 5;
+    z-index: 10;
 }
 
 .drop.animate {
@@ -270,6 +287,16 @@
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 15px;
+    box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4), /* Màu Đỏ (Red) */
+    0 5px 15px rgba(251, 191, 36, 0.6);
+    /* Màu Vàng (Gold) */
+    border: 3px solid #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 50px rgba(220, 38, 38, 0.6), 0 8px 20px rgba(251, 191, 36, 0.8);
 }
 
 .modal-msg {
@@ -280,18 +307,19 @@
 }
 
 @media (max-width: 600px) {
+    .main-illu {
+        height: 75vh;
+    }
+    /* Thu nhỏ cây 1 xíu trên mobile để chừa chỗ cho nút */
     .decor-santa {
-        width: 90px;
-        bottom: 18%;
+        width: 80px;
+        bottom: 15%;
     }
     .decor-gift {
-        width: 70px;
-        bottom: 18%;
+        width: 60px;
+        bottom: 15%;
     }
     .letter-img {
         width: 80px;
-    }
-    .letter-label {
-        font-size: 1rem;
     }
 }

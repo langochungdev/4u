@@ -5,10 +5,11 @@ import TEMPLATE_CONFIG from "./config";
 import { initNoelLove, initChristmasScene } from "./noelLove";
 
 // --- IMPORT ẢNH ---
-import mainCenterImg from "./img/top.webp";  // Dùng làm Background Phase 2
-import triggerImg from "./img/oip.webp";     // Nút Thư
-import santaImgPath from "./img/santa.webp"; // Trang trí
-import giftImgPath from "./img/gift.webp";   // Trang trí
+import bgPhase2Img from "./img/top.webp";     // 1. Ảnh NỀN (top.webp)
+import mainCenterImg from "./img/thong.webp";  // 2. Ảnh Cây thông chính (thong.webp)
+import triggerImg from "./img/oip.webp";       // Nút Thư
+import santaImgPath from "./img/santa.webp";   // Trang trí
+import giftImgPath from "./img/gift.webp";     // Trang trí
 
 definePageMeta({ layout: false });
 
@@ -22,6 +23,7 @@ useHead({
 const { contextData } = useTemplateData(TEMPLATE_CONFIG);
 
 // Gán biến ảnh
+const bgUrl = bgPhase2Img;
 const mainCenterUrl = mainCenterImg;
 const triggerUrl = triggerImg;
 const santaUrl = santaImgPath;
@@ -57,7 +59,7 @@ onMounted(() => {
     <div 
       class="noel-love-root fullscreen-fix" 
       :class="{ 'phase-two': showTree }"
-      :style="showTree ? { backgroundImage: `url(${mainCenterUrl})` } : {}"
+      :style="showTree ? { backgroundImage: `url(${bgUrl})` } : {}"
     >
       
       <audio v-if="bgAudio" ref="audioRef" :src="bgAudio" loop class="hidden"></audio>
@@ -83,10 +85,11 @@ onMounted(() => {
       <div v-show="showTree" class="scene-container">
         <div class="christmas-scene">
           
+          <img :src="mainCenterUrl" class="main-illu" alt="Christmas Tree" />
+
           <img :src="santaUrl" class="decor-santa" alt="Santa" />
-
           <img :src="giftUrl" class="decor-gift" alt="Gift" />
-
+          
           <div class="letter-trigger" @click="openModal">
              <div class="letter-label">Bạn có thư nè 💌</div>
              <img :src="triggerUrl" class="letter-img" />
@@ -99,7 +102,7 @@ onMounted(() => {
         <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
           <div class="modal-card">
             <div class="modal-header">
-              <span>Món quà dành cho bạn 🎁</span>
+              <span>Món quà dành cho bạn nè</span>
               <button @click="closeModal">✕</button>
             </div>
             <div class="modal-body">
