@@ -2,7 +2,7 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.webp";
 
 const config: TemplateConfig = {
-  title: "Giáng sinh lung linh",
+  title: "cozy-christmas-Giáng sinh lung linh",
   description:
     "Thiệp Giáng sinh tương tác: Gửi tặng người thương kèm ảnh kỷ niệm.",
   createdBy: "TAN",
