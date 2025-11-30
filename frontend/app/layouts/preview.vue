@@ -9,61 +9,64 @@
     ></div>
     
     
-    <!-- Expired Message Overlay -->
-    <div v-if="isExpired" class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-        <div class="max-w-2xl w-full">
-            <div class="bg-red-50 border-2 border-red-300 rounded-lg shadow-lg p-8 text-center">
-                <div class="text-6xl mb-4">⏰</div>
-                <h2 class="text-2xl font-bold text-red-600 mb-3">
-                    Link đã hết hạn
-                </h2>
-                <p class="text-gray-700 mb-2">
-                    Nội dung này đã hết hạn vào lúc:
-                </p>
-                <p class="text-lg font-semibold text-red-500 mb-4">
-                    {{ expiresAt?.toLocaleString('vi-VN') }}
-                </p>
-                
-                <!-- 24h countdown -->
-                <div class="bg-orange-100 border-2 border-orange-400 rounded-md p-4 mb-4">
-                    <p class="text-sm font-semibold text-orange-800 mb-2">
-                        ⏳ Thời gian gia hạn còn lại:
-                    </p>
-                    <p :class="[
-                        'text-2xl font-bold',
-                        countdown24h === 'Đã quá hạn gia hạn' ? 'text-red-600' : 'text-orange-600'
-                    ]">
-                        {{ countdown24h }}
-                    </p>
+        <!-- Expired Message Overlay (Win2k-inspired responsive window) -->
+        <div v-if="isExpired" class="min-h-screen flex items-center justify-center p-6 bg-[#111827]">
+            <div class="w-full max-w-2xl">
+                <div class="border border-[#d0d0c8] bg-[#d0d0c8] shadow-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-3 py-1 bg-gradient-to-r from-[#082468] to-[#a0c8f0] text-white select-none">
+                        <div class="flex items-center gap-2">
+                            <div aria-hidden class="text-2xl leading-none">⏰</div>
+                            <div class="font-semibold text-sm">Link đã hết hạn</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded-sm bg-[#d0d0c8] border border-[#b0b0b0]" aria-hidden="true"></div>
+                            <div class="w-4 h-4 rounded-sm bg-[#d0d0c8] border border-[#b0b0b0]" aria-hidden="true"></div>
+                            <div class="w-4 h-4 rounded-sm bg-[#d0d0c8] border border-[#b0b0b0]" aria-hidden="true"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6">
+                        <div class="text-center">
+                            <div class="text-6xl mb-3 text-red-500">⏰</div>
+                            <h2 class="text-2xl font-bold text-[#082468] mb-2">Link đã hết hạn</h2>
+                            <p class="text-gray-700 mb-2">Nội dung này đã hết hạn vào lúc:</p>
+                            <p class="text-lg font-semibold text-red-500 mb-4">{{ expiresAt?.toLocaleString('vi-VN') }}</p>
+                        </div>
+
+                        <div class="mx-auto max-w-md bg-[#fff7ed] border border-[#ffedd5] rounded-md p-4 mb-4">
+                            <p class="text-sm font-semibold text-[#92400e] mb-2">⏳ Thời gian gia hạn còn lại:</p>
+                            <p :class="[
+                                'text-2xl font-bold',
+                                countdown24h === 'Đã quá hạn gia hạn' ? 'text-red-600' : 'text-orange-600'
+                            ]">{{ countdown24h }}</p>
+                        </div>
+
+                        <div class="mx-auto max-w-md bg-[#fffbeb] border border-[#fef3c7] rounded-md p-4 mt-2 mb-4">
+                            <p class="text-sm text-[#7c2d12]">💡 <strong>Yêu cầu gia hạn trong 24h tới</strong></p>
+                            <p class="text-xs text-[#92400e] mt-1">Vui lòng liên hệ người tạo để gia hạn nội dung này.</p>
+                        </div>
+
+                        <div class="flex items-center justify-center mt-6">
+                            <button @click="router.push('/')" class="bg-[#e0e0e0] text-black border border-[#d0d0c8] px-6 py-2 rounded-md shadow-sm hover:bg-[#f0f0f0] active:translate-y-[1px] transition-transform">
+                                🏠 Về trang chủ
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="px-3 py-2 bg-[#d0d0c8] border-t border-[#b0b0b0] text-xs text-gray-800">Thông tin: nội dung đã bị vô hiệu hoá</div>
                 </div>
-                
-                <div class="bg-yellow-100 border border-yellow-400 rounded-md p-4 mt-4">
-                    <p class="text-sm text-yellow-800">
-                        💡 <strong>Yêu cầu gia hạn trong 24h tới</strong>
-                    </p>
-                    <p class="text-xs text-yellow-700 mt-1">
-                        Vui lòng liên hệ người tạo để gia hạn nội dung này.
-                    </p>
-                </div>
-                <button 
-                    @click="router.push('/')" 
-                    class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    🏠 Về trang chủ
-                </button>
             </div>
         </div>
-    </div>
     
     <!-- Normal content when not expired or in preview mode -->
-    <div v-else class="preview-layout">
+    <div v-else class="relative min-h-screen select-none">
         <slot />
         
         <!-- Back button - only show in preview mode -->
         <div v-if="showBackButton && isPreviewMode" class="fixed bottom-6 right-6 z-50">
             <button 
                 @click="handleBackButton"
-                class="win2k-button flex items-center gap-2"
+                class="flex items-center gap-2 bg-[#e0e0e0] text-black border border-[#d0d0c8] px-4 py-2 rounded-md shadow-sm hover:bg-[#f0f0f0] active:translate-y-[1px] transition-transform"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -360,32 +363,9 @@ const handleBackButton = async () => {
 };
 </script>
 
-<style scoped>
-.preview-layout {
-    position: relative;
-    min-height: 100vh;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-.win2k-button {
-    border: 1px outset #d0d0c8;
-    background-color: #e0e0e0;
-    color: black;
-    font-size: 14px;
-    padding: 12px 24px;
-    cursor: pointer;
-    min-width: 120px;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    transition: none;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-}
-
-body {
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-}
-</style>
+<!--
+  All styling for preview layout is now done with Tailwind utilities.
+  Removed scoped CSS to follow the '100% Tailwind' policy. If you still need
+  specific touch-action or select behavior, consider adding a Tailwind utility plugin
+  or applying inline attributes selectively.
+-->

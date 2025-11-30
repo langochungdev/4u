@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Indie+Flower&display=swap");
+
+.font-handwriting {
+  font-family: "Amatic SC", cursive !important;
+}
+
+.font-content {
+  font-family: "Indie Flower", cursive !important;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Merry";
+  src: url("./Merry.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.christmas-text-img {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 5px rgba(255, 0, 0, 0.3));
+  animation: imgGlow 2s ease-in-out infinite alternate;
+  aspect-ratio: auto;
+}
+
+@keyframes imgGlow {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+  }
+  100% {
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 1))
+      drop-shadow(0 0 15px rgba(255, 0, 0, 0.6));
+  }
+}
+
+.show-button {
+  animation: showButton 1.5s forwards;
+}
+@keyframes showButton {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tree-container:hover .tree-icon,
+.tree-container:active .tree-icon {
+  animation: shake 0.5s ease-in-out infinite;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: perspective(2500px);
+  transition: 1s;
+  background-color: transparent;
+}
+
+.card-wrapper:hover .card,
+.card-wrapper.open .card {
+  transform: perspective(2500px) rotate(15deg) scale(1.1);
+}
+
+.card:before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #bac1ba;
+  transform-origin: bottom;
+  transform: skewX(-45deg);
+}
+.card:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 2px;
+  height: 100%;
+  background: #92a29c;
+  transform-origin: left;
+  transform: skewY(-45deg);
+}
+
+.imgBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: left;
+  transition: 1s;
+  z-index: 20;
+  background-color: transparent;
+}
+
+.bark {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #e0e1dc;
+  opacity: 0;
+  transition: 1s;
+  z-index: 2;
+}
+
+.full-cover-img {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 101%;
+  height: 101%;
+  object-fit: cover;
+  display: block;
+  z-index: 1;
+  border-radius: 2px;
+}
+
+.card-wrapper:hover .imgBox,
+.card-wrapper.open .imgBox {
+  transform: rotateY(-135deg) !important;
+}
+
+.card-wrapper:hover .bark,
+.card-wrapper.open .bark {
+  opacity: 1;
+  box-shadow: 300px 200px 100px rgba(0, 0, 0, 0.4) inset;
+}
+
+.details {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+  z-index: 1;
+  text-align: center;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 10px 0 30px rgba(0, 0, 0, 0.1);
+  padding-bottom: 10px;
+}
+
+:deep(.snowflake) {
+  position: absolute;
+  top: -10px;
+  background-color: #fff;
+  border-radius: 50%;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: snow linear infinite;
+  box-shadow: 0 0 3px #fff, 0 0 1px #fff;
+}
+@keyframes snow {
+  0% {
+    top: -10px;
+    opacity: 1;
+  }
+  100% {
+    top: 100vh;
+    opacity: 0;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c0392b;
+  border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

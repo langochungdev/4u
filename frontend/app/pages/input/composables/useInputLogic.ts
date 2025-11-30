@@ -15,7 +15,7 @@ export const useInputLogic = () => {
   const route = useRoute()
   const router = useRouter()
   const previewStore = usePreviewStore()
-  const emailCookie = useCookie('email')
+  const emailCookie = useCookie('email', { maxAge: 315360000 })
   const { $firestore } = useNuxtApp()
   const db = $firestore
   const config = useRuntimeConfig()

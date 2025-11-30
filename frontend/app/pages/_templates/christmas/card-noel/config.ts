@@ -2,18 +2,18 @@ import type { TemplateConfig } from "@/config/templates";
 import demo from "./demo.webp";
 
 const config: TemplateConfig = {
-  title: "rose-and-letter - Thiệp gửi lời chúc",
-  description: "Template thiệp chúc mừng cho 20/11.",
+  title: "card-noel - giáng sinh an lành",
+  description: "Thiệp giáng sinh với hiệu ứng mở bao thư 3D",
   createdBy: "TAN",
-
   maxImages: 1,
   maxVideos: 0,
   maxAudios: 1,
-  maxContent: 2,
+  maxContent: 3,
 
   contentPlaceholders: [
-    "Tiêu đề trên thiệp (ví dụ: 'Tặng Thầy/Cô')",
-    "Nội dung lời chúc chính",
+    "Tiêu đề (VD: Merry Christmas)",
+    "Nhập lời chúc của bạn ở đây...",
+    "Tên người gửi (VD: ♥ From ... ♥)",
   ],
 
   thumbnail: demo,

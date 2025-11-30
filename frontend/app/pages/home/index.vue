@@ -130,12 +130,12 @@ useSeoMeta({
   description: 'Tạo thiệp điện tử độc đáo và miễn phí với hàng trăm mẫu thiệp đẹp: sinh nhật, Valentine, Giáng sinh, 20/11. Dễ dàng tùy chỉnh với ảnh, video, nhạc. Chia sẻ ngay!',
   ogTitle: 'Tạo Thiệp Điện Tử Miễn Phí - Story4U',
   ogDescription: 'Hàng trăm mẫu thiệp điện tử đẹp cho mọi dịp. Tùy chỉnh dễ dàng với ảnh, video, nhạc. Tạo và chia sẻ ngay!',
-  ogImage: '/meta-img.webp',
+  ogImage: 'https://story4u.online/meta-img.webp',
   ogUrl: 'https://story4u.online/home',
   twitterCard: 'summary_large_image',
   twitterTitle: 'Tạo Thiệp Điện Tử Miễn Phí - Story4U',
   twitterDescription: 'Hàng trăm mẫu thiệp điện tử đẹp cho mọi dịp. Tạo ngay!',
-  twitterImage: '/meta-img.webp'
+  twitterImage: 'https://story4u.online/meta-img.webp'
 })
 
 useHead({
@@ -177,7 +177,7 @@ const EmailOtpModal = defineAsyncComponent(() =>
   import('@/components/EmailOtpModal.vue')
 )
 
-const emailCookie = useCookie('email')
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const loadingDemo = ref<string | null>(null)
 
 // Debounce function to prevent multiple rapid calls
@@ -317,15 +317,30 @@ function prefetchInputPage() {
     }
 }
 
-async function goToDemo(section: Section, card: TemplateCard) {
+function goToDemo(section: Section, card: TemplateCard) {
     const key = getCardKey(section, card)
     loadingDemo.value = key
     try {
-        await navigateTo(`/${section.id}/${card.id}/${card.demoId}`)
+        // Open demo in a new tab instead of navigating in the current one
+        const router = useRouter()
+        const resolved = router.resolve({ path: `/${section.id}/${card.id}/${card.demoId}` })
+        const url = resolved.href ?? `/${section.id}/${card.id}/${card.demoId}`
+        
+        // Use anchor click to avoid popup blockers
+        const a = document.createElement('a')
+        a.href = /^https?:\/\//.test(url) ? url : `${window.location.origin}${url}`
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
     } catch (err) {
         console.warn('Navigation failed:', err)
     } finally {
-        loadingDemo.value = null
+        // small delay so the overlay is visible for a short feedback moment and then removed
+        setTimeout(() => {
+            loadingDemo.value = null
+        }, 200)
     }
 }
 

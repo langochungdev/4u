@@ -1,7 +1,6 @@
 <template>
     <div class="main-layout min-h-screen flex flex-col">
-        <header
-            class="sticky top-0 z-50 border-b border-gray-700 bg-transparent backdrop-blur-sm"
+        <header class="sticky top-0 z-50 border-b border-gray-700 bg-transparent backdrop-blur-sm"
             style="-webkit-backdrop-filter: blur(4px);">
             <div class="container mx-auto px-2 py-1">
                 <div class="flex items-center justify-between gap-2 md:grid md:grid-cols-3 md:gap-4">
@@ -11,12 +10,14 @@
                         </NuxtLink>
                     </div>
                     <div class="text-center text-white text-xs max-w-[50ch] md:max-w-[80ch] px-2 hidden md:block">
-                        <p>mail góp ý: langochungdev@gmail.com</p>
-                        <p>mỗi tuần sẽ xuất bản 8 template chủ đề theo sự kiện gần nhất</p>
-                        <!-- <p>hiện tại đang demo nên sẽ miễn phí hoàn toàn 100%</p> -->
+                        <p>MERRY CHRISTMAS</p>
+                        <p>Đóng góp: langochungdev, TAN, khadev, DuongDinhTrac</p>
+                        <!-- <p>Mail góp ý: langochungdev@gmail.com</p> -->
+
                     </div>
                     <div class="flex items-center gap-1 md:gap-2 justify-end shrink-0">
-                        <button v-if="userEmail" @click="showCreatedModal = true" class="win2k-button header-button new-button">
+                        <button v-if="userEmail" @click="showCreatedModal = true"
+                            class="win2k-button header-button new-button">
                             <img class="button-hat" src="./santa-hat.webp" alt="">
                             Đã tạo
                         </button>
@@ -34,8 +35,8 @@
             <slot />
         </main>
 
-    <EmailOtpModal v-model="showEmailModal" :defaultEmail="userEmail || ''" @verified="handleVerified" />
-    <CreatedEcardsModal v-model="showCreatedModal" :email="userEmail || ''" />
+        <EmailOtpModal v-model="showEmailModal" :defaultEmail="userEmail || ''" @verified="handleVerified" />
+        <CreatedEcardsModal v-model="showCreatedModal" :email="userEmail || ''" />
 
         <footer class="border-t border-gray-700 bg-gray-900 py-6 text-center text-white">
             <div class="container mx-auto px-4">
@@ -100,52 +101,21 @@
             </div>
         </footer>
 
-        <div class="snowflakes" aria-hidden="true">
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-            <div class="snowflake">
-                <div class="inner">❅</div>
-            </div>
-        </div>
+        <component v-if="showSnow" :is="Snowflakes" />
     </div>
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+
 const showEmailModal = ref(false)
 const showCreatedModal = ref(false)
 
-const emailCookie = useCookie('email')
+// Lazy load the Snowflakes component after home has fully loaded to improve initial performance
+const Snowflakes = defineAsyncComponent(() => import('@/components/Snowflakes.vue'))
+const showSnow = ref(false)
+
+const emailCookie = useCookie('email', { maxAge: 315360000 })
 const userEmail = computed(() => emailCookie.value || null)
 
 // Debug: watch userEmail changes
@@ -162,8 +132,8 @@ const _metaState: {
     themeColorCreated?: boolean
     appleStatus?: string | null
     appleStatusCreated?: boolean
-    appleCapable?: string | null
-    appleCapableCreated?: boolean
+    mobileCapable?: string | null
+    mobileCapableCreated?: boolean
 } = {}
 
 const DESIRED_THEME_COLOR = 'rgba(22,16,12,0)'
@@ -197,10 +167,32 @@ onMounted(() => {
     const a = setOrCreateMeta('apple-mobile-web-app-status-bar-style', DESIRED_APPLE_STATUS)
     _metaState.appleStatus = a.previous
     _metaState.appleStatusCreated = a.created
-    // apple-mobile-web-app-capable (for PWA translucent status bar to work)
-    const cap = setOrCreateMeta('apple-mobile-web-app-capable', 'yes')
-    _metaState.appleCapable = cap.previous
-    _metaState.appleCapableCreated = cap.created
+    // mobile-web-app-capable (for PWA translucent status bar to work)
+    const cap = setOrCreateMeta('mobile-web-app-capable', 'yes')
+    _metaState.mobileCapable = cap.previous
+    _metaState.mobileCapableCreated = cap.created
+})
+
+// Listen for a custom event emitted from the home page once it finishes loading
+function handleHomeLoaded() {
+    // only show snow when on home page
+    const route = useRoute()
+    if (route.path === '/home' || route.path === '/') {
+        showSnow.value = true
+    }
+}
+
+onMounted(() => {
+    if (process.client) {
+        window.addEventListener('home:loaded', handleHomeLoaded)
+        // fallback: if the user already navigated to home and no event arrives, show after a small delay
+        const r = useRoute()
+        if (r.path === '/home' || r.path === '/') {
+            setTimeout(() => {
+                showSnow.value = true
+            }, 2000)
+        }
+    }
 })
 
 onUnmounted(() => {
@@ -222,14 +214,17 @@ onUnmounted(() => {
             appleEl.content = _metaState.appleStatus ?? ''
         }
     }
-    // revert apple-mobile-web-app-capable
-    const appleCapEl = document.head.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement | null
-    if (appleCapEl) {
-        if (_metaState.appleCapableCreated) {
-            appleCapEl.remove()
-        } else if (_metaState.appleCapable !== undefined) {
-            appleCapEl.content = _metaState.appleCapable ?? ''
+    // revert mobile-web-app-capable
+    const mobileCapEl = document.head.querySelector('meta[name="mobile-web-app-capable"]') as HTMLMetaElement | null
+    if (mobileCapEl) {
+        if (_metaState.mobileCapableCreated) {
+            mobileCapEl.remove()
+        } else if (_metaState.mobileCapable !== undefined) {
+            mobileCapEl.content = _metaState.mobileCapable ?? ''
         }
+    }
+    if (process.client) {
+        window.removeEventListener('home:loaded', handleHomeLoaded)
     }
 })
 
@@ -349,36 +344,5 @@ html, body, .main-layout {
     -ms-touch-action: manipulation;
 }
 
-/* customizable snowflake styling */
-.snowflake {
-  color: #fff;
-  font-size: 1em;
-  font-family: Arial, sans-serif;
-  text-shadow: 0 0 5px #000;
-}
-
-.snowflake,.snowflake .inner{animation-iteration-count:infinite;animation-play-state:running}@keyframes snowflakes-fall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(110vh) rotate(360deg)}}@keyframes snowflakes-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(80px)}}.snowflake{position:fixed;top:-10%;z-index:-1;-webkit-user-select:none;user-select:none;cursor:default;pointer-events:none;animation-name:snowflakes-shake;animation-duration:20s;animation-timing-function:ease-in-out}.snowflake .inner{animation:snowflakes-fall 10s linear infinite}.snowflake:nth-of-type(0){left:1%;animation-delay:0s; font-size: 0.8em;}
-.snowflake:nth-of-type(0) .inner{animation-delay:0s; animation-duration: 9s;}
-.snowflake:first-of-type{left:10%;animation-delay:1s; font-size: 1.2em;}
-.snowflake:first-of-type .inner,.snowflake:nth-of-type(8) .inner{animation-delay:1s; animation-duration: 11s;}
-.snowflake:nth-of-type(2){left:20%;animation-delay:.5s; font-size: 0.9em;}
-.snowflake:nth-of-type(2) .inner,.snowflake:nth-of-type(6) .inner{animation-delay:6s; animation-duration: 8s;}
-.snowflake:nth-of-type(3){left:30%;animation-delay:2s; font-size: 1.1em;}
-.snowflake:nth-of-type(11) .inner,.snowflake:nth-of-type(3) .inner{animation-delay:4s; animation-duration: 12s;}
-.snowflake:nth-of-type(4){left:40%;animation-delay:2s; font-size: 0.7em;}
-.snowflake:nth-of-type(10) .inner,.snowflake:nth-of-type(4) .inner{animation-delay:2s; animation-duration: 10s;}
-.snowflake:nth-of-type(5){left:50%;animation-delay:3s; font-size: 1.3em;}
-.snowflake:nth-of-type(5) .inner{animation-delay:8s; animation-duration: 9.5s;}
-.snowflake:nth-of-type(6){left:60%;animation-delay:2s; font-size: 0.6em;}
-.snowflake:nth-of-type(7){left:70%;animation-delay:1s; font-size: 1.4em;}
-.snowflake:nth-of-type(7) .inner{animation-delay:2.5s; animation-duration: 11.5s;}
-.snowflake:nth-of-type(8){left:80%;animation-delay:0s; font-size: 1.4em;}
-.snowflake:nth-of-type(9){left:90%;animation-delay:1.5s; font-size: 1.6em;}
-.snowflake:nth-of-type(9) .inner{animation-delay:3s; animation-duration: 8.5s;}
-.snowflake:nth-of-type(10){left:25%;animation-delay:0s; font-size: 1.3em;}
-.snowflake:nth-of-type(11){left:65%;animation-delay:2.5s; font-size: 1.5em;}
-
-.snowflake:nth-of-type(n+9) {
-  z-index: 9999;
-}
+/* snowflake styles are provided by a lazy-loaded component */
 </style>
