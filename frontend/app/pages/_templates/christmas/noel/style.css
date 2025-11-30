@@ -1,15 +1,16 @@
-/* /christmas/noel/style.css */
-
 @import url("https://fonts.googleapis.com/css?family=Cookie");
-html,
-body {
+
+/* ===== NỀN / BODY ===== */
+
+body,
+html {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
 }
 
-.noel-page {
+body {
     background-color: darkseagreen;
     overflow: hidden;
     text-align: center;
@@ -17,35 +18,117 @@ body {
     align-items: center;
     justify-content: center;
     font-family: "Cookie", cursive;
-    min-height: 100vh;
 }
 
-svg {
+
+/* ===== SLIDER SVG ===== */
+
+#loveSliderSVG {
     width: 90%;
     height: 100%;
-    visibility: hidden;
-    overflow: visible;
+    visibility: visible;
 }
+
+.trackBg {
+    stroke: #fffcf9;
+    stroke-linecap: round;
+    stroke-width: 15;
+}
+
+.trackMiddle {
+    stroke: green;
+    stroke-linecap: round;
+    stroke-width: 6;
+    opacity: 1;
+}
+
+.track {
+    stroke: #ff595e;
+    stroke-linecap: round;
+    stroke-width: 6;
+}
+
+.heartChat {
+    transform-origin: 50% 105%;
+}
+
+.heartFill {
+    transform-origin: 50% 0%;
+}
+
+.follower,
+.liquidFollower {
+    fill: #62b6cb;
+    stroke: #fffcf9;
+}
+
+
+/* ===== DRAGGER ===== */
+
+.dragger {
+    cursor: pointer;
+}
+
+
+/* ===== SCENE / CÂY ===== */
 
 .container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    display: none;
-    /* ban đầu ẩn giống HTML */
 }
 
 #days {
     font-size: 50px;
     color: #fff;
-    text-align: center;
     letter-spacing: 3px;
     margin: 50px 0 0 0;
 }
 
+.mainSVG {
+    width: 800px;
+    height: 600px;
+    visibility: hidden;
+    overflow: visible;
+}
 
-/* Snow */
+
+/* ===== PARTICLE ===== */
+
+.particle {
+    transform-origin: 50% 50%;
+}
+
+.noel-love-root {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ===== TREE STAR ===== */
+
+.treeStar {
+    transform-origin: 50% 50%;
+}
+
+.treeStarOutline {
+    opacity: 0;
+}
+
+
+/* ===== SPARKLE ===== */
+
+.sparkle {
+    fill: url(#dotGrad);
+    opacity: 1;
+}
+
+
+/* ===== TUYẾT ===== */
 
 .drop {
     position: absolute;
@@ -78,169 +161,31 @@ svg {
 }
 
 
-/* ========== WRAPPER PAGE ========== */
+/* ===== EFFECT ===== */
 
-.noel-page {
-    min-height: 100vh;
-    background-color: darkseagreen;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: "Cookie", cursive;
-    overflow: hidden;
-}
-
-
-/* ========== SLIDER ========== */
-
-.noel-slider-svg {
-    width: 90%;
-    max-width: 800px;
-    height: 220px;
-    margin-bottom: 16px;
-}
-
-
-/* ========== CÂY THÔNG ========== */
-
-.noel-tree-container {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-    height: auto;
-}
-
-.noel-tree-svg {
-    width: 100%;
-}
-
-
-/* ========== SANTA + GIFT OVERLAY ========== */
-
-.noel-santa-layer {
-    pointer-events: none;
-    /* để click xuyên xuống SVG nếu cần, gift sẽ bật lại pointer-events */
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-}
-
-.noel-santa {
-    pointer-events: none;
-    width: 160px;
-    max-width: 30%;
-    transform: translateY(10px);
-}
-
-
-/* Gift: mặc định ẩn opacity, GSAP sẽ animate */
-
-.noel-gift {
-    pointer-events: auto;
-    position: absolute;
-    bottom: 90px;
-    /* gần gốc cây thông */
-    border: none;
-    background: none;
-    padding: 0;
-    cursor: pointer;
-    opacity: 0;
-}
-
-.noel-gift:nth-child(2) {
-    left: 35%;
-}
-
-.noel-gift:nth-child(3) {
-    left: 50%;
-}
-
-.noel-gift:nth-child(4) {
-    left: 65%;
-}
-
-.noel-gift img {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-    transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.noel-gift:hover img {
-    transform: translateY(-6px) scale(1.05);
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
-}
-
-
-/* ========== MODAL QUÀ ========== */
-
-.noel-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-}
-
-.noel-modal {
-    background: rgba(255, 255, 255, 0.97);
-    border-radius: 18px;
-    padding: 18px 20px 16px;
-    max-width: 360px;
-    width: calc(100% - 32px);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-    text-align: center;
-    position: relative;
-}
-
-.noel-modal-img-wrap {
-    margin-bottom: 12px;
-}
-
-.noel-modal-img {
-    max-width: 100%;
-    border-radius: 12px;
-    object-fit: cover;
-}
-
-.noel-modal-text {
-    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
-    color: #333;
-    margin-bottom: 12px;
-    white-space: pre-line;
-}
-
-.noel-modal-close {
-    border: none;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #ff595e, #ff9a76);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-
-/* Mobile tweak */
-
-@media (max-width: 640px) {
-    .noel-slider-svg {
-        height: 200px;
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: .7;
+        transform: scale(1);
     }
-    .noel-santa {
-        width: 120px;
+    50% {
+        opacity: 1;
+        transform: scale(1.7);
     }
-    .noel-gift img {
-        width: 60px;
-        height: 60px;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(.5);
+        opacity: 0
     }
+    100% {
+        transform: scale(1);
+        opacity: 1
+    }
+}
+
+.sparkle.twinkle {
+    animation: twinkle 3s infinite ease-in-out;
 }

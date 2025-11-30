@@ -1,69 +1,51 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
-import { useTemplateData } from "@/composables/useTemplateData";
-import TEMPLATE_CONFIG from "./config";
-
+import { ref, onMounted } from "vue";
 import { initNoelLove } from "./noelLove";
-import { TREE_SVG } from "./treeSvg";
+import "./style.css"; // CSS gốc của HTML (body, snow, ...)
 
-import santaUrl from "./img/santa.webp?url";
-import giftUrl from "./img/gift.webp?url";
+const rootRef = ref<HTMLElement | null>(null);
 
-// Lấy data từ builder (1 ảnh + 1 content cho popup quà)
-const { contextData } = useTemplateData(TEMPLATE_CONFIG);
+const showSlider = ref(true);
+const showScene = ref(false);
 
-const popupImage = computed(() => contextData.value?.images?.[0] || "");
-const popupText = computed(
-  () =>
-    contextData.value?.content?.[0] ||
-    "Merry Christmas! Chúc bạn có một mùa Giáng Sinh an lành ❤️"
-);
-
-const showModal = ref(false);
-const activeGift = ref<number | null>(null);
-
-// Tạm cho 3 hộp quà giống nhau
-const gifts = computed(() => [0, 1, 2]);
-
-// SVG cây thông (string literal)
-const treeSvg = ref(TREE_SVG);
-
-function openGift(index: number) {
-  activeGift.value = index;
-  showModal.value = true;
+function handleSliderDone() {
+  showSlider.value = false;
+  showScene.value = true;
 }
 
-function closeModal() {
-  showModal.value = false;
-  activeGift.value = null;
-}
-
-// Chạy GSAP + cây thông + slider bên client
 onMounted(() => {
-  if (process.client) {
-    initNoelLove();
+  if (rootRef.value) {
+    // initNoelLove(root, callback khi kéo full)
+    initNoelLove(rootRef.value, handleSliderDone);
   }
 });
 </script>
 
 <template>
   <ClientOnly>
-    <div class="noel-page">
-      <!-- ============ SLIDER TRÁI TIM ============ -->
+    <div ref="rootRef" class="noel-love-root">
+      <!-- ================== SLIDER TRÁI TIM (GIỐNG HỆT HTML) ================== -->
       <svg
+        v-if="showSlider"
         id="loveSliderSVG"
-        class="noel-slider-svg"
-        viewBox="0 0 800 250"
+        viewBox="0 0 800 600"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid meet"
       >
-        <!-- Track -->
+        <!-- 🔽 DÁN NGUYÊN ĐOẠN SVG SLIDER TỪ HTML GỐC VÀO ĐÂY 🔽
+             Bắt đầu từ:
+               <line class="trackBg" x1="50" x2="750" y1="366" .../>
+             cho tới:
+               <rect class="dragger" x="-100" y="105" width="290" height="220" .../>
+        -->
+
+        <!-- ví dụ (đoạn đầu) -->
         <line
           class="trackBg"
           x1="50"
           x2="750"
-          y1="150"
-          y2="150"
+          y1="366"
+          y2="366"
           stroke="#FFFCF9"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -73,8 +55,8 @@ onMounted(() => {
           class="trackMiddle"
           x1="50"
           x2="750"
-          y1="150"
-          y2="150"
+          y1="366"
+          y2="366"
           stroke="green"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -85,105 +67,73 @@ onMounted(() => {
           class="track"
           x1="50"
           x2="750"
-          y1="150"
-          y2="150"
+          y1="366"
+          y2="366"
           stroke="#ff595e"
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="6"
         />
 
-        <!-- Khung chat trái tim -->
-        <g id="heartChat" class="heartChat">
-          <path
-            d="M115.44,92H81.15a8.32,8.32,0,0,0-5.9,2.45l-9.9,9.9a1,1,0,0,1-1.34,0l-9.9-9.9A8.35,8.35,0,0,0,48.2,92H13.91A10.44,10.44,0,0,1,3.5,81.6V13.91A10.45,10.45,0,0,1,13.91,3.5H115.44a10.44,10.44,0,0,1,10.41,10.41V81.6A10.43,10.43,0,0,1,115.44,92Z"
-            fill="none"
-          />
-          <path
-            d="M115.44,92H81.15a8.32,8.32,0,0,0-5.9,2.45l-9.9,9.9a1,1,0,0,1-1.34,0l-9.9-9.9A8.35,8.35,0,0,0,48.2,92H13.91A10.44,10.44,0,0,1,3.5,81.6V13.91A10.45,10.45,0,0,1,13.91,3.5H115.44a10.44,10.44,0,0,1,10.41,10.41V81.6A10.43,10.43,0,0,1,115.44,92Z"
-            fill="none"
-            stroke="#FFFCF9"
-            stroke-miterlimit="10"
-            stroke-width="5"
-          />
-
-          <mask id="heartFillMask">
-            <rect class="heartFill" x="-54" y="72" width="237" height="91" fill="#FFF" />
-          </mask>
-
-          <path
-            id="heartBg"
-            d="M76.16,23a13.23,13.23,0,0,0-10.83,5.63,13.24,13.24,0,0,0-24.08,7.62c0,18.06,24.08,34.92,24.08,34.92S89.41,54.33,89.41,36.27A13.25,13.25,0,0,0,76.16,23Z"
-            fill="#FFF"
-            opacity="0.1"
-          />
-          <g mask="url(#heartFillMask)">
-            <path
-              id="XXpinkHeart"
-              d="M76.16,23a13.23,13.23,0,0,0-10.83,5.63,13.24,13.24,0,0,0-24.08,7.62c0,18.06,24.08,34.92,24.08,34.92S89.41,54.33,89.41,36.27A13.25,13.25,0,0,0,76.16,23Z"
-              fill="#ff595e"
-            />
-          </g>
-        </g>
-
-        <!-- follower & liquidFollower cho GSAP dùng (ẩn) -->
-        <g class="follower">
-          <circle cx="50" cy="150" r="2" fill="transparent" />
-        </g>
-        <g class="liquidFollower">
-          <circle cx="50" cy="150" r="2" fill="transparent" />
-        </g>
-
-        <!-- Dragger vô hình để GSAP kéo -->
-        <rect
-          class="dragger"
-          x="50"
-          y="80"
-          width="290"
-          height="140"
-          fill="transparent"
-          stroke="none"
-        />
+        <!-- nhóm gốc: <g id="heartChat" class="heartChat">...</g> -->
+        <!-- follower + liquidFollower + dragger y chang -->
+        <!-- 👉 copy nguyên từ file HTML, không sửa gì -->
       </svg>
 
-      <!-- ============ CẢNH CÂY THÔNG + SANTA + QUÀ ============ -->
-      <!-- .container để noelLove.ts show/hide -->
-      <div class="container">
-        <div class="noel-tree-container">
-          <!-- SVG cây thông (literal string) -->
-          <div class="noel-tree-svg" v-html="treeSvg" />
+      <!-- ================== CÂY THÔNG GSAP (GIỐNG HỆT HTML) ================== -->
+      <div v-if="showScene" class="container">
+        <p id="days">Merry christmas !!!</p>
 
-          <!-- LAYER SANTA + GIFT overlay trên cây thông -->
-          <div class="noel-santa-layer">
-            <img class="noel-santa" :src="santaUrl" alt="Santa" />
+        <svg
+          class="mainSVG"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          viewBox="0 0 800 600"
+        >
+          <!-- 🔽 DÁN NGUYÊN mainSVG TỪ HTML GỐC VÀO ĐÂY 🔽
+               Bắt đầu từ:
+                 <defs>
+                   <circle id="circ" .../>
+                   <polygon id="star" .../>
+                   ...
+                 </defs>
+               cho tới:
+                 </svg> (cuối cây thông)
+          -->
 
-            <button
-              v-for="(g, index) in gifts"
-              :key="index"
-              type="button"
-              class="noel-gift"
-              @click="openGift(index)"
-            >
-              <img :src="giftUrl" alt="Gift" />
-            </button>
-          </div>
-        </div>
-      </div>
+          <!-- ví dụ (đầu defs) -->
+          <defs>
+            <circle id="circ" class="particle" cx="0" cy="0" r="1" />
+            <polygon
+              id="star"
+              class="particle"
+              points="4.55,0 5.95,2.85 9.1,3.3 6.82,5.52 7.36,8.65 4.55,7.17 1.74,8.65 2.27,5.52 0,3.3 3.14,2.85 "
+            />
+            <!-- ... toàn bộ defs khác, mask, filter ... -->
+          </defs>
 
-      <!-- ============ POPUP QUÀ ============ -->
-      <div v-if="showModal" class="noel-modal-backdrop" @click.self="closeModal">
-        <div class="noel-modal">
-          <div class="noel-modal-img-wrap" v-if="popupImage">
-            <img :src="popupImage" alt="Gift content" class="noel-modal-img" />
-          </div>
-          <p class="noel-modal-text">
-            {{ popupText }}
-          </p>
-          <button type="button" class="noel-modal-close" @click="closeModal">
-            Đóng
-          </button>
-        </div>
+          <g class="whole">
+            <g class="pContainer"></g>
+
+            <!-- toàn bộ <g class="tree" ...>, treeBottomPath, treePath,
+                 treeBottom, treePot, treeStar, circle.sparkle... -->
+          </g>
+        </svg>
       </div>
     </div>
   </ClientOnly>
 </template>
+
+<!-- CSS global từ file html -->
+<style src="./style.css"></style>
+
+<!-- CSS nhỏ cho wrapper trong Vue -->
+<style scoped>
+.noel-love-root {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
