@@ -7,7 +7,7 @@ import { initNoelLove, initChristmasScene } from "./noelLove";
 // --- IMPORT ẢNH ---
 import bgPhase2Img from "./img/top.webp";     
 import mainCenterImg from "./img/thong.webp";  
-import triggerImg from "./img/oip.webp";       
+import triggerImg from "./img/OIP.webp";     
 import santaImgPath from "./img/santa.webp";   
 import giftImgPath from "./img/gift.webp";     
 
