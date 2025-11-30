@@ -1,0 +1,322 @@
+/* style.css */
+
+
+/* --- 1. FULLSCREEN & BACKGROUND --- */
+
+.fullscreen-fix {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 999999;
+    background: radial-gradient(circle at top, #fef9c3 0, #bbf7d0 40%, #059669 100%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cookie', cursive, sans-serif;
+    touch-action: none;
+    /* Hiệu ứng chuyển nền mượt mà */
+    transition: background-image 1s ease-in-out;
+}
+
+
+/* Thêm lớp phủ tối khi sang Phase 2 để cây thông và chữ nổi bật hơn trên nền ảnh */
+
+.fullscreen-fix.phase-two::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    /* Tối đi 30% */
+    z-index: 1;
+    pointer-events: none;
+}
+
+
+/* --- 2. SLIDER (Giữ nguyên) --- */
+
+.slider-container {
+    width: 95%;
+    max-width: 801px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.guide-text {
+    color: #064e3b;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+#loveSliderSVG {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.trackBg {
+    stroke: #fff;
+    stroke-width: 15;
+    stroke-linecap: round;
+}
+
+.trackMiddle {
+    stroke: #16a34a;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.track {
+    stroke: #ef4444;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.heartChat,
+.dragger {
+    cursor: grab;
+}
+
+
+/* --- 3. SCENE CÂY THÔNG --- */
+
+.scene-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    /* Nằm trên lớp phủ tối */
+}
+
+.christmas-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* CÂY THÔNG CHÍNH (thong.webp) */
+
+.main-illu {
+    height: 85vh;
+    /* Cao gần hết màn hình */
+    width: auto;
+    max-width: 95vw;
+    object-fit: contain;
+    /* Căn giữa tuyệt đối */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+
+/* Ông già Noel */
+
+.decor-santa {
+    position: absolute;
+    bottom: 12%;
+    left: 2%;
+    width: 100px;
+    max-width: 25vw;
+    z-index: 6;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    transform: rotate(-5deg);
+}
+
+
+/* Hộp quà */
+
+.decor-gift {
+    position: absolute;
+    bottom: 12%;
+    right: 2%;
+    width: 80px;
+    max-width: 20vw;
+    z-index: 6;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    transform: rotate(10deg);
+}
+
+
+/* Nút Mở Thư */
+
+.letter-trigger {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    z-index: 20;
+    /* Nổi lên cao nhất */
+    animation: floatBtn 3s ease-in-out infinite;
+}
+
+.letter-img {
+    width: 90px;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+    transition: transform 0.2s;
+}
+
+.letter-trigger:hover .letter-img {
+    transform: scale(1.1);
+}
+
+.letter-label {
+    background: #fff;
+    color: #d32f2f;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+}
+
+@keyframes floatBtn {
+    0%,
+    100% {
+        transform: translate(-50%, 0);
+    }
+    50% {
+        transform: translate(-50%, -10px);
+    }
+}
+
+
+/* Tuyết rơi */
+
+.drop {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.drop.animate {
+    animation: falling 5s linear infinite;
+}
+
+@keyframes falling {
+    to {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+}
+
+
+/* Modal */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    padding: 20px;
+}
+
+.modal-card {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #065f46;
+}
+
+.modal-img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4), /* Màu Đỏ (Red) */
+    0 5px 15px rgba(251, 191, 36, 0.6);
+    /* Màu Vàng (Gold) */
+    border: 3px solid #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 50px rgba(220, 38, 38, 0.6), 0 8px 20px rgba(251, 191, 36, 0.8);
+}
+
+.modal-msg {
+    color: #333;
+    line-height: 1.5;
+    white-space: pre-line;
+    font-family: sans-serif;
+}
+
+@media (max-width: 600px) {
+    .main-illu {
+        height: 75vh;
+    }
+    /* Thu nhỏ cây 1 xíu trên mobile để chừa chỗ cho nút */
+    .decor-santa {
+        width: 80px;
+        bottom: 15%;
+    }
+    .decor-gift {
+        width: 60px;
+        bottom: 15%;
+    }
+    .letter-img {
+        width: 80px;
+    }
+}
