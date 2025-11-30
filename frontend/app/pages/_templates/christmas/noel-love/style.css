@@ -11,12 +11,9 @@
     height: 100vh;
     height: 100dvh;
     z-index: 999999;
-    /* Nền mặc định Phase 1 (Xanh) */
     background: radial-gradient(circle at top, #fef9c3 0, #bbf7d0 40%, #059669 100%);
-    /* Cấu hình hiển thị ảnh nền cho Phase 2 */
     background-position: center;
     background-size: cover;
-    /* Ảnh phủ kín màn hình */
     background-repeat: no-repeat;
     overflow: hidden;
     display: flex;
@@ -47,7 +44,7 @@
 
 .slider-container {
     width: 95%;
-    max-width: 800px;
+    max-width: 801px;
     text-align: center;
     height: 100%;
     display: flex;

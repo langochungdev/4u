@@ -5,11 +5,11 @@ import TEMPLATE_CONFIG from "./config";
 import { initNoelLove, initChristmasScene } from "./noelLove";
 
 // --- IMPORT ẢNH ---
-import bgPhase2Img from "./img/top.webp";     // 1. Ảnh NỀN (top.webp)
-import mainCenterImg from "./img/thong.webp";  // 2. Ảnh Cây thông chính (thong.webp)
-import triggerImg from "./img/oip.webp";       // Nút Thư
-import santaImgPath from "./img/santa.webp";   // Trang trí
-import giftImgPath from "./img/gift.webp";     // Trang trí
+import bgPhase2Img from "./img/top.webp";     
+import mainCenterImg from "./img/thong.webp";  
+import triggerImg from "./img/oip.webp";       
+import santaImgPath from "./img/santa.webp";   
+import giftImgPath from "./img/gift.webp";     
 
 definePageMeta({ layout: false });
 
