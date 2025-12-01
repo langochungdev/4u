@@ -4,7 +4,7 @@ export const CHRISTMAS_SECTION = createSection({
   id: 'christmas',
   title: 'Giáng Sinh',
   description: 'Thiệp chúc mừng Giáng Sinh',
-  demoId: 'xDSljMHauh0aXZHzmTjl'
+  demoId: 'p84n1RkyJZJ2KGhOAk08'
 });
 
 export const  CHRISTMAS_TEMPLATES_CONFIG: Record<string, TemplateVisibilityConfig> = {
