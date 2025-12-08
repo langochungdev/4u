@@ -268,7 +268,7 @@ function handleVerified(email: string) {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/background.webp');
+    background-image: url('/bg.jpg');
     background-size: 300px auto;
     background-position: top left;
     background-repeat: repeat;
